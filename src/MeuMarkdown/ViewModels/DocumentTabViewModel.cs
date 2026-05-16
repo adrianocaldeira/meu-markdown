@@ -17,6 +17,22 @@ public partial class DocumentTabViewModel : ObservableObject
     [ObservableProperty]
     private bool _isDirty;
 
+    [ObservableProperty]
+    private int _wordCount;
+
+    [ObservableProperty]
+    private int _charCount;
+
+    [ObservableProperty]
+    private int _readingTimeMinutes;
+
+    public void UpdateMetrics(int words, int chars)
+    {
+        WordCount = words;
+        CharCount = chars;
+        ReadingTimeMinutes = Math.Max(1, words / 200);
+    }
+
     public ObservableCollection<Heading> Headings { get; } = new();
 
     [ObservableProperty]
