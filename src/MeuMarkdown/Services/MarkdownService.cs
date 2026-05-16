@@ -21,6 +21,7 @@ public class MarkdownService
             .UseAutoIdentifiers()
             .UseTaskLists()
             .UseAutoLinks()
+            .DisableHtml()  // security: bloqueia raw HTML/script no source markdown
             .Build();
 
         _htmlTemplate = LoadEmbeddedResource("MeuMarkdown.Resources.preview-template.html");

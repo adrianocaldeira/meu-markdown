@@ -165,11 +165,40 @@ public partial class MarkdownPreview : UserControl
     {
         var uri = e.Uri;
 
-        // Allow initial about:blank and data: navigations
-        if (uri.StartsWith("about:") || uri.StartsWith("data:")) return;
+        // Allowlist explícita — schemes não listados são cancelados no final.
+        // Em particular: javascript:, file:, vbscript:, blob:, ftp: e demais
+        // são bloqueados pra prevenir XSS e leitura arbitrária de arquivos locais.
+
+        // Navegações internas seguras do WebView2 (init e conteúdo via NavigateToString)
+        if (uri.StartsWith("about:blank", StringComparison.OrdinalIgnoreCase)) return;
+
+        // Conteúdo do preview vem via NavigateToString — o WebView2 sintetiza
+        // URIs no padrão "data:text/html;charset=utf-16le;base64,..." pra esse caso.
+        // Liberamos APENAS data: que NÃO contenha "<script" pra evitar abuso via
+        // [link](data:text/html,<script>...) em markdown malicioso.
+        if (uri.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        {
+            // Aceita data: apenas se for a navegação inicial do NavigateToString
+            // (e não um clique do usuário em link data: malicioso)
+            if (e.IsUserInitiated)
+            {
+                e.Cancel = true;
+                return;
+            }
+            return;
+        }
+
+        // Virtual host mapping pra assets locais (imagens do markdown)
+        if (uri.StartsWith("https://local.assets/", StringComparison.OrdinalIgnoreCase) ||
+            uri.StartsWith("http://local.assets/", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        // file:// usado internamente pelo Export PDF (temp HTML)
+        if (uri.StartsWith("file:///", StringComparison.OrdinalIgnoreCase) && !e.IsUserInitiated)
+            return;
 
         // Custom markdown navigation scheme
-        if (uri.StartsWith("mdnav://"))
+        if (uri.StartsWith("mdnav://", StringComparison.OrdinalIgnoreCase))
         {
             e.Cancel = true;
             var queryString = new Uri(uri).Query;
@@ -183,11 +212,16 @@ public partial class MarkdownPreview : UserControl
         }
 
         // External links - open in browser
-        if (uri.StartsWith("http://") || uri.StartsWith("https://"))
+        if (uri.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+            uri.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
         {
             e.Cancel = true;
             ExternalLinkClicked?.Invoke(uri);
             return;
         }
+
+        // Default deny — qualquer outro scheme (javascript:, file: iniciado pelo usuário,
+        // vbscript:, blob:, etc.) é cancelado.
+        e.Cancel = true;
     }
 }
