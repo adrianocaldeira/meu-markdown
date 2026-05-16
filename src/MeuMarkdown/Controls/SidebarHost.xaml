@@ -1,0 +1,12 @@
+<UserControl x:Class="MeuMarkdown.Controls.SidebarHost"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:panels="clr-namespace:MeuMarkdown.Controls.Panels"
+             Background="#f3f3f3">
+    <Grid>
+        <panels:ExplorerPanel x:Name="ExplorerPanelInstance" />
+        <panels:OutlinePanel x:Name="OutlinePanelInstance" Visibility="Collapsed" />
+        <panels:SearchPanel x:Name="SearchPanelInstance" Visibility="Collapsed" />
+        <panels:SettingsPanel x:Name="SettingsPanelInstance" Visibility="Collapsed" />
+    </Grid>
+</UserControl>

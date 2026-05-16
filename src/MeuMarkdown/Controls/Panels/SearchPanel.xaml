@@ -1,0 +1,14 @@
+<UserControl x:Class="MeuMarkdown.Controls.Panels.SearchPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="Transparent">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Text="BUSCAR" FontSize="11" FontWeight="SemiBold"
+                   Foreground="#6b7280" Margin="12,12,12,8" />
+        <TextBlock Grid.Row="1" Text="Em breve" Margin="12" Foreground="#9ca3af" FontStyle="Italic" />
+    </Grid>
+</UserControl>

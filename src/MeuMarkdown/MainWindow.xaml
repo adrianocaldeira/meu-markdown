@@ -133,189 +133,213 @@
         <KeyBinding Key="D2" Modifiers="Ctrl" Command="{x:Static local:MainWindow.FormatH2Command}" />
         <KeyBinding Key="D3" Modifiers="Ctrl" Command="{x:Static local:MainWindow.FormatH3Command}" />
         <KeyBinding Key="S" Modifiers="Ctrl+Shift" Command="{x:Static local:MainWindow.FormatStrikethroughCommand}" />
+        <KeyBinding Key="OemPipe" Modifiers="Ctrl" Command="{x:Static local:MainWindow.ToggleSidebarCommand}" />
     </Window.InputBindings>
 
     <Grid x:Name="rootGrid">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="activityBarCol" Width="Auto" />
+            <ColumnDefinition x:Name="sidebarCol" Width="280" />
+            <ColumnDefinition x:Name="sidebarSplitterCol" Width="4" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
-        <!-- Menu Bar - modern flat style -->
-        <Menu Grid.Row="0" x:Name="menuBar" Padding="6,4" Background="#ffffff"
-              BorderBrush="#e5e7eb" BorderThickness="0,0,0,1" FontSize="13">
-            <MenuItem Header="_Arquivo">
-                <MenuItem Header="📂  _Abrir..." Command="{Binding OpenFileCommand}" InputGestureText="Ctrl+O" />
-                <MenuItem Header="💾  _Salvar" Command="{Binding SaveCommand}" InputGestureText="Ctrl+S" />
-                <Separator />
-                <MenuItem Header="✕  _Fechar aba" Command="{Binding CloseTabCommand}" InputGestureText="Ctrl+W" />
-                <Separator />
-                <MenuItem Header="🚪  Sa_ir" Click="OnExit" />
-            </MenuItem>
-            <MenuItem Header="_Navegar">
-                <MenuItem Header="←  _Voltar" Command="{Binding GoBackCommand}" InputGestureText="Alt+Left" />
-                <MenuItem Header="→  _Avançar" Command="{Binding GoForwardCommand}" InputGestureText="Alt+Right" />
-            </MenuItem>
-            <MenuItem Header="_Exibir">
-                <MenuItem Header="👁  Modo _Visualização" x:Name="viewModeMenuItem" IsCheckable="True"
-                          Click="OnToggleViewMode" InputGestureText="F5" />
-                <MenuItem Header="🌙  Tema _Escuro" x:Name="darkThemeMenuItem" IsCheckable="True"
-                          Click="OnToggleDarkTheme" InputGestureText="F6" />
-            </MenuItem>
-            <MenuItem Header="Ferr_amentas">
-                <MenuItem Header="⚙  Definir ._md como padrão" Click="OnSetAsDefault" />
-            </MenuItem>
-        </Menu>
+        <!-- Activity Bar (toda a altura) -->
+        <controls:ActivityBar x:Name="activityBar" Grid.Column="0" />
 
-        <!-- Modern Formatting Toolbar -->
-        <Border Grid.Row="1" x:Name="toolbarBorder" Background="#ffffff"
-                BorderBrush="#e5e7eb" BorderThickness="0,0,0,1" Padding="6,4">
-            <WrapPanel x:Name="toolbarPanel">
-                <!-- View Mode Toggle -->
-                <ToggleButton x:Name="viewModeToggle" Style="{StaticResource ViewModeBtn}"
-                              ToolTip="Modo Visualização (F5)" Click="OnToggleViewModeButton">
-                    <TextBlock Text="&#x1F441;" FontSize="14" />
-                </ToggleButton>
-                <Border Style="{StaticResource ToolbarSep}" />
+        <!-- Sidebar Panel host -->
+        <controls:SidebarHost x:Name="sidebarHost" Grid.Column="1" />
 
-                <!-- Headings -->
-                <Button Click="OnFormatH1" ToolTip="Heading 1 (Ctrl+1)" Style="{StaticResource ToolbarBtn}"
-                        FontWeight="Bold" FontSize="15" Content="H1" />
-                <Button Click="OnFormatH2" ToolTip="Heading 2 (Ctrl+2)" Style="{StaticResource ToolbarBtn}"
-                        FontWeight="Bold" FontSize="13" Content="H2" />
-                <Button Click="OnFormatH3" ToolTip="Heading 3 (Ctrl+3)" Style="{StaticResource ToolbarBtn}"
-                        FontWeight="Bold" FontSize="11" Content="H3" />
-                <Border Style="{StaticResource ToolbarSep}" />
+        <!-- Splitter para resize da sidebar -->
+        <GridSplitter Grid.Column="2" Width="4" HorizontalAlignment="Stretch"
+                      Background="Transparent" Cursor="SizeWE"
+                      DragCompleted="OnSidebarSplitterDragCompleted" />
 
-                <!-- Text formatting -->
-                <Button Click="OnFormatBold" ToolTip="Negrito (Ctrl+B)" Style="{StaticResource ToolbarBtn}"
-                        FontWeight="Bold" FontSize="14" Content="B" />
-                <Button Click="OnFormatItalic" ToolTip="Itálico (Ctrl+I)" Style="{StaticResource ToolbarBtn}"
-                        FontStyle="Italic" FontFamily="Georgia" FontSize="14" Content="I" />
-                <Button Click="OnFormatStrikethrough" ToolTip="Tachado (Ctrl+Shift+S)" Style="{StaticResource ToolbarBtn}">
-                    <TextBlock TextDecorations="Strikethrough" Text="S" FontSize="13" />
-                </Button>
-                <Border Style="{StaticResource ToolbarSep}" />
+        <!-- Coluna principal: menu, toolbar, tabs, editor+preview, status -->
+        <Grid Grid.Column="3">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-                <!-- Links and images -->
-                <Button Click="OnFormatLink" ToolTip="Link (Ctrl+K)" Style="{StaticResource ToolbarBtn}">
-                    <TextBlock Text="&#x1F517;" FontSize="13" />
-                </Button>
-                <Button Click="OnFormatImage" ToolTip="Imagem" Style="{StaticResource ToolbarBtn}">
-                    <TextBlock Text="&#x1F5BC;" FontSize="13" />
-                </Button>
-                <Border Style="{StaticResource ToolbarSep}" />
+            <!-- Menu Bar - modern flat style -->
+            <Menu Grid.Row="0" x:Name="menuBar" Padding="6,4" Background="#ffffff"
+                  BorderBrush="#e5e7eb" BorderThickness="0,0,0,1" FontSize="13">
+                <MenuItem Header="_Arquivo">
+                    <MenuItem Header="📂  _Abrir..." Command="{Binding OpenFileCommand}" InputGestureText="Ctrl+O" />
+                    <MenuItem Header="💾  _Salvar" Command="{Binding SaveCommand}" InputGestureText="Ctrl+S" />
+                    <Separator />
+                    <MenuItem Header="✕  _Fechar aba" Command="{Binding CloseTabCommand}" InputGestureText="Ctrl+W" />
+                    <Separator />
+                    <MenuItem Header="🚪  Sa_ir" Click="OnExit" />
+                </MenuItem>
+                <MenuItem Header="_Navegar">
+                    <MenuItem Header="←  _Voltar" Command="{Binding GoBackCommand}" InputGestureText="Alt+Left" />
+                    <MenuItem Header="→  _Avançar" Command="{Binding GoForwardCommand}" InputGestureText="Alt+Right" />
+                </MenuItem>
+                <MenuItem Header="_Exibir">
+                    <MenuItem Header="👁  Modo _Visualização" x:Name="viewModeMenuItem" IsCheckable="True"
+                              Click="OnToggleViewMode" InputGestureText="F5" />
+                    <MenuItem Header="🌙  Tema _Escuro" x:Name="darkThemeMenuItem" IsCheckable="True"
+                              Click="OnToggleDarkTheme" InputGestureText="F6" />
+                    <Separator />
+                    <MenuItem Header="◧  Alternar _Sidebar" Click="OnToggleSidebar" InputGestureText="Ctrl+\" />
+                </MenuItem>
+                <MenuItem Header="Ferr_amentas">
+                    <MenuItem Header="⚙  Definir ._md como padrão" Click="OnSetAsDefault" />
+                </MenuItem>
+            </Menu>
 
-                <!-- Code -->
-                <Button Click="OnFormatInlineCode" ToolTip="Código inline (Ctrl+E)" Style="{StaticResource ToolbarBtn}"
-                        FontFamily="Consolas" FontSize="12" Content="&lt;/&gt;" />
-                <Button Click="OnFormatCodeBlock" ToolTip="Bloco de código" Style="{StaticResource ToolbarBtn}"
-                        FontFamily="Consolas" FontSize="12" Content="{}{}" />
-                <Border Style="{StaticResource ToolbarSep}" />
+            <!-- Modern Formatting Toolbar -->
+            <Border Grid.Row="1" x:Name="toolbarBorder" Background="#ffffff"
+                    BorderBrush="#e5e7eb" BorderThickness="0,0,0,1" Padding="6,4">
+                <WrapPanel x:Name="toolbarPanel">
+                    <!-- View Mode Toggle -->
+                    <ToggleButton x:Name="viewModeToggle" Style="{StaticResource ViewModeBtn}"
+                                  ToolTip="Modo Visualização (F5)" Click="OnToggleViewModeButton">
+                        <TextBlock Text="&#x1F441;" FontSize="14" />
+                    </ToggleButton>
+                    <Border Style="{StaticResource ToolbarSep}" />
 
-                <!-- Lists -->
-                <Button Click="OnFormatBulletList" ToolTip="Lista" Style="{StaticResource ToolbarBtn}">
-                    <TextBlock Text="&#x2022; List" FontSize="12" />
-                </Button>
-                <Button Click="OnFormatNumberedList" ToolTip="Lista numerada" Style="{StaticResource ToolbarBtn}"
-                        FontSize="12" Content="1. List" />
-                <Button Click="OnFormatCheckbox" ToolTip="Checkbox" Style="{StaticResource ToolbarBtn}"
-                        FontFamily="Consolas" FontSize="12" Content="&#x2610;" />
-                <Border Style="{StaticResource ToolbarSep}" />
+                    <!-- Headings -->
+                    <Button Click="OnFormatH1" ToolTip="Heading 1 (Ctrl+1)" Style="{StaticResource ToolbarBtn}"
+                            FontWeight="Bold" FontSize="15" Content="H1" />
+                    <Button Click="OnFormatH2" ToolTip="Heading 2 (Ctrl+2)" Style="{StaticResource ToolbarBtn}"
+                            FontWeight="Bold" FontSize="13" Content="H2" />
+                    <Button Click="OnFormatH3" ToolTip="Heading 3 (Ctrl+3)" Style="{StaticResource ToolbarBtn}"
+                            FontWeight="Bold" FontSize="11" Content="H3" />
+                    <Border Style="{StaticResource ToolbarSep}" />
 
-                <!-- Block elements -->
-                <Button Click="OnFormatQuote" ToolTip="Citação" Style="{StaticResource ToolbarBtn}">
-                    <TextBlock Text="&#x201C;" FontSize="18" Margin="0,-4,0,0" />
-                </Button>
-                <Button Click="OnFormatHorizontalRule" ToolTip="Linha horizontal" Style="{StaticResource ToolbarBtn}"
-                        FontSize="12" Content="---" />
-                <Button Click="OnFormatTable" ToolTip="Tabela" Style="{StaticResource ToolbarBtn}">
-                    <TextBlock Text="&#x2637;" FontSize="16" />
-                </Button>
-            </WrapPanel>
-        </Border>
+                    <!-- Text formatting -->
+                    <Button Click="OnFormatBold" ToolTip="Negrito (Ctrl+B)" Style="{StaticResource ToolbarBtn}"
+                            FontWeight="Bold" FontSize="14" Content="B" />
+                    <Button Click="OnFormatItalic" ToolTip="Itálico (Ctrl+I)" Style="{StaticResource ToolbarBtn}"
+                            FontStyle="Italic" FontFamily="Georgia" FontSize="14" Content="I" />
+                    <Button Click="OnFormatStrikethrough" ToolTip="Tachado (Ctrl+Shift+S)" Style="{StaticResource ToolbarBtn}">
+                        <TextBlock TextDecorations="Strikethrough" Text="S" FontSize="13" />
+                    </Button>
+                    <Border Style="{StaticResource ToolbarSep}" />
 
-        <!-- Tab Strip - modern style -->
-        <Border Grid.Row="2" x:Name="tabStripBorder" Background="#ffffff" BorderBrush="#e5e7eb" BorderThickness="0,0,0,1">
-            <TabControl x:Name="tabControl"
-                        ItemsSource="{Binding Tabs}"
-                        SelectedItem="{Binding SelectedTab}"
-                        SelectionChanged="OnTabSelectionChanged"
-                        Padding="0" BorderThickness="0"
-                        Background="Transparent"
-                        Margin="4,0,0,0">
-                <TabControl.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal" Margin="6,4">
-                            <TextBlock Text="{Binding TabTitle}" VerticalAlignment="Center"
-                                       FontSize="12.5" />
-                            <Button Content="&#x2715;" Margin="8,0,0,0"
-                                    Style="{StaticResource TabCloseBtn}"
-                                    FontSize="9"
-                                    Click="OnCloseTabClick"
-                                    ToolTip="Fechar aba" />
-                        </StackPanel>
-                    </DataTemplate>
-                </TabControl.ItemTemplate>
-                <TabControl.ContentTemplate>
-                    <DataTemplate />
-                </TabControl.ContentTemplate>
-            </TabControl>
-        </Border>
+                    <!-- Links and images -->
+                    <Button Click="OnFormatLink" ToolTip="Link (Ctrl+K)" Style="{StaticResource ToolbarBtn}">
+                        <TextBlock Text="&#x1F517;" FontSize="13" />
+                    </Button>
+                    <Button Click="OnFormatImage" ToolTip="Imagem" Style="{StaticResource ToolbarBtn}">
+                        <TextBlock Text="&#x1F5BC;" FontSize="13" />
+                    </Button>
+                    <Border Style="{StaticResource ToolbarSep}" />
 
-        <!-- Editor + Preview Split -->
-        <Grid Grid.Row="3" x:Name="editorPreviewGrid">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition x:Name="editorColumn" Width="*" MinWidth="100" />
-                <ColumnDefinition x:Name="splitterColumn" Width="5" />
-                <ColumnDefinition x:Name="previewColumn" Width="*" MinWidth="100" />
-            </Grid.ColumnDefinitions>
+                    <!-- Code -->
+                    <Button Click="OnFormatInlineCode" ToolTip="Código inline (Ctrl+E)" Style="{StaticResource ToolbarBtn}"
+                            FontFamily="Consolas" FontSize="12" Content="&lt;/&gt;" />
+                    <Button Click="OnFormatCodeBlock" ToolTip="Bloco de código" Style="{StaticResource ToolbarBtn}"
+                            FontFamily="Consolas" FontSize="12" Content="{}{}" />
+                    <Border Style="{StaticResource ToolbarSep}" />
 
-            <!-- Editor panel with subtle border -->
-            <Border Grid.Column="0" x:Name="editorBorder" Margin="4,4,0,4"
-                    Background="#ffffff" BorderBrush="#e5e7eb" BorderThickness="1" CornerRadius="6">
-                <ae:TextEditor x:Name="textEditor"
-                               FontFamily="Cascadia Code, Consolas, Courier New"
-                               FontSize="14"
-                               ShowLineNumbers="True"
-                               WordWrap="True"
-                               VerticalScrollBarVisibility="Auto"
-                               HorizontalScrollBarVisibility="Auto"
-                               Padding="8,8"
-                               Background="White"
-                               BorderThickness="0" />
+                    <!-- Lists -->
+                    <Button Click="OnFormatBulletList" ToolTip="Lista" Style="{StaticResource ToolbarBtn}">
+                        <TextBlock Text="&#x2022; List" FontSize="12" />
+                    </Button>
+                    <Button Click="OnFormatNumberedList" ToolTip="Lista numerada" Style="{StaticResource ToolbarBtn}"
+                            FontSize="12" Content="1. List" />
+                    <Button Click="OnFormatCheckbox" ToolTip="Checkbox" Style="{StaticResource ToolbarBtn}"
+                            FontFamily="Consolas" FontSize="12" Content="&#x2610;" />
+                    <Border Style="{StaticResource ToolbarSep}" />
+
+                    <!-- Block elements -->
+                    <Button Click="OnFormatQuote" ToolTip="Citação" Style="{StaticResource ToolbarBtn}">
+                        <TextBlock Text="&#x201C;" FontSize="18" Margin="0,-4,0,0" />
+                    </Button>
+                    <Button Click="OnFormatHorizontalRule" ToolTip="Linha horizontal" Style="{StaticResource ToolbarBtn}"
+                            FontSize="12" Content="---" />
+                    <Button Click="OnFormatTable" ToolTip="Tabela" Style="{StaticResource ToolbarBtn}">
+                        <TextBlock Text="&#x2637;" FontSize="16" />
+                    </Button>
+                </WrapPanel>
             </Border>
 
-            <!-- Splitter - thin modern line -->
-            <GridSplitter Grid.Column="1" x:Name="gridSplitter" Width="5"
-                          HorizontalAlignment="Stretch"
-                          Background="Transparent"
-                          Cursor="SizeWE" />
+            <!-- Tab Strip - modern style -->
+            <Border Grid.Row="2" x:Name="tabStripBorder" Background="#ffffff" BorderBrush="#e5e7eb" BorderThickness="0,0,0,1">
+                <TabControl x:Name="tabControl"
+                            ItemsSource="{Binding Tabs}"
+                            SelectedItem="{Binding SelectedTab}"
+                            SelectionChanged="OnTabSelectionChanged"
+                            Padding="0" BorderThickness="0"
+                            Background="Transparent"
+                            Margin="4,0,0,0">
+                    <TabControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Margin="6,4">
+                                <TextBlock Text="{Binding TabTitle}" VerticalAlignment="Center"
+                                           FontSize="12.5" />
+                                <Button Content="&#x2715;" Margin="8,0,0,0"
+                                        Style="{StaticResource TabCloseBtn}"
+                                        FontSize="9"
+                                        Click="OnCloseTabClick"
+                                        ToolTip="Fechar aba" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </TabControl.ItemTemplate>
+                    <TabControl.ContentTemplate>
+                        <DataTemplate />
+                    </TabControl.ContentTemplate>
+                </TabControl>
+            </Border>
 
-            <!-- Preview panel with subtle border -->
-            <Border Grid.Column="2" Margin="0,4,4,4"
-                    Background="#ffffff" BorderBrush="#e5e7eb" BorderThickness="1" CornerRadius="6">
-                <controls:MarkdownPreview x:Name="preview" />
+            <!-- Editor + Preview Split -->
+            <Grid Grid.Row="3" x:Name="editorPreviewGrid">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition x:Name="editorColumn" Width="*" MinWidth="100" />
+                    <ColumnDefinition x:Name="splitterColumn" Width="5" />
+                    <ColumnDefinition x:Name="previewColumn" Width="*" MinWidth="100" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Editor panel with subtle border -->
+                <Border Grid.Column="0" x:Name="editorBorder" Margin="4,4,0,4"
+                        Background="#ffffff" BorderBrush="#e5e7eb" BorderThickness="1" CornerRadius="6">
+                    <ae:TextEditor x:Name="textEditor"
+                                   FontFamily="Cascadia Code, Consolas, Courier New"
+                                   FontSize="14"
+                                   ShowLineNumbers="True"
+                                   WordWrap="True"
+                                   VerticalScrollBarVisibility="Auto"
+                                   HorizontalScrollBarVisibility="Auto"
+                                   Padding="8,8"
+                                   Background="White"
+                                   BorderThickness="0" />
+                </Border>
+
+                <!-- Splitter - thin modern line -->
+                <GridSplitter Grid.Column="1" x:Name="gridSplitter" Width="5"
+                              HorizontalAlignment="Stretch"
+                              Background="Transparent"
+                              Cursor="SizeWE" />
+
+                <!-- Preview panel with subtle border -->
+                <Border Grid.Column="2" Margin="0,4,4,4"
+                        Background="#ffffff" BorderBrush="#e5e7eb" BorderThickness="1" CornerRadius="6">
+                    <controls:MarkdownPreview x:Name="preview" />
+                </Border>
+            </Grid>
+
+            <!-- Modern Status Bar -->
+            <Border Grid.Row="4" x:Name="statusBorder" Background="#f1f5f9"
+                    BorderBrush="#e2e8f0" BorderThickness="0,1,0,0" Padding="8,3">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <TextBlock x:Name="viewModeText" Text="" FontSize="11.5" Foreground="#64748b"
+                                   Margin="0,0,16,0" VerticalAlignment="Center" />
+                        <TextBlock x:Name="lineColText" Text="Ln 1, Col 1" FontSize="11.5" Foreground="#64748b"
+                                   Margin="0,0,16,0" VerticalAlignment="Center" />
+                        <TextBlock Text="UTF-8" FontSize="11.5" Foreground="#64748b" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock x:Name="statusText" Text="{Binding StatusText}" FontSize="11.5"
+                               Foreground="#475569" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                </DockPanel>
             </Border>
         </Grid>
-
-        <!-- Modern Status Bar -->
-        <Border Grid.Row="4" x:Name="statusBorder" Background="#f1f5f9"
-                BorderBrush="#e2e8f0" BorderThickness="0,1,0,0" Padding="8,3">
-            <DockPanel>
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                    <TextBlock x:Name="viewModeText" Text="" FontSize="11.5" Foreground="#64748b"
-                               Margin="0,0,16,0" VerticalAlignment="Center" />
-                    <TextBlock x:Name="lineColText" Text="Ln 1, Col 1" FontSize="11.5" Foreground="#64748b"
-                               Margin="0,0,16,0" VerticalAlignment="Center" />
-                    <TextBlock Text="UTF-8" FontSize="11.5" Foreground="#64748b" VerticalAlignment="Center" />
-                </StackPanel>
-                <TextBlock x:Name="statusText" Text="{Binding StatusText}" FontSize="11.5"
-                           Foreground="#475569" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-            </DockPanel>
-        </Border>
     </Grid>
 </Window>

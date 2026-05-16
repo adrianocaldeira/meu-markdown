@@ -29,6 +29,7 @@ public partial class MainWindow : Window
     public static readonly RoutedUICommand FormatStrikethroughCommand = new("Strikethrough", "FormatStrikethrough", typeof(MainWindow));
     public static readonly RoutedUICommand ToggleViewModeCommand = new("ViewMode", "ToggleViewMode", typeof(MainWindow));
     public static readonly RoutedUICommand ToggleDarkThemeCommand = new("DarkTheme", "ToggleDarkTheme", typeof(MainWindow));
+    public static readonly RoutedUICommand ToggleSidebarCommand = new("ToggleSidebar", "ToggleSidebar", typeof(MainWindow));
 
     private readonly MainViewModel _viewModel;
     private readonly DispatcherTimer _debounceTimer;
@@ -43,6 +44,41 @@ public partial class MainWindow : Window
 
         _viewModel = new MainViewModel();
         DataContext = _viewModel;
+
+        // Aplicar estado persistido
+        var state = App.State;
+        _viewModel.SidebarActivePanel = state.Sidebar.ActivePanel;
+        _viewModel.SidebarWidth = state.Sidebar.Width;
+        _viewModel.IsSidebarCollapsed = state.Sidebar.Collapsed;
+        _viewModel.IsActivityBarVisible = state.Sidebar.ActivityBarVisible;
+
+        // Aplicar window state — com clamping contra área de tela visível
+        Width = state.Window.Width;
+        Height = state.Window.Height;
+        if (!double.IsNaN(state.Window.X) && !double.IsNaN(state.Window.Y))
+        {
+            var virtualLeft = SystemParameters.VirtualScreenLeft;
+            var virtualTop = SystemParameters.VirtualScreenTop;
+            var virtualRight = virtualLeft + SystemParameters.VirtualScreenWidth;
+            var virtualBottom = virtualTop + SystemParameters.VirtualScreenHeight;
+
+            // Janela precisa ter ao menos 100px visíveis no virtual screen pra ser usável
+            var titleBarVisible =
+                state.Window.X + state.Window.Width > virtualLeft + 100 &&
+                state.Window.X < virtualRight - 100 &&
+                state.Window.Y + 30 > virtualTop &&
+                state.Window.Y < virtualBottom - 100;
+
+            if (titleBarVisible)
+            {
+                Left = state.Window.X;
+                Top = state.Window.Y;
+                WindowStartupLocation = WindowStartupLocation.Manual;
+            }
+            // Senão: deixa o XAML CenterScreen tomar conta
+        }
+        if (state.Window.Maximized)
+            WindowState = WindowState.Maximized;
 
         // Set window icon from embedded resource
         try
@@ -75,10 +111,27 @@ public partial class MainWindow : Window
         CommandBindings.Add(new CommandBinding(FormatStrikethroughCommand, (_, _) => WrapSelection("~~", "~~")));
         CommandBindings.Add(new CommandBinding(ToggleViewModeCommand, (_, _) => ToggleViewMode()));
         CommandBindings.Add(new CommandBinding(ToggleDarkThemeCommand, (_, _) => ToggleDarkTheme()));
+        CommandBindings.Add(new CommandBinding(ToggleSidebarCommand, (_, _) => ToggleSidebar()));
 
         // F5 / F6 key bindings
         InputBindings.Add(new KeyBinding(ToggleViewModeCommand, Key.F5, ModifierKeys.None));
         InputBindings.Add(new KeyBinding(ToggleDarkThemeCommand, Key.F6, ModifierKeys.None));
+
+        // Configurar colunas da sidebar conforme estado
+        activityBarCol.Width = _viewModel.IsActivityBarVisible ? GridLength.Auto : new GridLength(0);
+        if (_viewModel.IsActivityBarVisible && !_viewModel.IsSidebarCollapsed)
+        {
+            sidebarCol.Width = new GridLength(_viewModel.SidebarWidth);
+            sidebarSplitterCol.Width = new GridLength(4);
+        }
+        else
+        {
+            sidebarCol.Width = new GridLength(0);
+            sidebarSplitterCol.Width = new GridLength(0);
+        }
+        activityBar.SetActivePanel(_viewModel.SidebarActivePanel);
+        sidebarHost.ShowPanel(_viewModel.SidebarActivePanel);
+        activityBar.PanelSelected += OnActivityPanelSelected;
 
         LoadMarkdownSyntaxHighlighting();
 
@@ -86,6 +139,8 @@ public partial class MainWindow : Window
         ApplyTheme();
         darkThemeMenuItem.IsChecked = _isDarkTheme;
         SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
+
+        Closing += OnWindowClosing;
 
         // Open files passed as command-line arguments
         var args = Environment.GetCommandLineArgs();
@@ -503,6 +558,82 @@ public partial class MainWindow : Window
                 catch { }
             }
             InsertAtCursor($"![imagem]({imagePath})");
+        }
+    }
+
+    private void OnActivityPanelSelected(object? sender, string panelName)
+    {
+        if (_viewModel.SidebarActivePanel == panelName && !_viewModel.IsSidebarCollapsed)
+        {
+            // Clicou no mesmo painel ativo: colapsa
+            _viewModel.IsSidebarCollapsed = true;
+            sidebarCol.Width = new GridLength(0);
+            sidebarSplitterCol.Width = new GridLength(0);
+        }
+        else
+        {
+            _viewModel.SidebarActivePanel = panelName;
+            _viewModel.IsSidebarCollapsed = false;
+            sidebarCol.Width = new GridLength(_viewModel.SidebarWidth);
+            sidebarSplitterCol.Width = new GridLength(4);
+            sidebarHost.ShowPanel(panelName);
+        }
+    }
+
+    private void OnSidebarSplitterDragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
+    {
+        _viewModel.SidebarWidth = sidebarCol.ActualWidth;
+    }
+
+    private void OnToggleSidebar(object sender, RoutedEventArgs e) => ToggleSidebar();
+
+    private void ToggleSidebar()
+    {
+        _viewModel.IsActivityBarVisible = !_viewModel.IsActivityBarVisible;
+        activityBarCol.Width = _viewModel.IsActivityBarVisible ? GridLength.Auto : new GridLength(0);
+
+        if (!_viewModel.IsActivityBarVisible)
+        {
+            sidebarCol.Width = new GridLength(0);
+            sidebarSplitterCol.Width = new GridLength(0);
+        }
+        else if (!_viewModel.IsSidebarCollapsed)
+        {
+            sidebarCol.Width = new GridLength(_viewModel.SidebarWidth);
+            sidebarSplitterCol.Width = new GridLength(4);
+        }
+    }
+
+    private void OnWindowClosing(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        var state = App.State;
+        if (WindowState == WindowState.Maximized)
+        {
+            state.Window.X = RestoreBounds.Left;
+            state.Window.Y = RestoreBounds.Top;
+            state.Window.Width = RestoreBounds.Width;
+            state.Window.Height = RestoreBounds.Height;
+        }
+        else
+        {
+            state.Window.X = Left;
+            state.Window.Y = Top;
+            state.Window.Width = Width;
+            state.Window.Height = Height;
+        }
+        state.Window.Maximized = WindowState == WindowState.Maximized;
+        state.Sidebar.ActivePanel = _viewModel.SidebarActivePanel;
+        state.Sidebar.Width = _viewModel.SidebarWidth;
+        state.Sidebar.Collapsed = _viewModel.IsSidebarCollapsed;
+        state.Sidebar.ActivityBarVisible = _viewModel.IsActivityBarVisible;
+
+        try
+        {
+            App.StateService.Save(state);
+        }
+        catch
+        {
+            // Salvar estado não deve impedir o fechamento
         }
     }
 
