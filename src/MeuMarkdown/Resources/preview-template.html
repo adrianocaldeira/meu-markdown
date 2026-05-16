@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -73,6 +73,45 @@
         function setTheme(dark) {
             document.body.className = dark ? 'dark' : '';
         }
+
+        let __suppressSync = false;
+        let __syncTimeout = null;
+
+        function syncScrollToLine(n) {
+            if (__suppressSync) return;
+            const blocks = document.querySelectorAll('[data-line]');
+            let target = null;
+            for (const b of blocks) {
+                const line = parseInt(b.dataset.line, 10);
+                if (line <= n) target = b;
+                else break;
+            }
+            if (target) {
+                __suppressSync = true;
+                target.scrollIntoView({ behavior: 'auto', block: 'start' });
+                clearTimeout(__syncTimeout);
+                __syncTimeout = setTimeout(() => { __suppressSync = false; }, 100);
+            }
+        }
+
+        window.addEventListener('scroll', () => {
+            if (__suppressSync) return;
+            if (typeof chrome === 'undefined' || !chrome.webview) return;
+            const blocks = document.querySelectorAll('[data-line]');
+            let topLine = 1;
+            const scrollTop = window.scrollY;
+            for (const b of blocks) {
+                const rect = b.getBoundingClientRect();
+                if (rect.top + window.scrollY <= scrollTop + 50)
+                    topLine = parseInt(b.dataset.line, 10);
+                else
+                    break;
+            }
+            __suppressSync = true;
+            clearTimeout(__syncTimeout);
+            __syncTimeout = setTimeout(() => { __suppressSync = false; }, 100);
+            chrome.webview.postMessage(JSON.stringify({ type: 'scroll', line: topLine }));
+        }, { passive: true });
     </script>
 </body>
 </html>
