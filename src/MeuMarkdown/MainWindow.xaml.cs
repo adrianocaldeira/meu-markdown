@@ -123,6 +123,8 @@ public partial class MainWindow : Window
         darkThemeMenuItem.IsChecked = _isDarkTheme;
         SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
 
+        Closing += OnWindowClosing;
+
         // Open files passed as command-line arguments
         var args = Environment.GetCommandLineArgs();
         for (int i = 1; i < args.Length; i++)
@@ -582,6 +584,29 @@ public partial class MainWindow : Window
         {
             sidebarCol.Width = new GridLength(_viewModel.SidebarWidth);
             sidebarSplitterCol.Width = new GridLength(4);
+        }
+    }
+
+    private void OnWindowClosing(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        var state = App.State;
+        state.Window.X = Left;
+        state.Window.Y = Top;
+        state.Window.Width = Width;
+        state.Window.Height = Height;
+        state.Window.Maximized = WindowState == WindowState.Maximized;
+        state.Sidebar.ActivePanel = _viewModel.SidebarActivePanel;
+        state.Sidebar.Width = _viewModel.SidebarWidth;
+        state.Sidebar.Collapsed = _viewModel.IsSidebarCollapsed;
+        state.Sidebar.ActivityBarVisible = _viewModel.IsActivityBarVisible;
+
+        try
+        {
+            App.StateService.Save(state);
+        }
+        catch
+        {
+            // Salvar estado não deve impedir o fechamento
         }
     }
 
