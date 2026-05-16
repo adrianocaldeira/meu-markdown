@@ -30,6 +30,7 @@ public partial class MainWindow : Window
     public static readonly RoutedUICommand ToggleViewModeCommand = new("ViewMode", "ToggleViewMode", typeof(MainWindow));
     public static readonly RoutedUICommand ToggleDarkThemeCommand = new("DarkTheme", "ToggleDarkTheme", typeof(MainWindow));
     public static readonly RoutedUICommand ToggleSidebarCommand = new("ToggleSidebar", "ToggleSidebar", typeof(MainWindow));
+    public static readonly RoutedUICommand OpenOutlineCommand = new("OpenOutline", "OpenOutline", typeof(MainWindow));
 
     private readonly MainViewModel _viewModel;
     private readonly DispatcherTimer _debounceTimer;
@@ -112,6 +113,16 @@ public partial class MainWindow : Window
         CommandBindings.Add(new CommandBinding(ToggleViewModeCommand, (_, _) => ToggleViewMode()));
         CommandBindings.Add(new CommandBinding(ToggleDarkThemeCommand, (_, _) => ToggleDarkTheme()));
         CommandBindings.Add(new CommandBinding(ToggleSidebarCommand, (_, _) => ToggleSidebar()));
+        CommandBindings.Add(new CommandBinding(OpenOutlineCommand, (_, _) =>
+        {
+            _viewModel.SidebarActivePanel = "Outline";
+            _viewModel.IsSidebarCollapsed = false;
+            sidebarCol.Width = new GridLength(_viewModel.SidebarWidth);
+            sidebarSplitterCol.Width = new GridLength(4);
+            sidebarHost.ShowPanel("Outline");
+            activityBar.SetActivePanel("Outline");
+            sidebarHost.OutlinePanel.HeadingsList.Focus();
+        }));
 
         // F5 / F6 key bindings
         InputBindings.Add(new KeyBinding(ToggleViewModeCommand, Key.F5, ModifierKeys.None));
@@ -281,6 +292,21 @@ public partial class MainWindow : Window
         var line = textEditor.TextArea.Caret.Line;
         var col = textEditor.TextArea.Caret.Column;
         lineColText.Text = $"Ln {line}, Col {col}";
+        // Atualiza heading atual no Outline
+        if (_viewModel.SelectedTab != null && _viewModel.SelectedTab.Headings.Count > 0)
+        {
+            var currentLine = textEditor.TextArea.Caret.Line;
+            MeuMarkdown.Models.Heading? currentHeading = null;
+            foreach (var h in _viewModel.SelectedTab.Headings)
+            {
+                if (h.StartLine <= currentLine)
+                    currentHeading = h;
+                else
+                    break;
+            }
+            _viewModel.SelectedTab.CurrentHeading = currentHeading;
+            sidebarHost.OutlinePanel.HighlightCurrentHeading(currentHeading);
+        }
     }
 
     private void OnTabSelectionChanged(object sender, SelectionChangedEventArgs e)
