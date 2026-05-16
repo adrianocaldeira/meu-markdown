@@ -40,6 +40,7 @@ public partial class MainWindow : Window
     public static readonly RoutedUICommand QuickSwitcherCommand = new("QuickSwitcher", "QuickSwitcher", typeof(MainWindow));
     public static readonly RoutedUICommand ZenModeCommand = new("ZenMode", "ZenMode", typeof(MainWindow));
     public static readonly RoutedUICommand ZenSoloCommand = new("ZenSolo", "ZenSolo", typeof(MainWindow));
+    public static readonly RoutedUICommand TypewriterCommand = new("Typewriter", "Typewriter", typeof(MainWindow));
 
     private readonly MainViewModel _viewModel;
     private readonly DispatcherTimer _debounceTimer;
@@ -58,6 +59,7 @@ public partial class MainWindow : Window
     private ZenSoloState _zenSolo = ZenSoloState.None;
     private WindowState _savedWindowState;
     private WindowStyle _savedWindowStyle;
+    private TypewriterScrollManager? _typewriterManager;
 
     public MainWindow()
     {
@@ -190,6 +192,10 @@ public partial class MainWindow : Window
         SmartListBehavior.Attach(textEditor);
         AutoPairBehavior.Attach(textEditor);
         ImagePasteHandler.Attach(textEditor, () => _viewModel.SelectedTab);
+        _typewriterManager = new TypewriterScrollManager(textEditor);
+        _viewModel.TypewriterMode = App.State.Preferences.TypewriterMode;
+        _typewriterManager.Enabled = _viewModel.TypewriterMode;
+        typewriterMenuItem.IsChecked = _viewModel.TypewriterMode;
 
         textEditor.TextArea.TextView.BackgroundRenderers.Add(_findRenderer);
         findBar.FindRequested += OnFindRequested;
@@ -207,6 +213,12 @@ public partial class MainWindow : Window
         quickSwitcher.FileSelected += (_, path) => _viewModel.OpenFileByPath(path);
         CommandBindings.Add(new CommandBinding(ZenModeCommand, (_, _) => ToggleZenMode()));
         CommandBindings.Add(new CommandBinding(ZenSoloCommand, (_, _) => ToggleZenSolo()));
+        CommandBindings.Add(new CommandBinding(TypewriterCommand, (_, _) =>
+        {
+            _viewModel.TypewriterMode = !_viewModel.TypewriterMode;
+            _typewriterManager!.Enabled = _viewModel.TypewriterMode;
+            typewriterMenuItem.IsChecked = _viewModel.TypewriterMode;
+        }));
 
         _isDarkTheme = IsOsDarkMode();
         ApplyTheme();
@@ -805,6 +817,7 @@ public partial class MainWindow : Window
         state.Sidebar.Collapsed = _viewModel.IsSidebarCollapsed;
         state.Sidebar.ActivityBarVisible = _viewModel.IsActivityBarVisible;
         state.Preferences.SyncScrollEnabled = _viewModel.SyncScrollEnabled;
+        state.Preferences.TypewriterMode = _viewModel.TypewriterMode;
         state.LastWorkspace = _viewModel.WorkspaceService.RootPath;
         state.RecentFiles = _viewModel.RecentFilesService.Snapshot().ToList();
 
@@ -924,6 +937,12 @@ public partial class MainWindow : Window
     }
 
     private void OnToggleZen(object sender, RoutedEventArgs e) => ToggleZenMode();
+
+    private void OnToggleTypewriter(object sender, RoutedEventArgs e)
+    {
+        _viewModel.TypewriterMode = typewriterMenuItem.IsChecked;
+        _typewriterManager!.Enabled = _viewModel.TypewriterMode;
+    }
 
     private void ToggleZenMode()
     {
