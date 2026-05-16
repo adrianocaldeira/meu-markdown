@@ -1110,6 +1110,7 @@ public partial class MainWindow : Window
             {
                 var html = _viewModel.RenderMarkdown(textEditor.Text, _viewModel.SelectedTab.Directory);
                 preview.SetFullHtml(html);
+                preview.SetDarkTheme(_isDarkTheme);
             }
         }
     }
