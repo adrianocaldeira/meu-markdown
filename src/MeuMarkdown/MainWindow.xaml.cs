@@ -37,6 +37,7 @@ public partial class MainWindow : Window
     public static readonly RoutedUICommand ReplaceCommand = new("Replace", "Replace", typeof(MainWindow));
     public static readonly RoutedUICommand FindNextCommand = new("FindNext", "FindNext", typeof(MainWindow));
     public static readonly RoutedUICommand FindPrevCommand = new("FindPrev", "FindPrev", typeof(MainWindow));
+    public static readonly RoutedUICommand QuickSwitcherCommand = new("QuickSwitcher", "QuickSwitcher", typeof(MainWindow));
 
     private readonly MainViewModel _viewModel;
     private readonly DispatcherTimer _debounceTimer;
@@ -161,6 +162,23 @@ public partial class MainWindow : Window
         sidebarHost.OutlinePanel.HeadingSelected += OnOutlineHeadingSelected;
         activityBar.PanelSelected += OnActivityPanelSelected;
 
+        // Restaurar workspace + recents persistidos
+        var lastWs = App.State.LastWorkspace;
+        if (!string.IsNullOrEmpty(lastWs) && System.IO.Directory.Exists(lastWs))
+        {
+            _viewModel.WorkspaceService.Open(lastWs, App.State.Preferences.ExplorerShowAllFiles);
+        }
+        _viewModel.RecentFilesService.LoadFrom(App.State.RecentFiles);
+
+        sidebarHost.ExplorerPanel.Bind(
+            _viewModel.WorkspaceService,
+            _viewModel.RecentFilesService,
+            App.State.Preferences.ExplorerShowAllFiles);
+        sidebarHost.ExplorerPanel.FileActivated += OnExplorerFileActivated;
+        sidebarHost.ExplorerPanel.OpenFolderRequested += OnOpenFolderRequested;
+        sidebarHost.ExplorerPanel.CloseWorkspaceRequested += OnCloseWorkspaceRequested;
+        sidebarHost.ExplorerPanel.ShowAllFilesChanged += OnShowAllFilesChanged;
+
         LoadMarkdownSyntaxHighlighting();
 
         textEditor.TextArea.TextView.BackgroundRenderers.Add(_findRenderer);
@@ -175,6 +193,8 @@ public partial class MainWindow : Window
         CommandBindings.Add(new CommandBinding(ReplaceCommand, (_, _) => OpenFindBar(showReplace: true)));
         CommandBindings.Add(new CommandBinding(FindNextCommand, (_, _) => MoveToFindMatch(+1)));
         CommandBindings.Add(new CommandBinding(FindPrevCommand, (_, _) => MoveToFindMatch(-1)));
+        CommandBindings.Add(new CommandBinding(QuickSwitcherCommand, (_, _) => OpenQuickSwitcher()));
+        quickSwitcher.FileSelected += (_, path) => _viewModel.OpenFileByPath(path);
 
         _isDarkTheme = IsOsDarkMode();
         ApplyTheme();
@@ -713,6 +733,43 @@ public partial class MainWindow : Window
         textEditor.Focus();
     }
 
+    private void OnExplorerFileActivated(object? sender, string filePath)
+    {
+        _viewModel.OpenFileByPath(filePath);
+    }
+
+    private void OnOpenFolderRequested(object? sender, EventArgs e)
+    {
+        var dlg = new Microsoft.Win32.OpenFolderDialog
+        {
+            Title = "Abrir pasta como workspace"
+        };
+        if (dlg.ShowDialog() == true)
+        {
+            _viewModel.WorkspaceService.Open(dlg.FolderName, App.State.Preferences.ExplorerShowAllFiles);
+            sidebarHost.ExplorerPanel.Bind(_viewModel.WorkspaceService, _viewModel.RecentFilesService,
+                App.State.Preferences.ExplorerShowAllFiles);
+        }
+    }
+
+    private void OnCloseWorkspaceRequested(object? sender, EventArgs e)
+    {
+        _viewModel.WorkspaceService.Close();
+        sidebarHost.ExplorerPanel.Bind(_viewModel.WorkspaceService, _viewModel.RecentFilesService,
+            App.State.Preferences.ExplorerShowAllFiles);
+    }
+
+    private void OnShowAllFilesChanged(object? sender, bool showAll)
+    {
+        App.State.Preferences.ExplorerShowAllFiles = showAll;
+        var path = _viewModel.WorkspaceService.RootPath;
+        if (!string.IsNullOrEmpty(path))
+        {
+            _viewModel.WorkspaceService.Open(path, showAll);
+            sidebarHost.ExplorerPanel.Bind(_viewModel.WorkspaceService, _viewModel.RecentFilesService, showAll);
+        }
+    }
+
     private void OnWindowClosing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
         var state = App.State;
@@ -736,6 +793,8 @@ public partial class MainWindow : Window
         state.Sidebar.Collapsed = _viewModel.IsSidebarCollapsed;
         state.Sidebar.ActivityBarVisible = _viewModel.IsActivityBarVisible;
         state.Preferences.SyncScrollEnabled = _viewModel.SyncScrollEnabled;
+        state.LastWorkspace = _viewModel.WorkspaceService.RootPath;
+        state.RecentFiles = _viewModel.RecentFilesService.Snapshot().ToList();
 
         try
         {
@@ -816,6 +875,15 @@ public partial class MainWindow : Window
         var match = _findRenderer.Matches[_activeFindIndex];
         textEditor.Document.Replace(match.Start, match.Length, replacement);
         if (_lastFindRequest != null) OnFindRequested(this, _lastFindRequest);
+    }
+
+    private void OpenQuickSwitcher()
+    {
+        var files = _viewModel.WorkspaceService.EnumerateMarkdownFiles().ToList();
+        var recents = _viewModel.RecentFilesService.Snapshot();
+        var openTabs = _viewModel.Tabs.Select(t => t.FilePath).ToList();
+        var wsPath = _viewModel.WorkspaceService.RootPath;
+        quickSwitcher.Open(files, recents, openTabs, wsPath);
     }
 
     private void OnReplaceAll(object? sender, string replacement)

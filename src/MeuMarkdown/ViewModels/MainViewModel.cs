@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MeuMarkdown.Models;
@@ -13,6 +14,11 @@ public partial class MainViewModel : ObservableObject
     private readonly FileService _fileService = new();
     private readonly MarkdownService _markdownService = new();
     private readonly NavigationService _navigationService;
+    private readonly WorkspaceService _workspaceService = new();
+    private readonly RecentFilesService _recentFilesService = new();
+
+    public WorkspaceService WorkspaceService => _workspaceService;
+    public RecentFilesService RecentFilesService => _recentFilesService;
 
     public ObservableCollection<DocumentTabViewModel> Tabs { get; } = new();
 
@@ -66,7 +72,6 @@ public partial class MainViewModel : ObservableObject
 
     public void OpenFileByPath(string filePath)
     {
-        // Check if already open
         var existing = Tabs.FirstOrDefault(t =>
             string.Equals(t.FilePath, filePath, StringComparison.OrdinalIgnoreCase));
         if (existing != null)
@@ -82,6 +87,15 @@ public partial class MainViewModel : ObservableObject
             Tabs.Add(tab);
             SelectedTab = tab;
             StatusText = filePath;
+
+            _recentFilesService.Add(filePath);
+
+            if (_workspaceService.Root == null)
+            {
+                var parentDir = Path.GetDirectoryName(filePath);
+                if (!string.IsNullOrEmpty(parentDir))
+                    _workspaceService.Open(parentDir, showAllFiles: false);
+            }
         }
         catch (Exception ex)
         {
