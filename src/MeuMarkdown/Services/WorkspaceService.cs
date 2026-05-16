@@ -16,6 +16,7 @@ public class WorkspaceService : IDisposable
     };
 
     private FileSystemWatcher? _watcher;
+    private System.Timers.Timer? _debounceTimer;
     private bool _showAllFiles;
 
     public FileNode? Root { get; private set; }
@@ -51,6 +52,8 @@ public class WorkspaceService : IDisposable
         {
             _watcher = null;
         }
+
+        TreeChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public void Close()
@@ -62,6 +65,12 @@ public class WorkspaceService : IDisposable
             _watcher.Renamed -= OnFsEvent;
             _watcher.Dispose();
             _watcher = null;
+        }
+        if (_debounceTimer != null)
+        {
+            _debounceTimer.Stop();
+            _debounceTimer.Dispose();
+            _debounceTimer = null;
         }
         Root = null;
         RootPath = null;
@@ -161,11 +170,28 @@ public class WorkspaceService : IDisposable
 
     private void OnFsEvent(object sender, FileSystemEventArgs e)
     {
-        if (RootPath != null)
+        if (RootPath == null) return;
+
+        // Debounce: reset timer; only rebuild when no events arrive for 300ms
+        _debounceTimer?.Stop();
+        _debounceTimer ??= new System.Timers.Timer(300) { AutoReset = false };
+        _debounceTimer.Elapsed -= OnDebounceTimerElapsed;
+        _debounceTimer.Elapsed += OnDebounceTimerElapsed;
+        _debounceTimer.Start();
+    }
+
+    private void OnDebounceTimerElapsed(object? sender, System.Timers.ElapsedEventArgs e)
+    {
+        if (RootPath == null) return;
+        try
         {
             Root = BuildNode(RootPath);
             Root.IsExpanded = true;
             TreeChanged?.Invoke(this, EventArgs.Empty);
+        }
+        catch
+        {
+            // Silently ignore — directory may have been deleted mid-rebuild
         }
     }
 

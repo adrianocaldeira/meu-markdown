@@ -80,11 +80,13 @@ public partial class QuickSwitcherPopup : UserControl
     private string ComputeRelativeDir(string path)
     {
         var dir = Path.GetDirectoryName(path) ?? "";
-        if (!string.IsNullOrEmpty(_workspacePath) &&
-            dir.StartsWith(_workspacePath, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(_workspacePath))
         {
-            var rel = dir.Substring(_workspacePath.Length).TrimStart(Path.DirectorySeparatorChar);
-            return string.IsNullOrEmpty(rel) ? "." : rel;
+            var wsWithSep = _workspacePath.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            if (dir.Equals(_workspacePath, StringComparison.OrdinalIgnoreCase))
+                return ".";
+            if (dir.StartsWith(wsWithSep, StringComparison.OrdinalIgnoreCase))
+                return dir.Substring(wsWithSep.Length);
         }
         return dir;
     }
