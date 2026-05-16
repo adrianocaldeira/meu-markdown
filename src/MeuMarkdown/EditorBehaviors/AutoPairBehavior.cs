@@ -67,5 +67,5 @@ public static class AutoPairBehavior
         };
     }
 
-    private static bool IsClosingChar(string c) => c is ")" or "]" or "`" or "_";
+    private static bool IsClosingChar(string c) => c is ")" or "]" or "`";
 }

@@ -20,14 +20,21 @@ public static class SmartListBehavior
 
             if (prefix == null)
             {
-                // Marcador vazio: remove a linha (vai virar quebra normal sem marcador)
+                // Marcador vazio: remove o marcador da linha atual e insere quebra normal.
+                // Implementação explícita pra não depender do fallthrough do PreviewKeyDown.
                 doc.Replace(caretLine.Offset, caretLine.Length, "");
+                doc.Insert(caretLine.Offset, "\n");
+                editor.CaretOffset = caretLine.Offset + 1;
+                e.Handled = true;
                 return;
             }
 
+            // Insere "\n<prefix>" no cursor
+            var lineStartBefore = caretLine.Offset;
+            var lineLengthBefore = caretLine.Length;
             var insertion = "\n" + prefix;
             doc.Insert(editor.CaretOffset, insertion);
-            editor.CaretOffset = caretLine.Offset + caretLine.Length + insertion.Length;
+            editor.CaretOffset = lineStartBefore + lineLengthBefore + insertion.Length;
             e.Handled = true;
         };
     }
