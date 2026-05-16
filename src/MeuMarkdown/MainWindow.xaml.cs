@@ -43,6 +43,7 @@ public partial class MainWindow : Window
     public static readonly RoutedUICommand TypewriterCommand = new("Typewriter", "Typewriter", typeof(MainWindow));
 
     private readonly MainViewModel _viewModel;
+    private readonly ExportService _exportService;
     private readonly DispatcherTimer _debounceTimer;
     private bool _isDarkTheme;
     private bool _isViewMode;
@@ -67,6 +68,8 @@ public partial class MainWindow : Window
 
         _viewModel = new MainViewModel();
         DataContext = _viewModel;
+
+        _exportService = new ExportService(_viewModel.MarkdownService);
 
         // Aplicar estado persistido
         var state = App.State;
@@ -1018,6 +1021,76 @@ public partial class MainWindow : Window
                 previewColumn.Width = new GridLength(1, GridUnitType.Star);
                 editorBorder.Visibility = Visibility.Collapsed;
                 break;
+        }
+    }
+
+    private async void OnExportHtml(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel.SelectedTab == null)
+        {
+            MessageBox.Show("Nenhum documento aberto.", "Exportar HTML", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+        var defaultName = System.IO.Path.GetFileNameWithoutExtension(_viewModel.SelectedTab.FileName) + ".html";
+        var dlg = new SaveFileDialog
+        {
+            Filter = "HTML (*.html)|*.html",
+            FileName = defaultName,
+            Title = "Exportar como HTML"
+        };
+        if (dlg.ShowDialog() != true) return;
+        try
+        {
+            await Task.Run(() => _exportService.ExportHtml(_viewModel.SelectedTab, dlg.FileName,
+                darkTheme: _isDarkTheme, convertMdLinksToHtml: false));
+            _viewModel.StatusText = $"HTML exportado: {dlg.FileName}";
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Erro ao exportar HTML:\n{ex.Message}", "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private async void OnExportPdf(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel.SelectedTab == null)
+        {
+            MessageBox.Show("Nenhum documento aberto.", "Exportar PDF", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+        var defaultName = System.IO.Path.GetFileNameWithoutExtension(_viewModel.SelectedTab.FileName) + ".pdf";
+        var dlg = new SaveFileDialog
+        {
+            Filter = "PDF (*.pdf)|*.pdf",
+            FileName = defaultName,
+            Title = "Exportar como PDF"
+        };
+        if (dlg.ShowDialog() != true) return;
+
+        var tempHtml = _exportService.CreateTempHtmlForPrint(_viewModel.SelectedTab, darkTheme: false);
+        try
+        {
+            _viewModel.StatusText = "Gerando PDF...";
+            var success = await preview.PrintToPdfAsync(tempHtml, dlg.FileName);
+            _viewModel.StatusText = success ? $"PDF exportado: {dlg.FileName}" : "Falha ao gerar PDF";
+            if (!success)
+            {
+                MessageBox.Show("Falha ao gerar PDF. Verifique o caminho de destino e tente novamente.",
+                    "Exportar PDF", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Erro ao exportar PDF:\n{ex.Message}", "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        finally
+        {
+            try { System.IO.File.Delete(tempHtml); } catch { }
+            if (_viewModel.SelectedTab != null)
+            {
+                var html = _viewModel.RenderMarkdown(textEditor.Text, _viewModel.SelectedTab.Directory);
+                preview.SetFullHtml(html);
+            }
         }
     }
 }
