@@ -1,6 +1,8 @@
 using System.IO;
 using System.Reflection;
 using Markdig;
+using Markdig.Syntax;
+using MeuMarkdown.Models;
 
 namespace MeuMarkdown.Services;
 
@@ -36,6 +38,52 @@ public class MarkdownService
     {
         var html = Markdig.Markdown.ToHtml(markdown, _pipeline);
         return RewriteRelativeLinks(html, baseDirectory);
+    }
+
+    public List<Heading> ExtractHeadings(string markdown)
+    {
+        if (string.IsNullOrEmpty(markdown))
+            return new List<Heading>();
+
+        var document = Markdig.Markdown.Parse(markdown, _pipeline);
+        var results = new List<Heading>();
+
+        foreach (var block in document.Descendants<HeadingBlock>())
+        {
+            var text = block.Inline?.FirstChild is null
+                ? string.Empty
+                : ExtractInlineText(block.Inline);
+            var anchorId = SlugifyGfm(text);
+            results.Add(new Heading(block.Level, text, block.Line + 1, anchorId));
+        }
+
+        return results;
+    }
+
+    private static string ExtractInlineText(Markdig.Syntax.Inlines.ContainerInline container)
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (var inline in container)
+        {
+            if (inline is Markdig.Syntax.Inlines.LiteralInline literal)
+                sb.Append(literal.Content.ToString());
+            else if (inline is Markdig.Syntax.Inlines.ContainerInline childContainer)
+                sb.Append(ExtractInlineText(childContainer));
+        }
+        return sb.ToString().Trim();
+    }
+
+    private static string SlugifyGfm(string text)
+    {
+        var sb = new System.Text.StringBuilder(text.Length);
+        foreach (var c in text.ToLowerInvariant())
+        {
+            if (char.IsLetterOrDigit(c) || c == '-' || c == '_')
+                sb.Append(c);
+            else if (char.IsWhiteSpace(c))
+                sb.Append('-');
+        }
+        return sb.ToString().Trim('-');
     }
 
     private static string RewriteRelativeLinks(string html, string baseDirectory)
