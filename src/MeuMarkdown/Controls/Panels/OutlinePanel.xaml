@@ -1,15 +1,63 @@
 <UserControl x:Class="MeuMarkdown.Controls.Panels.OutlinePanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:MeuMarkdown.Controls.Panels"
+             xmlns:models="clr-namespace:MeuMarkdown.Models"
              Background="Transparent">
+    <UserControl.Resources>
+        <local:IndentToMarginConverter x:Key="IndentToMarginConverter" />
+    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
+
         <TextBlock Grid.Row="0" Text="OUTLINE" FontSize="11" FontWeight="SemiBold"
                    Foreground="#6b7280" Margin="12,12,12,8" />
-        <TextBlock Grid.Row="1" Text="Em construção (Fase 2)"
-                   Margin="12" Foreground="#9ca3af" FontStyle="Italic" />
+
+        <ListBox Grid.Row="1" x:Name="HeadingsList"
+                 BorderThickness="0" Background="Transparent"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 VirtualizingPanel.IsVirtualizing="True"
+                 VirtualizingPanel.VirtualizationMode="Recycling"
+                 MouseLeftButtonUp="OnHeadingClick">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <Border x:Name="border" Background="Transparent" Padding="0,2">
+                                    <ContentPresenter />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="#e5e7eb" />
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="#dbeafe" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="{x:Type models:Heading}">
+                    <TextBlock Text="{Binding Text}" FontSize="12"
+                               TextTrimming="CharacterEllipsis"
+                               Margin="{Binding Indent, Converter={StaticResource IndentToMarginConverter}}" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <TextBlock Grid.Row="2" x:Name="EmptyState"
+                   Text="Sem headings no documento" Margin="12,8,12,12"
+                   Foreground="#9ca3af" FontStyle="Italic" FontSize="12"
+                   Visibility="Visible" />
     </Grid>
 </UserControl>
