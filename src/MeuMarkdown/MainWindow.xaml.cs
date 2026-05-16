@@ -191,6 +191,26 @@ public partial class MainWindow : Window
         sidebarHost.ExplorerPanel.CloseWorkspaceRequested += OnCloseWorkspaceRequested;
         sidebarHost.ExplorerPanel.ShowAllFilesChanged += OnShowAllFilesChanged;
 
+        sidebarHost.SettingsPanel.Bind(_viewModel, App.State.Preferences.ExplorerShowAllFiles);
+        sidebarHost.SettingsPanel.SyncScrollChanged += (_, val) =>
+        {
+            _viewModel.SyncScrollEnabled = val;
+            syncScrollMenuItem.IsChecked = val;
+        };
+        sidebarHost.SettingsPanel.TypewriterChanged += (_, val) =>
+        {
+            _viewModel.TypewriterMode = val;
+            _typewriterManager!.Enabled = val;
+            typewriterMenuItem.IsChecked = val;
+        };
+        sidebarHost.SettingsPanel.ShowAllFilesChanged += (_, val) => OnShowAllFilesChanged(this, val);
+        sidebarHost.SettingsPanel.ChangeWorkspaceRequested += (_, _) => OnOpenFolderRequested(this, EventArgs.Empty);
+        sidebarHost.SettingsPanel.ClearRecentsRequested += (_, _) =>
+        {
+            _viewModel.RecentFilesService.Clear();
+            sidebarHost.SettingsPanel.RefreshWorkspaceAndRecents();
+        };
+
         LoadMarkdownSyntaxHighlighting();
         SmartListBehavior.Attach(textEditor);
         AutoPairBehavior.Attach(textEditor);
