@@ -142,6 +142,8 @@
         <KeyBinding Key="F3" Command="{x:Static local:MainWindow.FindNextCommand}" />
         <KeyBinding Key="F3" Modifiers="Shift" Command="{x:Static local:MainWindow.FindPrevCommand}" />
         <KeyBinding Key="P" Modifiers="Ctrl" Command="{x:Static local:MainWindow.QuickSwitcherCommand}" />
+        <KeyBinding Key="F11" Command="{x:Static local:MainWindow.ZenModeCommand}" />
+        <KeyBinding Key="F10" Command="{x:Static local:MainWindow.ZenSoloCommand}" />
     </Window.InputBindings>
 
     <Grid x:Name="rootGrid">
@@ -195,6 +197,7 @@
                               Click="OnToggleDarkTheme" InputGestureText="F6" />
                     <MenuItem Header="↕  Sincronizar _scroll" x:Name="syncScrollMenuItem"
                               IsCheckable="True" Click="OnToggleSyncScroll" />
+                    <MenuItem Header="⛶  _Zen mode" Click="OnToggleZen" InputGestureText="F11" />
                     <Separator />
                     <MenuItem Header="◧  Alternar _Sidebar" Click="OnToggleSidebar" InputGestureText="Ctrl+\" />
                 </MenuItem>

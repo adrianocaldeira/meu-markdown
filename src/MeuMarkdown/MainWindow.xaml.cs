@@ -38,6 +38,8 @@ public partial class MainWindow : Window
     public static readonly RoutedUICommand FindNextCommand = new("FindNext", "FindNext", typeof(MainWindow));
     public static readonly RoutedUICommand FindPrevCommand = new("FindPrev", "FindPrev", typeof(MainWindow));
     public static readonly RoutedUICommand QuickSwitcherCommand = new("QuickSwitcher", "QuickSwitcher", typeof(MainWindow));
+    public static readonly RoutedUICommand ZenModeCommand = new("ZenMode", "ZenMode", typeof(MainWindow));
+    public static readonly RoutedUICommand ZenSoloCommand = new("ZenSolo", "ZenSolo", typeof(MainWindow));
 
     private readonly MainViewModel _viewModel;
     private readonly DispatcherTimer _debounceTimer;
@@ -51,6 +53,11 @@ public partial class MainWindow : Window
     private readonly FindResultsRenderer _findRenderer = new();
     private int _activeFindIndex = -1;
     private FindRequest? _lastFindRequest;
+    private enum ZenSoloState { None, EditorOnly, PreviewOnly }
+    private bool _isZenMode;
+    private ZenSoloState _zenSolo = ZenSoloState.None;
+    private WindowState _savedWindowState;
+    private WindowStyle _savedWindowStyle;
 
     public MainWindow()
     {
@@ -198,6 +205,8 @@ public partial class MainWindow : Window
         CommandBindings.Add(new CommandBinding(FindPrevCommand, (_, _) => MoveToFindMatch(-1)));
         CommandBindings.Add(new CommandBinding(QuickSwitcherCommand, (_, _) => OpenQuickSwitcher()));
         quickSwitcher.FileSelected += (_, path) => _viewModel.OpenFileByPath(path);
+        CommandBindings.Add(new CommandBinding(ZenModeCommand, (_, _) => ToggleZenMode()));
+        CommandBindings.Add(new CommandBinding(ZenSoloCommand, (_, _) => ToggleZenSolo()));
 
         _isDarkTheme = IsOsDarkMode();
         ApplyTheme();
@@ -912,6 +921,83 @@ public partial class MainWindow : Window
             textEditor.Document.EndUpdate();
         }
         OnFindRequested(this, _lastFindRequest);
+    }
+
+    private void OnToggleZen(object sender, RoutedEventArgs e) => ToggleZenMode();
+
+    private void ToggleZenMode()
+    {
+        if (!_isZenMode)
+        {
+            _savedWindowState = WindowState;
+            _savedWindowStyle = WindowStyle;
+            menuBar.Visibility = Visibility.Collapsed;
+            toolbarBorder.Visibility = Visibility.Collapsed;
+            tabStripBorder.Visibility = Visibility.Collapsed;
+            statusBorder.Visibility = Visibility.Collapsed;
+            activityBarCol.Width = new GridLength(0);
+            sidebarCol.Width = new GridLength(0);
+            sidebarSplitterCol.Width = new GridLength(0);
+            WindowStyle = WindowStyle.None;
+            WindowState = WindowState.Maximized;
+            _isZenMode = true;
+        }
+        else
+        {
+            menuBar.Visibility = Visibility.Visible;
+            toolbarBorder.Visibility = Visibility.Visible;
+            tabStripBorder.Visibility = Visibility.Visible;
+            statusBorder.Visibility = Visibility.Visible;
+            activityBarCol.Width = _viewModel.IsActivityBarVisible ? GridLength.Auto : new GridLength(0);
+            if (_viewModel.IsActivityBarVisible && !_viewModel.IsSidebarCollapsed)
+            {
+                sidebarCol.Width = new GridLength(_viewModel.SidebarWidth);
+                sidebarSplitterCol.Width = new GridLength(4);
+            }
+            WindowStyle = _savedWindowStyle;
+            WindowState = _savedWindowState;
+            ApplyZenSolo(ZenSoloState.None);
+            _zenSolo = ZenSoloState.None;
+            _isZenMode = false;
+        }
+    }
+
+    private void ToggleZenSolo()
+    {
+        if (!_isZenMode) return;
+        _zenSolo = _zenSolo switch
+        {
+            ZenSoloState.None => ZenSoloState.EditorOnly,
+            ZenSoloState.EditorOnly => ZenSoloState.PreviewOnly,
+            ZenSoloState.PreviewOnly => ZenSoloState.None,
+            _ => ZenSoloState.None
+        };
+        ApplyZenSolo(_zenSolo);
+    }
+
+    private void ApplyZenSolo(ZenSoloState state)
+    {
+        switch (state)
+        {
+            case ZenSoloState.None:
+                editorColumn.Width = new GridLength(1, GridUnitType.Star);
+                splitterColumn.Width = new GridLength(5);
+                previewColumn.Width = new GridLength(1, GridUnitType.Star);
+                editorBorder.Visibility = Visibility.Visible;
+                break;
+            case ZenSoloState.EditorOnly:
+                editorColumn.Width = new GridLength(1, GridUnitType.Star);
+                splitterColumn.Width = new GridLength(0);
+                previewColumn.Width = new GridLength(0);
+                editorBorder.Visibility = Visibility.Visible;
+                break;
+            case ZenSoloState.PreviewOnly:
+                editorColumn.Width = new GridLength(0);
+                splitterColumn.Width = new GridLength(0);
+                previewColumn.Width = new GridLength(1, GridUnitType.Star);
+                editorBorder.Visibility = Visibility.Collapsed;
+                break;
+        }
     }
 }
 
