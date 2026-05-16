@@ -1,15 +1,105 @@
 <UserControl x:Class="MeuMarkdown.Controls.Panels.ExplorerPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="clr-namespace:MeuMarkdown.Models"
              Background="Transparent">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBlock Grid.Row="0" Text="EXPLORER" FontSize="11" FontWeight="SemiBold"
-                   Foreground="#6b7280" Margin="12,12,12,8" />
-        <TextBlock Grid.Row="1" Text="Em construção (Fase 3)"
-                   Margin="12" Foreground="#9ca3af" FontStyle="Italic" />
+
+        <DockPanel Grid.Row="0" Margin="12,12,8,4">
+            <Button DockPanel.Dock="Right" x:Name="MenuBtn" Content="⋯" FontSize="14"
+                    Width="22" Height="22" Background="Transparent" BorderThickness="0"
+                    Cursor="Hand" Click="OnMenuClick" ToolTip="Opções do workspace">
+                <Button.ContextMenu>
+                    <ContextMenu x:Name="WorkspaceMenu">
+                        <MenuItem Header="📂  Abrir pasta..." Click="OnOpenFolder" />
+                        <MenuItem Header="🔄  Atualizar" Click="OnRefresh" />
+                        <Separator />
+                        <MenuItem Header="✕  Fechar workspace" Click="OnCloseWorkspace" />
+                        <Separator />
+                        <MenuItem Header="🗂  Mostrar todos os arquivos" x:Name="ShowAllFilesItem"
+                                  IsCheckable="True" Click="OnToggleShowAll" />
+                    </ContextMenu>
+                </Button.ContextMenu>
+            </Button>
+            <TextBlock x:Name="WorkspaceNameText" Text="EXPLORER" FontSize="11" FontWeight="SemiBold"
+                       Foreground="#6b7280" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+        </DockPanel>
+
+        <TextBox Grid.Row="1" x:Name="FilterBox" Margin="12,4,12,4" FontSize="12"
+                 Padding="4,2" TextChanged="OnFilterChanged" />
+
+        <TreeView Grid.Row="2" x:Name="FileTree" BorderThickness="0" Background="Transparent"
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                  MouseDoubleClick="OnTreeDoubleClick">
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="TreeViewItem">
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                    <Setter Property="Padding" Value="0,1" />
+                </Style>
+            </TreeView.ItemContainerStyle>
+            <TreeView.Resources>
+                <HierarchicalDataTemplate DataType="{x:Type models:FileNode}" ItemsSource="{Binding Children}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="Icon" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding Name}" FontSize="12" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <HierarchicalDataTemplate.Triggers>
+                        <DataTrigger Binding="{Binding IsDirectory}" Value="True">
+                            <Setter TargetName="Icon" Property="Text" Value="📁" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsDirectory}" Value="False">
+                            <Setter TargetName="Icon" Property="Text" Value="📄" />
+                        </DataTrigger>
+                    </HierarchicalDataTemplate.Triggers>
+                </HierarchicalDataTemplate>
+            </TreeView.Resources>
+            <TreeView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Abrir em nova aba" Click="OnOpenInNewTab" />
+                    <MenuItem Header="Renomear (F2)" Click="OnRename" />
+                    <MenuItem Header="Excluir" Click="OnDelete" />
+                    <Separator />
+                    <MenuItem Header="Revelar no Explorer" Click="OnRevealInExplorer" />
+                    <MenuItem Header="Copiar caminho" Click="OnCopyPath" />
+                </ContextMenu>
+            </TreeView.ContextMenu>
+        </TreeView>
+
+        <TextBlock Grid.Row="2" x:Name="EmptyState"
+                   Text="Nenhum workspace aberto.&#x0A;&#x0A;Abra uma pasta via menu ⋯ ou abrindo um arquivo."
+                   Margin="12" Foreground="#9ca3af" FontStyle="Italic" FontSize="12"
+                   TextWrapping="Wrap" Visibility="Visible" />
+
+        <Border Grid.Row="3" Height="1" Background="#e5e7eb" Margin="12,8,12,4" />
+
+        <Grid Grid.Row="4">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" MaxHeight="200" />
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Text="RECENTES" FontSize="10" FontWeight="SemiBold"
+                       Foreground="#9ca3af" Margin="12,0,12,4" />
+            <ListBox Grid.Row="1" x:Name="RecentList" BorderThickness="0" Background="Transparent"
+                     MouseDoubleClick="OnRecentDoubleClick" Margin="0,0,0,8">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Padding" Value="12,2" />
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" FontSize="11.5" TextTrimming="CharacterEllipsis"
+                                   ToolTip="{Binding}" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
     </Grid>
 </UserControl>
