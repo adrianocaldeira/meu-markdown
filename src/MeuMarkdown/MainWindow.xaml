@@ -192,6 +192,8 @@
                               Click="OnToggleViewMode" InputGestureText="F5" />
                     <MenuItem Header="🌙  Tema _Escuro" x:Name="darkThemeMenuItem" IsCheckable="True"
                               Click="OnToggleDarkTheme" InputGestureText="F6" />
+                    <MenuItem Header="↕  Sincronizar _scroll" x:Name="syncScrollMenuItem"
+                              IsCheckable="True" Click="OnToggleSyncScroll" />
                     <Separator />
                     <MenuItem Header="◧  Alternar _Sidebar" Click="OnToggleSidebar" InputGestureText="Ctrl+\" />
                 </MenuItem>

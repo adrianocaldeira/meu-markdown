@@ -65,6 +65,7 @@ public partial class MainWindow : Window
         _viewModel.IsSidebarCollapsed = state.Sidebar.Collapsed;
         _viewModel.IsActivityBarVisible = state.Sidebar.ActivityBarVisible;
         _viewModel.SyncScrollEnabled = state.Preferences.SyncScrollEnabled;
+        syncScrollMenuItem.IsChecked = _viewModel.SyncScrollEnabled;
 
         // Aplicar window state — com clamping contra área de tela visível
         Width = state.Window.Width;
@@ -270,6 +271,11 @@ public partial class MainWindow : Window
     {
         _isViewMode = viewModeMenuItem.IsChecked;
         ApplyViewMode();
+    }
+
+    private void OnToggleSyncScroll(object sender, RoutedEventArgs e)
+    {
+        _viewModel.SyncScrollEnabled = syncScrollMenuItem.IsChecked;
     }
 
     private void OnToggleViewModeButton(object sender, RoutedEventArgs e)
