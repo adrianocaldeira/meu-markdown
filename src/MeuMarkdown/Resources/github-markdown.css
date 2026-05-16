@@ -1,0 +1,18 @@
+/* Minimal GitHub-flavored markdown styles */
+.markdown-body h1, .markdown-body h2 {
+    padding-bottom: 0.3em;
+    border-bottom: 1px solid #eaecef;
+}
+body.dark .markdown-body h1, body.dark .markdown-body h2 {
+    border-bottom-color: #3b434b;
+}
+.markdown-body h1 { font-size: 2em; margin: 0.67em 0; }
+.markdown-body h2 { font-size: 1.5em; margin: 0.83em 0; }
+.markdown-body h3 { font-size: 1.25em; margin: 1em 0; }
+.markdown-body h4 { font-size: 1em; margin: 1.33em 0; }
+.markdown-body h5 { font-size: 0.875em; margin: 1.67em 0; }
+.markdown-body h6 { font-size: 0.85em; margin: 2.33em 0; color: #6a737d; }
+body.dark .markdown-body h6 { color: #8b949e; }
+.markdown-body ul, .markdown-body ol { padding-left: 2em; }
+.markdown-body li + li { margin-top: 0.25em; }
+.markdown-body p { margin-top: 0; margin-bottom: 16px; }

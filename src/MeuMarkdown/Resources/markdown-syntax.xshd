@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<SyntaxDefinition name="Markdown" extensions=".md;.markdown"
+                  xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+  <Color name="Heading" foreground="#0366d6" fontWeight="bold" />
+  <Color name="Bold" fontWeight="bold" />
+  <Color name="Italic" fontStyle="italic" />
+  <Color name="Code" foreground="#e36209" background="#f6f8fa" />
+  <Color name="Link" foreground="#0366d6" />
+  <Color name="Quote" foreground="#6a737d" />
+  <Color name="ListMarker" foreground="#e36209" />
+  <Color name="HorizontalRule" foreground="#d1d5da" />
+
+  <RuleSet>
+    <!-- Headings -->
+    <Span color="Heading" begin="^######\s" />
+    <Span color="Heading" begin="^#####\s" />
+    <Span color="Heading" begin="^####\s" />
+    <Span color="Heading" begin="^###\s" />
+    <Span color="Heading" begin="^##\s" />
+    <Span color="Heading" begin="^#\s" />
+
+    <!-- Code blocks -->
+    <Span color="Code" multiline="true">
+      <Begin>^```</Begin>
+      <End>^```</End>
+    </Span>
+
+    <!-- Inline code -->
+    <Span color="Code">
+      <Begin>`</Begin>
+      <End>`</End>
+    </Span>
+
+    <!-- Blockquote -->
+    <Span color="Quote" begin="^&gt;\s" />
+
+    <!-- Bold -->
+    <Span color="Bold">
+      <Begin>\*\*</Begin>
+      <End>\*\*</End>
+    </Span>
+    <Span color="Bold">
+      <Begin>__</Begin>
+      <End>__</End>
+    </Span>
+
+    <!-- Italic -->
+    <Span color="Italic">
+      <Begin>\*</Begin>
+      <End>\*</End>
+    </Span>
+    <Span color="Italic">
+      <Begin>(?&lt;!_)_(?!_)</Begin>
+      <End>(?&lt;!_)_(?!_)</End>
+    </Span>
+
+    <!-- Links [text](url) -->
+    <Rule color="Link">\[.*?\]\(.*?\)</Rule>
+
+    <!-- Images ![alt](url) -->
+    <Rule color="Link">!\[.*?\]\(.*?\)</Rule>
+
+    <!-- List markers -->
+    <Rule color="ListMarker">^\s*[-*+]\s</Rule>
+    <Rule color="ListMarker">^\s*\d+\.\s</Rule>
+
+    <!-- Horizontal rule -->
+    <Rule color="HorizontalRule">^---+$</Rule>
+    <Rule color="HorizontalRule">^\*\*\*+$</Rule>
+  </RuleSet>
+</SyntaxDefinition>

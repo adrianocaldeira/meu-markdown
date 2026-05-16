@@ -1,0 +1,49 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using MeuMarkdown.Models;
+
+namespace MeuMarkdown.ViewModels;
+
+public partial class DocumentTabViewModel : ObservableObject
+{
+    private readonly MarkdownDocument _document;
+
+    [ObservableProperty]
+    private string _content = string.Empty;
+
+    [ObservableProperty]
+    private string _htmlPreview = string.Empty;
+
+    [ObservableProperty]
+    private bool _isDirty;
+
+    public string FilePath => _document.FilePath;
+    public string FileName => _document.FileName;
+    public string Directory => _document.Directory;
+
+    public string TabTitle => IsDirty ? $"{FileName} *" : FileName;
+
+    public DocumentTabViewModel(MarkdownDocument document)
+    {
+        _document = document;
+        _content = document.Content;
+    }
+
+    partial void OnContentChanged(string value)
+    {
+        _document.Content = value;
+        IsDirty = true;
+    }
+
+    partial void OnIsDirtyChanged(bool value)
+    {
+        OnPropertyChanged(nameof(TabTitle));
+    }
+
+    public void MarkSaved()
+    {
+        _document.IsDirty = false;
+        IsDirty = false;
+    }
+
+    public MarkdownDocument GetDocument() => _document;
+}
