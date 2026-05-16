@@ -68,4 +68,17 @@ public class AppStateServiceTests : IDisposable
         Assert.True(loaded.Preferences.SyncScrollEnabled);
         Assert.True(loaded.Preferences.TypewriterMode);
     }
+
+    [Fact]
+    public void Load_WhenJsonCorrupt_ReturnsDefaultStateWithoutThrowing()
+    {
+        File.WriteAllText(_stateFile, "{ this is not valid json :::");
+        var service = new AppStateService(_stateFile);
+
+        var state = service.Load();
+
+        Assert.NotNull(state);
+        Assert.Equal(1200, state.Window.Width);
+        Assert.Equal("Explorer", state.Sidebar.ActivePanel);
+    }
 }

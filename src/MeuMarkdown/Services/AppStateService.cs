@@ -33,8 +33,15 @@ public class AppStateService
         if (!File.Exists(_filePath))
             return new AppState();
 
-        var json = File.ReadAllText(_filePath);
-        return JsonSerializer.Deserialize<AppState>(json, _jsonOptions) ?? new AppState();
+        try
+        {
+            var json = File.ReadAllText(_filePath);
+            return JsonSerializer.Deserialize<AppState>(json, _jsonOptions) ?? new AppState();
+        }
+        catch (Exception ex) when (ex is JsonException or IOException)
+        {
+            return new AppState();
+        }
     }
 
     public void Save(AppState state)
