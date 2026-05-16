@@ -38,6 +38,9 @@ public partial class MainWindow : Window
     public static readonly RoutedUICommand FindNextCommand = new("FindNext", "FindNext", typeof(MainWindow));
     public static readonly RoutedUICommand FindPrevCommand = new("FindPrev", "FindPrev", typeof(MainWindow));
     public static readonly RoutedUICommand QuickSwitcherCommand = new("QuickSwitcher", "QuickSwitcher", typeof(MainWindow));
+    public static readonly RoutedUICommand ZenModeCommand = new("ZenMode", "ZenMode", typeof(MainWindow));
+    public static readonly RoutedUICommand ZenSoloCommand = new("ZenSolo", "ZenSolo", typeof(MainWindow));
+    public static readonly RoutedUICommand TypewriterCommand = new("Typewriter", "Typewriter", typeof(MainWindow));
 
     private readonly MainViewModel _viewModel;
     private readonly DispatcherTimer _debounceTimer;
@@ -51,6 +54,12 @@ public partial class MainWindow : Window
     private readonly FindResultsRenderer _findRenderer = new();
     private int _activeFindIndex = -1;
     private FindRequest? _lastFindRequest;
+    private enum ZenSoloState { None, EditorOnly, PreviewOnly }
+    private bool _isZenMode;
+    private ZenSoloState _zenSolo = ZenSoloState.None;
+    private WindowState _savedWindowState;
+    private WindowStyle _savedWindowStyle;
+    private TypewriterScrollManager? _typewriterManager;
 
     public MainWindow()
     {
@@ -183,6 +192,10 @@ public partial class MainWindow : Window
         SmartListBehavior.Attach(textEditor);
         AutoPairBehavior.Attach(textEditor);
         ImagePasteHandler.Attach(textEditor, () => _viewModel.SelectedTab);
+        _typewriterManager = new TypewriterScrollManager(textEditor);
+        _viewModel.TypewriterMode = App.State.Preferences.TypewriterMode;
+        _typewriterManager.Enabled = _viewModel.TypewriterMode;
+        typewriterMenuItem.IsChecked = _viewModel.TypewriterMode;
 
         textEditor.TextArea.TextView.BackgroundRenderers.Add(_findRenderer);
         findBar.FindRequested += OnFindRequested;
@@ -198,6 +211,14 @@ public partial class MainWindow : Window
         CommandBindings.Add(new CommandBinding(FindPrevCommand, (_, _) => MoveToFindMatch(-1)));
         CommandBindings.Add(new CommandBinding(QuickSwitcherCommand, (_, _) => OpenQuickSwitcher()));
         quickSwitcher.FileSelected += (_, path) => _viewModel.OpenFileByPath(path);
+        CommandBindings.Add(new CommandBinding(ZenModeCommand, (_, _) => ToggleZenMode()));
+        CommandBindings.Add(new CommandBinding(ZenSoloCommand, (_, _) => ToggleZenSolo()));
+        CommandBindings.Add(new CommandBinding(TypewriterCommand, (_, _) =>
+        {
+            _viewModel.TypewriterMode = !_viewModel.TypewriterMode;
+            _typewriterManager!.Enabled = _viewModel.TypewriterMode;
+            typewriterMenuItem.IsChecked = _viewModel.TypewriterMode;
+        }));
 
         _isDarkTheme = IsOsDarkMode();
         ApplyTheme();
@@ -686,6 +707,7 @@ public partial class MainWindow : Window
 
     private void OnActivityPanelSelected(object? sender, string panelName)
     {
+        if (_isZenMode) return;
         if (_viewModel.SidebarActivePanel == panelName && !_viewModel.IsSidebarCollapsed)
         {
             // Clicou no mesmo painel ativo: colapsa
@@ -712,6 +734,7 @@ public partial class MainWindow : Window
 
     private void ToggleSidebar()
     {
+        if (_isZenMode) return;
         _viewModel.IsActivityBarVisible = !_viewModel.IsActivityBarVisible;
         activityBarCol.Width = _viewModel.IsActivityBarVisible ? GridLength.Auto : new GridLength(0);
 
@@ -796,6 +819,7 @@ public partial class MainWindow : Window
         state.Sidebar.Collapsed = _viewModel.IsSidebarCollapsed;
         state.Sidebar.ActivityBarVisible = _viewModel.IsActivityBarVisible;
         state.Preferences.SyncScrollEnabled = _viewModel.SyncScrollEnabled;
+        state.Preferences.TypewriterMode = _viewModel.TypewriterMode;
         state.LastWorkspace = _viewModel.WorkspaceService.RootPath;
         state.RecentFiles = _viewModel.RecentFilesService.Snapshot().ToList();
 
@@ -912,6 +936,89 @@ public partial class MainWindow : Window
             textEditor.Document.EndUpdate();
         }
         OnFindRequested(this, _lastFindRequest);
+    }
+
+    private void OnToggleZen(object sender, RoutedEventArgs e) => ToggleZenMode();
+
+    private void OnToggleTypewriter(object sender, RoutedEventArgs e)
+    {
+        _viewModel.TypewriterMode = typewriterMenuItem.IsChecked;
+        _typewriterManager!.Enabled = _viewModel.TypewriterMode;
+    }
+
+    private void ToggleZenMode()
+    {
+        if (!_isZenMode)
+        {
+            _savedWindowState = WindowState;
+            _savedWindowStyle = WindowStyle;
+            menuBar.Visibility = Visibility.Collapsed;
+            toolbarBorder.Visibility = Visibility.Collapsed;
+            tabStripBorder.Visibility = Visibility.Collapsed;
+            statusBorder.Visibility = Visibility.Collapsed;
+            activityBarCol.Width = new GridLength(0);
+            sidebarCol.Width = new GridLength(0);
+            sidebarSplitterCol.Width = new GridLength(0);
+            WindowStyle = WindowStyle.None;
+            WindowState = WindowState.Maximized;
+            _isZenMode = true;
+        }
+        else
+        {
+            menuBar.Visibility = Visibility.Visible;
+            toolbarBorder.Visibility = Visibility.Visible;
+            tabStripBorder.Visibility = Visibility.Visible;
+            statusBorder.Visibility = Visibility.Visible;
+            activityBarCol.Width = _viewModel.IsActivityBarVisible ? GridLength.Auto : new GridLength(0);
+            if (_viewModel.IsActivityBarVisible && !_viewModel.IsSidebarCollapsed)
+            {
+                sidebarCol.Width = new GridLength(_viewModel.SidebarWidth);
+                sidebarSplitterCol.Width = new GridLength(4);
+            }
+            WindowStyle = _savedWindowStyle;
+            WindowState = _savedWindowState;
+            ApplyZenSolo(ZenSoloState.None);
+            _zenSolo = ZenSoloState.None;
+            _isZenMode = false;
+        }
+    }
+
+    private void ToggleZenSolo()
+    {
+        if (!_isZenMode) return;
+        _zenSolo = _zenSolo switch
+        {
+            ZenSoloState.None => ZenSoloState.EditorOnly,
+            ZenSoloState.EditorOnly => ZenSoloState.PreviewOnly,
+            ZenSoloState.PreviewOnly => ZenSoloState.None,
+            _ => ZenSoloState.None
+        };
+        ApplyZenSolo(_zenSolo);
+    }
+
+    private void ApplyZenSolo(ZenSoloState state)
+    {
+        switch (state)
+        {
+            case ZenSoloState.None:
+                editorColumn.Width = new GridLength(1, GridUnitType.Star);
+                splitterColumn.Width = new GridLength(5);
+                previewColumn.Width = new GridLength(1, GridUnitType.Star);
+                editorBorder.Visibility = Visibility.Visible;
+                break;
+            case ZenSoloState.EditorOnly:
+                editorColumn.Width = new GridLength(1, GridUnitType.Star);
+                splitterColumn.Width = new GridLength(0);
+                previewColumn.Width = new GridLength(0);
+                editorBorder.Visibility = Visibility.Visible;
+                break;
+            case ZenSoloState.PreviewOnly:
+                editorColumn.Width = new GridLength(0);
+                splitterColumn.Width = new GridLength(0);
+                previewColumn.Width = new GridLength(1, GridUnitType.Star);
+                editorBorder.Visibility = Visibility.Collapsed;
+                break;
+        }
     }
 }
 

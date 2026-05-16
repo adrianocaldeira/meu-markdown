@@ -43,6 +43,9 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _syncScrollEnabled;
 
+    [ObservableProperty]
+    private bool _typewriterMode;
+
     public NavigationService Navigation => _navigationService;
 
     public MarkdownService MarkdownService => _markdownService;
