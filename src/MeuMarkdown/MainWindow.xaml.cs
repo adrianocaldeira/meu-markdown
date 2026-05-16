@@ -182,6 +182,7 @@ public partial class MainWindow : Window
         LoadMarkdownSyntaxHighlighting();
         SmartListBehavior.Attach(textEditor);
         AutoPairBehavior.Attach(textEditor);
+        ImagePasteHandler.Attach(textEditor, () => _viewModel.SelectedTab);
 
         textEditor.TextArea.TextView.BackgroundRenderers.Add(_findRenderer);
         findBar.FindRequested += OnFindRequested;
