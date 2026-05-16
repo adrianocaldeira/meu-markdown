@@ -12,6 +12,8 @@ using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using MeuMarkdown.ViewModels;
 using MeuMarkdown.Services;
+using MeuMarkdown.EditorBehaviors;
+using MeuMarkdown.Controls;
 using Microsoft.Win32;
 
 namespace MeuMarkdown;
@@ -30,13 +32,24 @@ public partial class MainWindow : Window
     public static readonly RoutedUICommand ToggleViewModeCommand = new("ViewMode", "ToggleViewMode", typeof(MainWindow));
     public static readonly RoutedUICommand ToggleDarkThemeCommand = new("DarkTheme", "ToggleDarkTheme", typeof(MainWindow));
     public static readonly RoutedUICommand ToggleSidebarCommand = new("ToggleSidebar", "ToggleSidebar", typeof(MainWindow));
+    public static readonly RoutedUICommand OpenOutlineCommand = new("OpenOutline", "OpenOutline", typeof(MainWindow));
+    public static readonly RoutedUICommand FindCommand = new("Find", "Find", typeof(MainWindow));
+    public static readonly RoutedUICommand ReplaceCommand = new("Replace", "Replace", typeof(MainWindow));
+    public static readonly RoutedUICommand FindNextCommand = new("FindNext", "FindNext", typeof(MainWindow));
+    public static readonly RoutedUICommand FindPrevCommand = new("FindPrev", "FindPrev", typeof(MainWindow));
 
     private readonly MainViewModel _viewModel;
     private readonly DispatcherTimer _debounceTimer;
     private bool _isDarkTheme;
     private bool _isViewMode;
     private bool _suppressEditorUpdate;
+    private bool _suppressSyncFromPreview;
+    private bool _suppressSyncFromEditor;
     private GridLength _savedEditorWidth = new(1, GridUnitType.Star);
+    private readonly EditorSearchService _searchService = new();
+    private readonly FindResultsRenderer _findRenderer = new();
+    private int _activeFindIndex = -1;
+    private FindRequest? _lastFindRequest;
 
     public MainWindow()
     {
@@ -51,6 +64,8 @@ public partial class MainWindow : Window
         _viewModel.SidebarWidth = state.Sidebar.Width;
         _viewModel.IsSidebarCollapsed = state.Sidebar.Collapsed;
         _viewModel.IsActivityBarVisible = state.Sidebar.ActivityBarVisible;
+        _viewModel.SyncScrollEnabled = state.Preferences.SyncScrollEnabled;
+        syncScrollMenuItem.IsChecked = _viewModel.SyncScrollEnabled;
 
         // Aplicar window state — com clamping contra área de tela visível
         Width = state.Window.Width;
@@ -99,6 +114,8 @@ public partial class MainWindow : Window
 
         preview.LinkClicked += OnPreviewLinkClicked;
         preview.ExternalLinkClicked += OnExternalLinkClicked;
+        preview.PreviewScrolled += OnPreviewScrolled;
+        textEditor.TextArea.TextView.ScrollOffsetChanged += OnEditorScrollChanged;
 
         // Register format command bindings
         CommandBindings.Add(new CommandBinding(FormatBoldCommand, (_, _) => WrapSelection("**", "**")));
@@ -112,6 +129,16 @@ public partial class MainWindow : Window
         CommandBindings.Add(new CommandBinding(ToggleViewModeCommand, (_, _) => ToggleViewMode()));
         CommandBindings.Add(new CommandBinding(ToggleDarkThemeCommand, (_, _) => ToggleDarkTheme()));
         CommandBindings.Add(new CommandBinding(ToggleSidebarCommand, (_, _) => ToggleSidebar()));
+        CommandBindings.Add(new CommandBinding(OpenOutlineCommand, (_, _) =>
+        {
+            _viewModel.SidebarActivePanel = "Outline";
+            _viewModel.IsSidebarCollapsed = false;
+            sidebarCol.Width = new GridLength(_viewModel.SidebarWidth);
+            sidebarSplitterCol.Width = new GridLength(4);
+            sidebarHost.ShowPanel("Outline");
+            activityBar.SetActivePanel("Outline");
+            sidebarHost.OutlinePanel.HeadingsList.Focus();
+        }));
 
         // F5 / F6 key bindings
         InputBindings.Add(new KeyBinding(ToggleViewModeCommand, Key.F5, ModifierKeys.None));
@@ -131,9 +158,23 @@ public partial class MainWindow : Window
         }
         activityBar.SetActivePanel(_viewModel.SidebarActivePanel);
         sidebarHost.ShowPanel(_viewModel.SidebarActivePanel);
+        sidebarHost.OutlinePanel.HeadingSelected += OnOutlineHeadingSelected;
         activityBar.PanelSelected += OnActivityPanelSelected;
 
         LoadMarkdownSyntaxHighlighting();
+
+        textEditor.TextArea.TextView.BackgroundRenderers.Add(_findRenderer);
+        findBar.FindRequested += OnFindRequested;
+        findBar.NextRequested += (_, _) => MoveToFindMatch(+1);
+        findBar.PrevRequested += (_, _) => MoveToFindMatch(-1);
+        findBar.CloseRequested += (_, _) => CloseFindBar();
+        findBar.ReplaceOneRequested += OnReplaceOne;
+        findBar.ReplaceAllRequested += OnReplaceAll;
+
+        CommandBindings.Add(new CommandBinding(FindCommand, (_, _) => OpenFindBar(showReplace: false)));
+        CommandBindings.Add(new CommandBinding(ReplaceCommand, (_, _) => OpenFindBar(showReplace: true)));
+        CommandBindings.Add(new CommandBinding(FindNextCommand, (_, _) => MoveToFindMatch(+1)));
+        CommandBindings.Add(new CommandBinding(FindPrevCommand, (_, _) => MoveToFindMatch(-1)));
 
         _isDarkTheme = IsOsDarkMode();
         ApplyTheme();
@@ -232,6 +273,11 @@ public partial class MainWindow : Window
         ApplyViewMode();
     }
 
+    private void OnToggleSyncScroll(object sender, RoutedEventArgs e)
+    {
+        _viewModel.SyncScrollEnabled = syncScrollMenuItem.IsChecked;
+    }
+
     private void OnToggleViewModeButton(object sender, RoutedEventArgs e)
     {
         _isViewMode = viewModeToggle.IsChecked == true;
@@ -255,6 +301,17 @@ public partial class MainWindow : Window
     {
         _debounceTimer.Stop();
         UpdatePreview();
+        if (_viewModel.SelectedTab != null)
+        {
+            var headings = _viewModel.MarkdownService.ExtractHeadings(textEditor.Text);
+            _viewModel.SelectedTab.UpdateHeadings(headings);
+        }
+        if (_viewModel.SelectedTab != null)
+        {
+            var text = textEditor.Text;
+            var words = System.Text.RegularExpressions.Regex.Matches(text, @"\b\w+\b").Count;
+            _viewModel.SelectedTab.UpdateMetrics(words, text.Length);
+        }
     }
 
     private void UpdatePreview()
@@ -275,10 +332,26 @@ public partial class MainWindow : Window
         var line = textEditor.TextArea.Caret.Line;
         var col = textEditor.TextArea.Caret.Column;
         lineColText.Text = $"Ln {line}, Col {col}";
+        // Atualiza heading atual no Outline
+        if (_viewModel.SelectedTab != null && _viewModel.SelectedTab.Headings.Count > 0)
+        {
+            var currentLine = textEditor.TextArea.Caret.Line;
+            MeuMarkdown.Models.Heading? currentHeading = null;
+            foreach (var h in _viewModel.SelectedTab.Headings)
+            {
+                if (h.StartLine <= currentLine)
+                    currentHeading = h;
+                else
+                    break;
+            }
+            _viewModel.SelectedTab.CurrentHeading = currentHeading;
+            sidebarHost.OutlinePanel.HighlightCurrentHeading(currentHeading);
+        }
     }
 
     private void OnTabSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        sidebarHost.OutlinePanel.BindToTab(_viewModel.SelectedTab);
         if (_viewModel.SelectedTab == null)
         {
             textEditor.Text = string.Empty;
@@ -306,6 +379,33 @@ public partial class MainWindow : Window
             Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
         }
         catch { }
+    }
+
+    private void OnEditorScrollChanged(object? sender, EventArgs e)
+    {
+        if (!_viewModel.SyncScrollEnabled || _suppressSyncFromPreview) return;
+        var textView = textEditor.TextArea.TextView;
+        if (textView.VisualLines.Count == 0) return;
+        var firstVisible = textView.VisualLines[0].FirstDocumentLine.LineNumber;
+        _suppressSyncFromEditor = true;
+        preview.ScrollToLine(firstVisible);
+        Dispatcher.BeginInvoke(new Action(() => _suppressSyncFromEditor = false),
+            System.Windows.Threading.DispatcherPriority.Background);
+    }
+
+    private void OnPreviewScrolled(int line)
+    {
+        if (!_viewModel.SyncScrollEnabled || _suppressSyncFromEditor) return;
+        _suppressSyncFromPreview = true;
+        try
+        {
+            textEditor.ScrollToLine(line);
+        }
+        finally
+        {
+            Dispatcher.BeginInvoke(new Action(() => _suppressSyncFromPreview = false),
+                System.Windows.Threading.DispatcherPriority.Background);
+        }
     }
 
     private void OnCloseTabClick(object sender, RoutedEventArgs e)
@@ -604,6 +704,15 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OnOutlineHeadingSelected(object? sender, MeuMarkdown.Models.Heading heading)
+    {
+        var line = Math.Max(1, Math.Min(heading.StartLine, textEditor.Document.LineCount));
+        var offset = textEditor.Document.GetOffset(line, 1);
+        textEditor.CaretOffset = offset;
+        textEditor.ScrollToLine(line);
+        textEditor.Focus();
+    }
+
     private void OnWindowClosing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
         var state = App.State;
@@ -626,6 +735,7 @@ public partial class MainWindow : Window
         state.Sidebar.Width = _viewModel.SidebarWidth;
         state.Sidebar.Collapsed = _viewModel.IsSidebarCollapsed;
         state.Sidebar.ActivityBarVisible = _viewModel.IsActivityBarVisible;
+        state.Preferences.SyncScrollEnabled = _viewModel.SyncScrollEnabled;
 
         try
         {
@@ -652,4 +762,93 @@ public partial class MainWindow : Window
         SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
         base.OnClosing(e);
     }
+
+    // === Find / Replace ===
+
+    private void OpenFindBar(bool showReplace)
+    {
+        var selected = textEditor.SelectedText;
+        findBar.Open(string.IsNullOrEmpty(selected) ? _lastFindRequest?.Query : selected, showReplace);
+    }
+
+    private void CloseFindBar()
+    {
+        findBar.Visibility = Visibility.Collapsed;
+        _findRenderer.Matches = Array.Empty<SearchMatch>();
+        _findRenderer.ActiveMatchIndex = -1;
+        textEditor.TextArea.TextView.InvalidateLayer(_findRenderer.Layer);
+        textEditor.Focus();
+    }
+
+    private void OnFindRequested(object? sender, FindRequest req)
+    {
+        _lastFindRequest = req;
+        var matches = _searchService.FindMatches(textEditor.Text, req.Query, req.CaseSensitive, req.UseRegex, req.WholeWord);
+        _findRenderer.Matches = matches;
+        _activeFindIndex = matches.Count > 0 ? 0 : -1;
+        _findRenderer.ActiveMatchIndex = _activeFindIndex;
+        findBar.SetMatchCount(_activeFindIndex, matches.Count);
+        textEditor.TextArea.TextView.InvalidateLayer(_findRenderer.Layer);
+        if (_activeFindIndex >= 0) ScrollToFindMatch();
+    }
+
+    private void MoveToFindMatch(int delta)
+    {
+        if (_findRenderer.Matches.Count == 0) return;
+        _activeFindIndex = (_activeFindIndex + delta + _findRenderer.Matches.Count) % _findRenderer.Matches.Count;
+        _findRenderer.ActiveMatchIndex = _activeFindIndex;
+        findBar.SetMatchCount(_activeFindIndex, _findRenderer.Matches.Count);
+        textEditor.TextArea.TextView.InvalidateLayer(_findRenderer.Layer);
+        ScrollToFindMatch();
+    }
+
+    private void ScrollToFindMatch()
+    {
+        var match = _findRenderer.Matches[_activeFindIndex];
+        var line = textEditor.Document.GetLineByOffset(match.Start);
+        textEditor.ScrollToLine(line.LineNumber);
+        textEditor.Select(match.Start, match.Length);
+    }
+
+    private void OnReplaceOne(object? sender, string replacement)
+    {
+        if (_activeFindIndex < 0 || _findRenderer.Matches.Count == 0) return;
+        var match = _findRenderer.Matches[_activeFindIndex];
+        textEditor.Document.Replace(match.Start, match.Length, replacement);
+        if (_lastFindRequest != null) OnFindRequested(this, _lastFindRequest);
+    }
+
+    private void OnReplaceAll(object? sender, string replacement)
+    {
+        if (_lastFindRequest == null || _findRenderer.Matches.Count == 0) return;
+        if (_findRenderer.Matches.Count > 20)
+        {
+            var confirm = MessageBox.Show(
+                $"Substituir {_findRenderer.Matches.Count} ocorrências?",
+                "Confirmar substituição em massa",
+                MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (confirm != MessageBoxResult.Yes) return;
+        }
+        var matches = _findRenderer.Matches.ToList();
+        textEditor.Document.BeginUpdate();
+        try
+        {
+            for (int i = matches.Count - 1; i >= 0; i--)
+                textEditor.Document.Replace(matches[i].Start, matches[i].Length, replacement);
+        }
+        finally
+        {
+            textEditor.Document.EndUpdate();
+        }
+        OnFindRequested(this, _lastFindRequest);
+    }
+}
+
+public class NullToCollapsedConverter : System.Windows.Data.IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+        => value == null ? System.Windows.Visibility.Collapsed : System.Windows.Visibility.Visible;
+
+    public object ConvertBack(object value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+        => throw new NotImplementedException();
 }

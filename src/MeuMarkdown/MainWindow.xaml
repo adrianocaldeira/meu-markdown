@@ -80,6 +80,8 @@
             <Setter Property="Background" Value="#e5e7eb" />
         </Style>
 
+        <local:NullToCollapsedConverter x:Key="NullToCollapsedConverter" />
+
         <!-- View mode toggle button style -->
         <Style x:Key="ViewModeBtn" TargetType="ToggleButton"
                xmlns:sys="clr-namespace:System;assembly=mscorlib">
@@ -134,6 +136,11 @@
         <KeyBinding Key="D3" Modifiers="Ctrl" Command="{x:Static local:MainWindow.FormatH3Command}" />
         <KeyBinding Key="S" Modifiers="Ctrl+Shift" Command="{x:Static local:MainWindow.FormatStrikethroughCommand}" />
         <KeyBinding Key="OemPipe" Modifiers="Ctrl" Command="{x:Static local:MainWindow.ToggleSidebarCommand}" />
+        <KeyBinding Key="O" Modifiers="Ctrl+Shift" Command="{x:Static local:MainWindow.OpenOutlineCommand}" />
+        <KeyBinding Key="F" Modifiers="Ctrl" Command="{x:Static local:MainWindow.FindCommand}" />
+        <KeyBinding Key="H" Modifiers="Ctrl" Command="{x:Static local:MainWindow.ReplaceCommand}" />
+        <KeyBinding Key="F3" Command="{x:Static local:MainWindow.FindNextCommand}" />
+        <KeyBinding Key="F3" Modifiers="Shift" Command="{x:Static local:MainWindow.FindPrevCommand}" />
     </Window.InputBindings>
 
     <Grid x:Name="rootGrid">
@@ -185,6 +192,8 @@
                               Click="OnToggleViewMode" InputGestureText="F5" />
                     <MenuItem Header="🌙  Tema _Escuro" x:Name="darkThemeMenuItem" IsCheckable="True"
                               Click="OnToggleDarkTheme" InputGestureText="F6" />
+                    <MenuItem Header="↕  Sincronizar _scroll" x:Name="syncScrollMenuItem"
+                              IsCheckable="True" Click="OnToggleSyncScroll" />
                     <Separator />
                     <MenuItem Header="◧  Alternar _Sidebar" Click="OnToggleSidebar" InputGestureText="Ctrl+\" />
                 </MenuItem>
@@ -300,16 +309,23 @@
                 <!-- Editor panel with subtle border -->
                 <Border Grid.Column="0" x:Name="editorBorder" Margin="4,4,0,4"
                         Background="#ffffff" BorderBrush="#e5e7eb" BorderThickness="1" CornerRadius="6">
-                    <ae:TextEditor x:Name="textEditor"
-                                   FontFamily="Cascadia Code, Consolas, Courier New"
-                                   FontSize="14"
-                                   ShowLineNumbers="True"
-                                   WordWrap="True"
-                                   VerticalScrollBarVisibility="Auto"
-                                   HorizontalScrollBarVisibility="Auto"
-                                   Padding="8,8"
-                                   Background="White"
-                                   BorderThickness="0" />
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <controls:FindReplaceBar Grid.Row="0" x:Name="findBar" Visibility="Collapsed" />
+                        <ae:TextEditor Grid.Row="1" x:Name="textEditor"
+                                       FontFamily="Cascadia Code, Consolas, Courier New"
+                                       FontSize="14"
+                                       ShowLineNumbers="True"
+                                       WordWrap="True"
+                                       VerticalScrollBarVisibility="Auto"
+                                       HorizontalScrollBarVisibility="Auto"
+                                       Padding="8,8"
+                                       Background="White"
+                                       BorderThickness="0" />
+                    </Grid>
                 </Border>
 
                 <!-- Splitter - thin modern line -->
@@ -336,8 +352,21 @@
                                    Margin="0,0,16,0" VerticalAlignment="Center" />
                         <TextBlock Text="UTF-8" FontSize="11.5" Foreground="#64748b" VerticalAlignment="Center" />
                     </StackPanel>
-                    <TextBlock x:Name="statusText" Text="{Binding StatusText}" FontSize="11.5"
-                               Foreground="#475569" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="statusText" Text="{Binding StatusText}" FontSize="11.5"
+                                   Foreground="#475569" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                   MaxWidth="400" />
+                        <TextBlock Text=" • " FontSize="11.5" Foreground="#94a3b8" VerticalAlignment="Center"
+                                   Visibility="{Binding SelectedTab, Converter={StaticResource NullToCollapsedConverter}}" />
+                        <TextBlock FontSize="11.5" Foreground="#64748b" VerticalAlignment="Center"
+                                   Visibility="{Binding SelectedTab, Converter={StaticResource NullToCollapsedConverter}}">
+                            <Run Text="{Binding SelectedTab.WordCount, Mode=OneWay}" />
+                            <Run Text="palavras" />
+                            <Run Text=" • ~" />
+                            <Run Text="{Binding SelectedTab.ReadingTimeMinutes, Mode=OneWay}" />
+                            <Run Text="min" />
+                        </TextBlock>
+                    </StackPanel>
                 </DockPanel>
             </Border>
         </Grid>

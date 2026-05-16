@@ -13,6 +13,8 @@ public partial class SidebarHost : UserControl
         InitializeComponent();
     }
 
+    public Controls.Panels.OutlinePanel OutlinePanel => OutlinePanelInstance;
+
     /// <summary>
     /// Exibe o painel especificado escondendo os demais.
     /// </summary>

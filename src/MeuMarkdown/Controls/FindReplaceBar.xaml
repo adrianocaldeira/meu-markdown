@@ -1,0 +1,91 @@
+<UserControl x:Class="MeuMarkdown.Controls.FindReplaceBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#f9fafb" Padding="6">
+    <UserControl.Resources>
+        <Style x:Key="ToggleOpt" TargetType="ToggleButton">
+            <Setter Property="Width" Value="24" />
+            <Setter Property="Height" Value="24" />
+            <Setter Property="Margin" Value="2,0,0,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#374151" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="3">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#e5e7eb" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#dbeafe" />
+                                <Setter Property="Foreground" Value="#1d4ed8" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="NavBtn" TargetType="Button">
+            <Setter Property="Width" Value="24" />
+            <Setter Property="Height" Value="24" />
+            <Setter Property="Margin" Value="2,0,0,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#374151" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="3">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#e5e7eb" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <DockPanel Grid.Row="0" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Right" Style="{StaticResource NavBtn}" Click="OnClose"
+                    Content="✕" ToolTip="Fechar (Esc)" />
+            <TextBlock DockPanel.Dock="Right" x:Name="MatchCountText" Text="" FontSize="11"
+                       Foreground="#6b7280" VerticalAlignment="Center" Margin="8,0" />
+            <Button DockPanel.Dock="Right" Style="{StaticResource NavBtn}" Click="OnNext"
+                    Content="▼" ToolTip="Próximo (F3)" />
+            <Button DockPanel.Dock="Right" Style="{StaticResource NavBtn}" Click="OnPrev"
+                    Content="▲" ToolTip="Anterior (Shift+F3)" />
+            <ToggleButton DockPanel.Dock="Right" Style="{StaticResource ToggleOpt}" x:Name="WholeWordToggle"
+                          Content="⌐|" ToolTip="Palavra inteira" Checked="OnOptionChanged" Unchecked="OnOptionChanged" />
+            <ToggleButton DockPanel.Dock="Right" Style="{StaticResource ToggleOpt}" x:Name="RegexToggle"
+                          Content=".*" ToolTip="Expressão regular" Checked="OnOptionChanged" Unchecked="OnOptionChanged" />
+            <ToggleButton DockPanel.Dock="Right" Style="{StaticResource ToggleOpt}" x:Name="CaseSensitiveToggle"
+                          Content="Aa" ToolTip="Diferenciar maiúsc./minúsc." Checked="OnOptionChanged" Unchecked="OnOptionChanged" />
+            <TextBox x:Name="FindBox" FontSize="13" Padding="4,2" Margin="0,0,8,0"
+                     TextChanged="OnFindTextChanged" KeyDown="OnFindKeyDown" />
+        </DockPanel>
+
+        <DockPanel Grid.Row="1" x:Name="ReplaceRow" Visibility="Collapsed">
+            <Button DockPanel.Dock="Right" Style="{StaticResource NavBtn}" Click="OnReplaceAll"
+                    Content="Todos" Width="48" ToolTip="Substituir todos" />
+            <Button DockPanel.Dock="Right" Style="{StaticResource NavBtn}" Click="OnReplaceOne"
+                    Content="Subst" Width="48" ToolTip="Substituir atual" />
+            <TextBox x:Name="ReplaceBox" FontSize="13" Padding="4,2" Margin="0,0,8,0" />
+        </DockPanel>
+    </Grid>
+</UserControl>

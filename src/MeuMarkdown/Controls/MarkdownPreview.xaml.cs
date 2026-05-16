@@ -14,6 +14,7 @@ public partial class MarkdownPreview : UserControl
 
     public event Action<string>? LinkClicked;
     public event Action<string>? ExternalLinkClicked;
+    public event Action<int>? PreviewScrolled;
 
     public MarkdownPreview()
     {
@@ -36,6 +37,7 @@ public partial class MarkdownPreview : UserControl
             webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
             webView.CoreWebView2.Settings.AreDevToolsEnabled = false;
             _isInitialized = true;
+            webView.CoreWebView2.WebMessageReceived += OnWebMessageReceived;
             loadingText.Visibility = Visibility.Collapsed;
 
             if (_pendingHtml != null)
@@ -83,6 +85,30 @@ public partial class MarkdownPreview : UserControl
             "local.assets", directory,
             CoreWebView2HostResourceAccessKind.Allow);
     }
+
+    private void OnWebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+    {
+        try
+        {
+            var json = e.TryGetWebMessageAsString();
+            if (string.IsNullOrEmpty(json)) return;
+            var msg = System.Text.Json.JsonSerializer.Deserialize<ScrollMessage>(json);
+            if (msg?.Type == "scroll")
+                PreviewScrolled?.Invoke(msg.Line);
+        }
+        catch
+        {
+            // ignora mensagens malformadas
+        }
+    }
+
+    public async void ScrollToLine(int line)
+    {
+        if (!_isInitialized) return;
+        await webView.CoreWebView2.ExecuteScriptAsync($"syncScrollToLine({line})");
+    }
+
+    private record ScrollMessage(string Type, int Line);
 
     private void OnNavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
     {

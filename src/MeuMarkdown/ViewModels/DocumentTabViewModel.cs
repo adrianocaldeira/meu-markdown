@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MeuMarkdown.Models;
 
@@ -15,6 +16,34 @@ public partial class DocumentTabViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _isDirty;
+
+    [ObservableProperty]
+    private int _wordCount;
+
+    [ObservableProperty]
+    private int _charCount;
+
+    [ObservableProperty]
+    private int _readingTimeMinutes;
+
+    public void UpdateMetrics(int words, int chars)
+    {
+        WordCount = words;
+        CharCount = chars;
+        ReadingTimeMinutes = Math.Max(1, words / 200);
+    }
+
+    public ObservableCollection<Heading> Headings { get; } = new();
+
+    [ObservableProperty]
+    private Heading? _currentHeading;
+
+    public void UpdateHeadings(IReadOnlyList<Heading> headings)
+    {
+        Headings.Clear();
+        foreach (var h in headings)
+            Headings.Add(h);
+    }
 
     public string FilePath => _document.FilePath;
     public string FileName => _document.FileName;
