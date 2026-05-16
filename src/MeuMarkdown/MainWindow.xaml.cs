@@ -29,6 +29,7 @@ public partial class MainWindow : Window
     public static readonly RoutedUICommand FormatStrikethroughCommand = new("Strikethrough", "FormatStrikethrough", typeof(MainWindow));
     public static readonly RoutedUICommand ToggleViewModeCommand = new("ViewMode", "ToggleViewMode", typeof(MainWindow));
     public static readonly RoutedUICommand ToggleDarkThemeCommand = new("DarkTheme", "ToggleDarkTheme", typeof(MainWindow));
+    public static readonly RoutedUICommand ToggleSidebarCommand = new("ToggleSidebar", "ToggleSidebar", typeof(MainWindow));
 
     private readonly MainViewModel _viewModel;
     private readonly DispatcherTimer _debounceTimer;
@@ -75,6 +76,7 @@ public partial class MainWindow : Window
         CommandBindings.Add(new CommandBinding(FormatStrikethroughCommand, (_, _) => WrapSelection("~~", "~~")));
         CommandBindings.Add(new CommandBinding(ToggleViewModeCommand, (_, _) => ToggleViewMode()));
         CommandBindings.Add(new CommandBinding(ToggleDarkThemeCommand, (_, _) => ToggleDarkTheme()));
+        CommandBindings.Add(new CommandBinding(ToggleSidebarCommand, (_, _) => ToggleSidebar()));
 
         // F5 / F6 key bindings
         InputBindings.Add(new KeyBinding(ToggleViewModeCommand, Key.F5, ModifierKeys.None));
@@ -503,6 +505,49 @@ public partial class MainWindow : Window
                 catch { }
             }
             InsertAtCursor($"![imagem]({imagePath})");
+        }
+    }
+
+    private void OnActivityPanelSelected(object? sender, string panelName)
+    {
+        if (_viewModel.SidebarActivePanel == panelName && !_viewModel.IsSidebarCollapsed)
+        {
+            // Clicou no mesmo painel ativo: colapsa
+            _viewModel.IsSidebarCollapsed = true;
+            sidebarCol.Width = new GridLength(0);
+            sidebarSplitterCol.Width = new GridLength(0);
+        }
+        else
+        {
+            _viewModel.SidebarActivePanel = panelName;
+            _viewModel.IsSidebarCollapsed = false;
+            sidebarCol.Width = new GridLength(_viewModel.SidebarWidth);
+            sidebarSplitterCol.Width = new GridLength(4);
+            sidebarHost.ShowPanel(panelName);
+        }
+    }
+
+    private void OnSidebarSplitterDragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
+    {
+        _viewModel.SidebarWidth = sidebarCol.ActualWidth;
+    }
+
+    private void OnToggleSidebar(object sender, RoutedEventArgs e) => ToggleSidebar();
+
+    private void ToggleSidebar()
+    {
+        _viewModel.IsActivityBarVisible = !_viewModel.IsActivityBarVisible;
+        activityBarCol.Width = _viewModel.IsActivityBarVisible ? GridLength.Auto : new GridLength(0);
+
+        if (!_viewModel.IsActivityBarVisible)
+        {
+            sidebarCol.Width = new GridLength(0);
+            sidebarSplitterCol.Width = new GridLength(0);
+        }
+        else if (!_viewModel.IsSidebarCollapsed)
+        {
+            sidebarCol.Width = new GridLength(_viewModel.SidebarWidth);
+            sidebarSplitterCol.Width = new GridLength(4);
         }
     }
 
