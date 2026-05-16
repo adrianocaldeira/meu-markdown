@@ -182,6 +182,10 @@
                 <MenuItem Header="_Arquivo">
                     <MenuItem Header="📂  _Abrir..." Command="{Binding OpenFileCommand}" InputGestureText="Ctrl+O" />
                     <MenuItem Header="💾  _Salvar" Command="{Binding SaveCommand}" InputGestureText="Ctrl+S" />
+                    <MenuItem Header="📤  E_xportar">
+                        <MenuItem Header="HTML..." Click="OnExportHtml" />
+                        <MenuItem Header="PDF..." Click="OnExportPdf" />
+                    </MenuItem>
                     <Separator />
                     <MenuItem Header="✕  _Fechar aba" Command="{Binding CloseTabCommand}" InputGestureText="Ctrl+W" />
                     <Separator />

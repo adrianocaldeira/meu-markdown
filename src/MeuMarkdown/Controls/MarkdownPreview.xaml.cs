@@ -108,6 +108,57 @@ public partial class MarkdownPreview : UserControl
         await webView.CoreWebView2.ExecuteScriptAsync($"syncScrollToLine({line})");
     }
 
+    public async Task<bool> PrintToPdfAsync(string sourceHtmlPath, string destPdfPath, string pageSize = "A4", string orientation = "Portrait")
+    {
+        if (!_isInitialized) return false;
+
+        var originalHtml = _pendingHtml;
+
+        try
+        {
+            var tcs = new TaskCompletionSource<bool>();
+            void OnNavCompleted(object? s, Microsoft.Web.WebView2.Core.CoreWebView2NavigationCompletedEventArgs e)
+            {
+                webView.CoreWebView2.NavigationCompleted -= OnNavCompleted;
+                tcs.TrySetResult(e.IsSuccess);
+            }
+            webView.CoreWebView2.NavigationCompleted += OnNavCompleted;
+            webView.CoreWebView2.Navigate("file:///" + sourceHtmlPath.Replace("\\", "/"));
+            await tcs.Task;
+
+            var printSettings = webView.CoreWebView2.Environment.CreatePrintSettings();
+            printSettings.Orientation = orientation == "Landscape"
+                ? Microsoft.Web.WebView2.Core.CoreWebView2PrintOrientation.Landscape
+                : Microsoft.Web.WebView2.Core.CoreWebView2PrintOrientation.Portrait;
+
+            (printSettings.PageWidth, printSettings.PageHeight) = pageSize switch
+            {
+                "Letter" => (8.5, 11.0),
+                "Legal" => (8.5, 14.0),
+                _ => (8.27, 11.69)
+            };
+            printSettings.MarginTop = 0.79;
+            printSettings.MarginBottom = 0.79;
+            printSettings.MarginLeft = 0.79;
+            printSettings.MarginRight = 0.79;
+            printSettings.ShouldPrintBackgrounds = true;
+
+            var success = await webView.CoreWebView2.PrintToPdfAsync(destPdfPath, printSettings);
+            return success;
+        }
+        catch
+        {
+            return false;
+        }
+        finally
+        {
+            if (originalHtml != null)
+            {
+                webView.NavigateToString(originalHtml);
+            }
+        }
+    }
+
     private record ScrollMessage(string Type, int Line);
 
     private void OnNavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
