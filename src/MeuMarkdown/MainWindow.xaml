@@ -137,6 +137,10 @@
         <KeyBinding Key="S" Modifiers="Ctrl+Shift" Command="{x:Static local:MainWindow.FormatStrikethroughCommand}" />
         <KeyBinding Key="OemPipe" Modifiers="Ctrl" Command="{x:Static local:MainWindow.ToggleSidebarCommand}" />
         <KeyBinding Key="O" Modifiers="Ctrl+Shift" Command="{x:Static local:MainWindow.OpenOutlineCommand}" />
+        <KeyBinding Key="F" Modifiers="Ctrl" Command="{x:Static local:MainWindow.FindCommand}" />
+        <KeyBinding Key="H" Modifiers="Ctrl" Command="{x:Static local:MainWindow.ReplaceCommand}" />
+        <KeyBinding Key="F3" Command="{x:Static local:MainWindow.FindNextCommand}" />
+        <KeyBinding Key="F3" Modifiers="Shift" Command="{x:Static local:MainWindow.FindPrevCommand}" />
     </Window.InputBindings>
 
     <Grid x:Name="rootGrid">
@@ -303,16 +307,23 @@
                 <!-- Editor panel with subtle border -->
                 <Border Grid.Column="0" x:Name="editorBorder" Margin="4,4,0,4"
                         Background="#ffffff" BorderBrush="#e5e7eb" BorderThickness="1" CornerRadius="6">
-                    <ae:TextEditor x:Name="textEditor"
-                                   FontFamily="Cascadia Code, Consolas, Courier New"
-                                   FontSize="14"
-                                   ShowLineNumbers="True"
-                                   WordWrap="True"
-                                   VerticalScrollBarVisibility="Auto"
-                                   HorizontalScrollBarVisibility="Auto"
-                                   Padding="8,8"
-                                   Background="White"
-                                   BorderThickness="0" />
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <controls:FindReplaceBar Grid.Row="0" x:Name="findBar" Visibility="Collapsed" />
+                        <ae:TextEditor Grid.Row="1" x:Name="textEditor"
+                                       FontFamily="Cascadia Code, Consolas, Courier New"
+                                       FontSize="14"
+                                       ShowLineNumbers="True"
+                                       WordWrap="True"
+                                       VerticalScrollBarVisibility="Auto"
+                                       HorizontalScrollBarVisibility="Auto"
+                                       Padding="8,8"
+                                       Background="White"
+                                       BorderThickness="0" />
+                    </Grid>
                 </Border>
 
                 <!-- Splitter - thin modern line -->

@@ -12,6 +12,8 @@ using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using MeuMarkdown.ViewModels;
 using MeuMarkdown.Services;
+using MeuMarkdown.EditorBehaviors;
+using MeuMarkdown.Controls;
 using Microsoft.Win32;
 
 namespace MeuMarkdown;
@@ -31,6 +33,10 @@ public partial class MainWindow : Window
     public static readonly RoutedUICommand ToggleDarkThemeCommand = new("DarkTheme", "ToggleDarkTheme", typeof(MainWindow));
     public static readonly RoutedUICommand ToggleSidebarCommand = new("ToggleSidebar", "ToggleSidebar", typeof(MainWindow));
     public static readonly RoutedUICommand OpenOutlineCommand = new("OpenOutline", "OpenOutline", typeof(MainWindow));
+    public static readonly RoutedUICommand FindCommand = new("Find", "Find", typeof(MainWindow));
+    public static readonly RoutedUICommand ReplaceCommand = new("Replace", "Replace", typeof(MainWindow));
+    public static readonly RoutedUICommand FindNextCommand = new("FindNext", "FindNext", typeof(MainWindow));
+    public static readonly RoutedUICommand FindPrevCommand = new("FindPrev", "FindPrev", typeof(MainWindow));
 
     private readonly MainViewModel _viewModel;
     private readonly DispatcherTimer _debounceTimer;
@@ -38,6 +44,10 @@ public partial class MainWindow : Window
     private bool _isViewMode;
     private bool _suppressEditorUpdate;
     private GridLength _savedEditorWidth = new(1, GridUnitType.Star);
+    private readonly EditorSearchService _searchService = new();
+    private readonly FindResultsRenderer _findRenderer = new();
+    private int _activeFindIndex = -1;
+    private FindRequest? _lastFindRequest;
 
     public MainWindow()
     {
@@ -146,6 +156,19 @@ public partial class MainWindow : Window
         activityBar.PanelSelected += OnActivityPanelSelected;
 
         LoadMarkdownSyntaxHighlighting();
+
+        textEditor.TextArea.TextView.BackgroundRenderers.Add(_findRenderer);
+        findBar.FindRequested += OnFindRequested;
+        findBar.NextRequested += (_, _) => MoveToFindMatch(+1);
+        findBar.PrevRequested += (_, _) => MoveToFindMatch(-1);
+        findBar.CloseRequested += (_, _) => CloseFindBar();
+        findBar.ReplaceOneRequested += OnReplaceOne;
+        findBar.ReplaceAllRequested += OnReplaceAll;
+
+        CommandBindings.Add(new CommandBinding(FindCommand, (_, _) => OpenFindBar(showReplace: false)));
+        CommandBindings.Add(new CommandBinding(ReplaceCommand, (_, _) => OpenFindBar(showReplace: true)));
+        CommandBindings.Add(new CommandBinding(FindNextCommand, (_, _) => MoveToFindMatch(+1)));
+        CommandBindings.Add(new CommandBinding(FindPrevCommand, (_, _) => MoveToFindMatch(-1)));
 
         _isDarkTheme = IsOsDarkMode();
         ApplyTheme();
@@ -699,6 +722,86 @@ public partial class MainWindow : Window
         }
         SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
         base.OnClosing(e);
+    }
+
+    // === Find / Replace ===
+
+    private void OpenFindBar(bool showReplace)
+    {
+        var selected = textEditor.SelectedText;
+        findBar.Open(string.IsNullOrEmpty(selected) ? _lastFindRequest?.Query : selected, showReplace);
+    }
+
+    private void CloseFindBar()
+    {
+        findBar.Visibility = Visibility.Collapsed;
+        _findRenderer.Matches = Array.Empty<SearchMatch>();
+        _findRenderer.ActiveMatchIndex = -1;
+        textEditor.TextArea.TextView.InvalidateLayer(_findRenderer.Layer);
+        textEditor.Focus();
+    }
+
+    private void OnFindRequested(object? sender, FindRequest req)
+    {
+        _lastFindRequest = req;
+        var matches = _searchService.FindMatches(textEditor.Text, req.Query, req.CaseSensitive, req.UseRegex, req.WholeWord);
+        _findRenderer.Matches = matches;
+        _activeFindIndex = matches.Count > 0 ? 0 : -1;
+        _findRenderer.ActiveMatchIndex = _activeFindIndex;
+        findBar.SetMatchCount(_activeFindIndex, matches.Count);
+        textEditor.TextArea.TextView.InvalidateLayer(_findRenderer.Layer);
+        if (_activeFindIndex >= 0) ScrollToFindMatch();
+    }
+
+    private void MoveToFindMatch(int delta)
+    {
+        if (_findRenderer.Matches.Count == 0) return;
+        _activeFindIndex = (_activeFindIndex + delta + _findRenderer.Matches.Count) % _findRenderer.Matches.Count;
+        _findRenderer.ActiveMatchIndex = _activeFindIndex;
+        findBar.SetMatchCount(_activeFindIndex, _findRenderer.Matches.Count);
+        textEditor.TextArea.TextView.InvalidateLayer(_findRenderer.Layer);
+        ScrollToFindMatch();
+    }
+
+    private void ScrollToFindMatch()
+    {
+        var match = _findRenderer.Matches[_activeFindIndex];
+        var line = textEditor.Document.GetLineByOffset(match.Start);
+        textEditor.ScrollToLine(line.LineNumber);
+        textEditor.Select(match.Start, match.Length);
+    }
+
+    private void OnReplaceOne(object? sender, string replacement)
+    {
+        if (_activeFindIndex < 0 || _findRenderer.Matches.Count == 0) return;
+        var match = _findRenderer.Matches[_activeFindIndex];
+        textEditor.Document.Replace(match.Start, match.Length, replacement);
+        if (_lastFindRequest != null) OnFindRequested(this, _lastFindRequest);
+    }
+
+    private void OnReplaceAll(object? sender, string replacement)
+    {
+        if (_lastFindRequest == null || _findRenderer.Matches.Count == 0) return;
+        if (_findRenderer.Matches.Count > 20)
+        {
+            var confirm = MessageBox.Show(
+                $"Substituir {_findRenderer.Matches.Count} ocorrências?",
+                "Confirmar substituição em massa",
+                MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (confirm != MessageBoxResult.Yes) return;
+        }
+        var matches = _findRenderer.Matches.ToList();
+        textEditor.Document.BeginUpdate();
+        try
+        {
+            for (int i = matches.Count - 1; i >= 0; i--)
+                textEditor.Document.Replace(matches[i].Start, matches[i].Length, replacement);
+        }
+        finally
+        {
+            textEditor.Document.EndUpdate();
+        }
+        OnFindRequested(this, _lastFindRequest);
     }
 }
 
