@@ -180,6 +180,9 @@ public partial class MainWindow : Window
         sidebarHost.ExplorerPanel.ShowAllFilesChanged += OnShowAllFilesChanged;
 
         LoadMarkdownSyntaxHighlighting();
+        SmartListBehavior.Attach(textEditor);
+        AutoPairBehavior.Attach(textEditor);
+        ImagePasteHandler.Attach(textEditor, () => _viewModel.SelectedTab);
 
         textEditor.TextArea.TextView.BackgroundRenderers.Add(_findRenderer);
         findBar.FindRequested += OnFindRequested;
