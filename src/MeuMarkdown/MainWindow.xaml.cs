@@ -43,6 +43,8 @@ public partial class MainWindow : Window
     private bool _isDarkTheme;
     private bool _isViewMode;
     private bool _suppressEditorUpdate;
+    private bool _suppressSyncFromPreview;
+    private bool _suppressSyncFromEditor;
     private GridLength _savedEditorWidth = new(1, GridUnitType.Star);
     private readonly EditorSearchService _searchService = new();
     private readonly FindResultsRenderer _findRenderer = new();
@@ -62,6 +64,7 @@ public partial class MainWindow : Window
         _viewModel.SidebarWidth = state.Sidebar.Width;
         _viewModel.IsSidebarCollapsed = state.Sidebar.Collapsed;
         _viewModel.IsActivityBarVisible = state.Sidebar.ActivityBarVisible;
+        _viewModel.SyncScrollEnabled = state.Preferences.SyncScrollEnabled;
 
         // Aplicar window state — com clamping contra área de tela visível
         Width = state.Window.Width;
@@ -110,6 +113,8 @@ public partial class MainWindow : Window
 
         preview.LinkClicked += OnPreviewLinkClicked;
         preview.ExternalLinkClicked += OnExternalLinkClicked;
+        preview.PreviewScrolled += OnPreviewScrolled;
+        textEditor.TextArea.TextView.ScrollOffsetChanged += OnEditorScrollChanged;
 
         // Register format command bindings
         CommandBindings.Add(new CommandBinding(FormatBoldCommand, (_, _) => WrapSelection("**", "**")));
@@ -368,6 +373,33 @@ public partial class MainWindow : Window
             Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
         }
         catch { }
+    }
+
+    private void OnEditorScrollChanged(object? sender, EventArgs e)
+    {
+        if (!_viewModel.SyncScrollEnabled || _suppressSyncFromPreview) return;
+        var textView = textEditor.TextArea.TextView;
+        if (textView.VisualLines.Count == 0) return;
+        var firstVisible = textView.VisualLines[0].FirstDocumentLine.LineNumber;
+        _suppressSyncFromEditor = true;
+        preview.ScrollToLine(firstVisible);
+        Dispatcher.BeginInvoke(new Action(() => _suppressSyncFromEditor = false),
+            System.Windows.Threading.DispatcherPriority.Background);
+    }
+
+    private void OnPreviewScrolled(int line)
+    {
+        if (!_viewModel.SyncScrollEnabled || _suppressSyncFromEditor) return;
+        _suppressSyncFromPreview = true;
+        try
+        {
+            textEditor.ScrollToLine(line);
+        }
+        finally
+        {
+            Dispatcher.BeginInvoke(new Action(() => _suppressSyncFromPreview = false),
+                System.Windows.Threading.DispatcherPriority.Background);
+        }
     }
 
     private void OnCloseTabClick(object sender, RoutedEventArgs e)
@@ -697,6 +729,7 @@ public partial class MainWindow : Window
         state.Sidebar.Width = _viewModel.SidebarWidth;
         state.Sidebar.Collapsed = _viewModel.IsSidebarCollapsed;
         state.Sidebar.ActivityBarVisible = _viewModel.IsActivityBarVisible;
+        state.Preferences.SyncScrollEnabled = _viewModel.SyncScrollEnabled;
 
         try
         {

@@ -34,6 +34,9 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _isActivityBarVisible = true;
 
+    [ObservableProperty]
+    private bool _syncScrollEnabled;
+
     public NavigationService Navigation => _navigationService;
 
     public MarkdownService MarkdownService => _markdownService;
