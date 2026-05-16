@@ -52,15 +52,31 @@ public partial class MainWindow : Window
         _viewModel.IsSidebarCollapsed = state.Sidebar.Collapsed;
         _viewModel.IsActivityBarVisible = state.Sidebar.ActivityBarVisible;
 
-        // Aplicar window state
-        if (!double.IsNaN(state.Window.X) && !double.IsNaN(state.Window.Y))
-        {
-            Left = state.Window.X;
-            Top = state.Window.Y;
-            WindowStartupLocation = WindowStartupLocation.Manual;
-        }
+        // Aplicar window state — com clamping contra área de tela visível
         Width = state.Window.Width;
         Height = state.Window.Height;
+        if (!double.IsNaN(state.Window.X) && !double.IsNaN(state.Window.Y))
+        {
+            var virtualLeft = SystemParameters.VirtualScreenLeft;
+            var virtualTop = SystemParameters.VirtualScreenTop;
+            var virtualRight = virtualLeft + SystemParameters.VirtualScreenWidth;
+            var virtualBottom = virtualTop + SystemParameters.VirtualScreenHeight;
+
+            // Janela precisa ter ao menos 100px visíveis no virtual screen pra ser usável
+            var titleBarVisible =
+                state.Window.X + state.Window.Width > virtualLeft + 100 &&
+                state.Window.X < virtualRight - 100 &&
+                state.Window.Y + 30 > virtualTop &&
+                state.Window.Y < virtualBottom - 100;
+
+            if (titleBarVisible)
+            {
+                Left = state.Window.X;
+                Top = state.Window.Y;
+                WindowStartupLocation = WindowStartupLocation.Manual;
+            }
+            // Senão: deixa o XAML CenterScreen tomar conta
+        }
         if (state.Window.Maximized)
             WindowState = WindowState.Maximized;
 
@@ -115,6 +131,7 @@ public partial class MainWindow : Window
         }
         activityBar.SetActivePanel(_viewModel.SidebarActivePanel);
         sidebarHost.ShowPanel(_viewModel.SidebarActivePanel);
+        activityBar.PanelSelected += OnActivityPanelSelected;
 
         LoadMarkdownSyntaxHighlighting();
 
@@ -590,10 +607,20 @@ public partial class MainWindow : Window
     private void OnWindowClosing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
         var state = App.State;
-        state.Window.X = Left;
-        state.Window.Y = Top;
-        state.Window.Width = Width;
-        state.Window.Height = Height;
+        if (WindowState == WindowState.Maximized)
+        {
+            state.Window.X = RestoreBounds.Left;
+            state.Window.Y = RestoreBounds.Top;
+            state.Window.Width = RestoreBounds.Width;
+            state.Window.Height = RestoreBounds.Height;
+        }
+        else
+        {
+            state.Window.X = Left;
+            state.Window.Y = Top;
+            state.Window.Width = Width;
+            state.Window.Height = Height;
+        }
         state.Window.Maximized = WindowState == WindowState.Maximized;
         state.Sidebar.ActivePanel = _viewModel.SidebarActivePanel;
         state.Sidebar.Width = _viewModel.SidebarWidth;

@@ -145,8 +145,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- Activity Bar (toda a altura) -->
-        <controls:ActivityBar x:Name="activityBar" Grid.Column="0"
-                              PanelSelected="OnActivityPanelSelected" />
+        <controls:ActivityBar x:Name="activityBar" Grid.Column="0" />
 
         <!-- Sidebar Panel host -->
         <controls:SidebarHost x:Name="sidebarHost" Grid.Column="1" />
