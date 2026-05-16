@@ -707,6 +707,7 @@ public partial class MainWindow : Window
 
     private void OnActivityPanelSelected(object? sender, string panelName)
     {
+        if (_isZenMode) return;
         if (_viewModel.SidebarActivePanel == panelName && !_viewModel.IsSidebarCollapsed)
         {
             // Clicou no mesmo painel ativo: colapsa
@@ -733,6 +734,7 @@ public partial class MainWindow : Window
 
     private void ToggleSidebar()
     {
+        if (_isZenMode) return;
         _viewModel.IsActivityBarVisible = !_viewModel.IsActivityBarVisible;
         activityBarCol.Width = _viewModel.IsActivityBarVisible ? GridLength.Auto : new GridLength(0);
 
