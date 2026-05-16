@@ -131,6 +131,7 @@ public partial class MainWindow : Window
         }
         activityBar.SetActivePanel(_viewModel.SidebarActivePanel);
         sidebarHost.ShowPanel(_viewModel.SidebarActivePanel);
+        sidebarHost.OutlinePanel.HeadingSelected += OnOutlineHeadingSelected;
         activityBar.PanelSelected += OnActivityPanelSelected;
 
         LoadMarkdownSyntaxHighlighting();
@@ -255,6 +256,11 @@ public partial class MainWindow : Window
     {
         _debounceTimer.Stop();
         UpdatePreview();
+        if (_viewModel.SelectedTab != null)
+        {
+            var headings = _viewModel.MarkdownService.ExtractHeadings(textEditor.Text);
+            _viewModel.SelectedTab.UpdateHeadings(headings);
+        }
     }
 
     private void UpdatePreview()
@@ -279,6 +285,7 @@ public partial class MainWindow : Window
 
     private void OnTabSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        sidebarHost.OutlinePanel.BindToTab(_viewModel.SelectedTab);
         if (_viewModel.SelectedTab == null)
         {
             textEditor.Text = string.Empty;
@@ -602,6 +609,15 @@ public partial class MainWindow : Window
             sidebarCol.Width = new GridLength(_viewModel.SidebarWidth);
             sidebarSplitterCol.Width = new GridLength(4);
         }
+    }
+
+    private void OnOutlineHeadingSelected(object? sender, MeuMarkdown.Models.Heading heading)
+    {
+        var line = Math.Max(1, Math.Min(heading.StartLine, textEditor.Document.LineCount));
+        var offset = textEditor.Document.GetOffset(line, 1);
+        textEditor.CaretOffset = offset;
+        textEditor.ScrollToLine(line);
+        textEditor.Focus();
     }
 
     private void OnWindowClosing(object? sender, System.ComponentModel.CancelEventArgs e)

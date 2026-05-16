@@ -36,6 +36,8 @@ public partial class MainViewModel : ObservableObject
 
     public NavigationService Navigation => _navigationService;
 
+    public MarkdownService MarkdownService => _markdownService;
+
     public MainViewModel()
     {
         _navigationService = new NavigationService(_fileService);
