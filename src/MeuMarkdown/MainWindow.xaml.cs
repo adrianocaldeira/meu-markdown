@@ -272,6 +272,12 @@ public partial class MainWindow : Window
             var headings = _viewModel.MarkdownService.ExtractHeadings(textEditor.Text);
             _viewModel.SelectedTab.UpdateHeadings(headings);
         }
+        if (_viewModel.SelectedTab != null)
+        {
+            var text = textEditor.Text;
+            var words = System.Text.RegularExpressions.Regex.Matches(text, @"\b\w+\b").Count;
+            _viewModel.SelectedTab.UpdateMetrics(words, text.Length);
+        }
     }
 
     private void UpdatePreview()
@@ -694,4 +700,13 @@ public partial class MainWindow : Window
         SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
         base.OnClosing(e);
     }
+}
+
+public class NullToCollapsedConverter : System.Windows.Data.IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+        => value == null ? System.Windows.Visibility.Collapsed : System.Windows.Visibility.Visible;
+
+    public object ConvertBack(object value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+        => throw new NotImplementedException();
 }

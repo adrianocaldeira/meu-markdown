@@ -80,6 +80,8 @@
             <Setter Property="Background" Value="#e5e7eb" />
         </Style>
 
+        <local:NullToCollapsedConverter x:Key="NullToCollapsedConverter" />
+
         <!-- View mode toggle button style -->
         <Style x:Key="ViewModeBtn" TargetType="ToggleButton"
                xmlns:sys="clr-namespace:System;assembly=mscorlib">
@@ -337,8 +339,21 @@
                                    Margin="0,0,16,0" VerticalAlignment="Center" />
                         <TextBlock Text="UTF-8" FontSize="11.5" Foreground="#64748b" VerticalAlignment="Center" />
                     </StackPanel>
-                    <TextBlock x:Name="statusText" Text="{Binding StatusText}" FontSize="11.5"
-                               Foreground="#475569" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="statusText" Text="{Binding StatusText}" FontSize="11.5"
+                                   Foreground="#475569" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                   MaxWidth="400" />
+                        <TextBlock Text=" • " FontSize="11.5" Foreground="#94a3b8" VerticalAlignment="Center"
+                                   Visibility="{Binding SelectedTab, Converter={StaticResource NullToCollapsedConverter}}" />
+                        <TextBlock FontSize="11.5" Foreground="#64748b" VerticalAlignment="Center"
+                                   Visibility="{Binding SelectedTab, Converter={StaticResource NullToCollapsedConverter}}">
+                            <Run Text="{Binding SelectedTab.WordCount, Mode=OneWay}" />
+                            <Run Text="palavras" />
+                            <Run Text=" • ~" />
+                            <Run Text="{Binding SelectedTab.ReadingTimeMinutes, Mode=OneWay}" />
+                            <Run Text="min" />
+                        </TextBlock>
+                    </StackPanel>
                 </DockPanel>
             </Border>
         </Grid>
