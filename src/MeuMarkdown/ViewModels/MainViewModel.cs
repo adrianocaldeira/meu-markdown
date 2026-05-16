@@ -22,6 +22,18 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string _statusText = "Pronto";
 
+    [ObservableProperty]
+    private string _sidebarActivePanel = "Explorer";
+
+    [ObservableProperty]
+    private double _sidebarWidth = 280;
+
+    [ObservableProperty]
+    private bool _isSidebarCollapsed;
+
+    [ObservableProperty]
+    private bool _isActivityBarVisible = true;
+
     public NavigationService Navigation => _navigationService;
 
     public MainViewModel()
