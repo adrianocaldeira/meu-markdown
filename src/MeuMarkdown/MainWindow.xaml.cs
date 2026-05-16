@@ -37,6 +37,7 @@ public partial class MainWindow : Window
     public static readonly RoutedUICommand ReplaceCommand = new("Replace", "Replace", typeof(MainWindow));
     public static readonly RoutedUICommand FindNextCommand = new("FindNext", "FindNext", typeof(MainWindow));
     public static readonly RoutedUICommand FindPrevCommand = new("FindPrev", "FindPrev", typeof(MainWindow));
+    public static readonly RoutedUICommand QuickSwitcherCommand = new("QuickSwitcher", "QuickSwitcher", typeof(MainWindow));
 
     private readonly MainViewModel _viewModel;
     private readonly DispatcherTimer _debounceTimer;
@@ -192,6 +193,8 @@ public partial class MainWindow : Window
         CommandBindings.Add(new CommandBinding(ReplaceCommand, (_, _) => OpenFindBar(showReplace: true)));
         CommandBindings.Add(new CommandBinding(FindNextCommand, (_, _) => MoveToFindMatch(+1)));
         CommandBindings.Add(new CommandBinding(FindPrevCommand, (_, _) => MoveToFindMatch(-1)));
+        CommandBindings.Add(new CommandBinding(QuickSwitcherCommand, (_, _) => OpenQuickSwitcher()));
+        quickSwitcher.FileSelected += (_, path) => _viewModel.OpenFileByPath(path);
 
         _isDarkTheme = IsOsDarkMode();
         ApplyTheme();
@@ -872,6 +875,15 @@ public partial class MainWindow : Window
         var match = _findRenderer.Matches[_activeFindIndex];
         textEditor.Document.Replace(match.Start, match.Length, replacement);
         if (_lastFindRequest != null) OnFindRequested(this, _lastFindRequest);
+    }
+
+    private void OpenQuickSwitcher()
+    {
+        var files = _viewModel.WorkspaceService.EnumerateMarkdownFiles().ToList();
+        var recents = _viewModel.RecentFilesService.Snapshot();
+        var openTabs = _viewModel.Tabs.Select(t => t.FilePath).ToList();
+        var wsPath = _viewModel.WorkspaceService.RootPath;
+        quickSwitcher.Open(files, recents, openTabs, wsPath);
     }
 
     private void OnReplaceAll(object? sender, string replacement)

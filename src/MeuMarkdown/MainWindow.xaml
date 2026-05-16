@@ -141,6 +141,7 @@
         <KeyBinding Key="H" Modifiers="Ctrl" Command="{x:Static local:MainWindow.ReplaceCommand}" />
         <KeyBinding Key="F3" Command="{x:Static local:MainWindow.FindNextCommand}" />
         <KeyBinding Key="F3" Modifiers="Shift" Command="{x:Static local:MainWindow.FindPrevCommand}" />
+        <KeyBinding Key="P" Modifiers="Ctrl" Command="{x:Static local:MainWindow.QuickSwitcherCommand}" />
     </Window.InputBindings>
 
     <Grid x:Name="rootGrid">
@@ -370,5 +371,7 @@
                 </DockPanel>
             </Border>
         </Grid>
+
+        <controls:QuickSwitcherPopup x:Name="quickSwitcher" Grid.ColumnSpan="4" />
     </Grid>
 </Window>
