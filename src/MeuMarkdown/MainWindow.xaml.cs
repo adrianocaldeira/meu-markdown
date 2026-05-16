@@ -45,6 +45,25 @@ public partial class MainWindow : Window
         _viewModel = new MainViewModel();
         DataContext = _viewModel;
 
+        // Aplicar estado persistido
+        var state = App.State;
+        _viewModel.SidebarActivePanel = state.Sidebar.ActivePanel;
+        _viewModel.SidebarWidth = state.Sidebar.Width;
+        _viewModel.IsSidebarCollapsed = state.Sidebar.Collapsed;
+        _viewModel.IsActivityBarVisible = state.Sidebar.ActivityBarVisible;
+
+        // Aplicar window state
+        if (!double.IsNaN(state.Window.X) && !double.IsNaN(state.Window.Y))
+        {
+            Left = state.Window.X;
+            Top = state.Window.Y;
+            WindowStartupLocation = WindowStartupLocation.Manual;
+        }
+        Width = state.Window.Width;
+        Height = state.Window.Height;
+        if (state.Window.Maximized)
+            WindowState = WindowState.Maximized;
+
         // Set window icon from embedded resource
         try
         {
@@ -81,6 +100,21 @@ public partial class MainWindow : Window
         // F5 / F6 key bindings
         InputBindings.Add(new KeyBinding(ToggleViewModeCommand, Key.F5, ModifierKeys.None));
         InputBindings.Add(new KeyBinding(ToggleDarkThemeCommand, Key.F6, ModifierKeys.None));
+
+        // Configurar colunas da sidebar conforme estado
+        activityBarCol.Width = _viewModel.IsActivityBarVisible ? GridLength.Auto : new GridLength(0);
+        if (_viewModel.IsActivityBarVisible && !_viewModel.IsSidebarCollapsed)
+        {
+            sidebarCol.Width = new GridLength(_viewModel.SidebarWidth);
+            sidebarSplitterCol.Width = new GridLength(4);
+        }
+        else
+        {
+            sidebarCol.Width = new GridLength(0);
+            sidebarSplitterCol.Width = new GridLength(0);
+        }
+        activityBar.SetActivePanel(_viewModel.SidebarActivePanel);
+        sidebarHost.ShowPanel(_viewModel.SidebarActivePanel);
 
         LoadMarkdownSyntaxHighlighting();
 
