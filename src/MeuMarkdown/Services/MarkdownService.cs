@@ -1,6 +1,8 @@
 using System.IO;
 using System.Reflection;
 using Markdig;
+using Markdig.Renderers;
+using Markdig.Renderers.Html;
 using Markdig.Syntax;
 using MeuMarkdown.Models;
 
@@ -27,7 +29,7 @@ public class MarkdownService
 
     public string ConvertToHtml(string markdown, string baseDirectory)
     {
-        var html = Markdig.Markdown.ToHtml(markdown, _pipeline);
+        var html = ConvertWithDataLine(markdown);
         html = RewriteRelativeLinks(html, baseDirectory);
         return _htmlTemplate
             .Replace("{{CSS}}", _css)
@@ -36,8 +38,30 @@ public class MarkdownService
 
     public string ConvertToHtmlFragment(string markdown, string baseDirectory)
     {
-        var html = Markdig.Markdown.ToHtml(markdown, _pipeline);
+        var html = ConvertWithDataLine(markdown);
         return RewriteRelativeLinks(html, baseDirectory);
+    }
+
+    private string ConvertWithDataLine(string markdown)
+    {
+        using var writer = new StringWriter();
+        var renderer = new HtmlRenderer(writer);
+        _pipeline.Setup(renderer);
+
+        var document = Markdig.Markdown.Parse(markdown, _pipeline);
+
+        foreach (var block in document)
+        {
+            if (block is HeadingBlock or ParagraphBlock or ListBlock or QuoteBlock
+                or CodeBlock or ThematicBreakBlock or Markdig.Extensions.Tables.Table)
+            {
+                block.GetAttributes().AddProperty("data-line", (block.Line + 1).ToString());
+            }
+        }
+
+        renderer.Render(document);
+        writer.Flush();
+        return writer.ToString();
     }
 
     public List<Heading> ExtractHeadings(string markdown)
