@@ -6,7 +6,7 @@
         xmlns:controls="clr-namespace:MeuMarkdown.Controls"
         Title="Meu Markdown" Height="700" Width="1200"
         WindowStartupLocation="CenterScreen"
-        Background="#f8f9fa"
+        Background="{DynamicResource Brush.Bg.Window}"
         AllowDrop="True"
         Drop="OnDrop" DragOver="OnDragOver">
 
@@ -21,7 +21,7 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Foreground" Value="#374151" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Fg.Secondary}" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -35,11 +35,11 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#e5e7eb" />
-                                <Setter TargetName="border" Property="BorderBrush" Value="#d1d5db" />
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource Brush.Bg.Hover}" />
+                                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Brush.Border.Stronger}" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#d1d5db" />
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource Brush.Bg.Active}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -54,7 +54,7 @@
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Foreground" Value="#9ca3af" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Fg.Tertiary}" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -63,8 +63,8 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#fee2e2" />
-                                <Setter Property="Foreground" Value="#ef4444" />
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource Brush.Bg.Hover}" />
+                                <Setter Property="Foreground" Value="{DynamicResource Brush.Fg.Primary}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -77,7 +77,7 @@
             <Setter Property="Width" Value="1" />
             <Setter Property="Height" Value="20" />
             <Setter Property="Margin" Value="4,0" />
-            <Setter Property="Background" Value="#e5e7eb" />
+            <Setter Property="Background" Value="{DynamicResource Brush.Border.Subtle}" />
         </Style>
 
         <local:NullToCollapsedConverter x:Key="NullToCollapsedConverter" />
@@ -93,7 +93,7 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Foreground" Value="#374151" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Fg.Secondary}" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ToggleButton">
@@ -107,12 +107,12 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#e5e7eb" />
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource Brush.Bg.Hover}" />
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#dbeafe" />
-                                <Setter TargetName="border" Property="BorderBrush" Value="#93c5fd" />
-                                <Setter Property="Foreground" Value="#1d4ed8" />
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource Brush.Bg.Active}" />
+                                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Brush.Border.Stronger}" />
+                                <Setter Property="Foreground" Value="{DynamicResource Brush.Fg.Primary}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -177,8 +177,9 @@
             </Grid.RowDefinitions>
 
             <!-- Menu Bar - modern flat style -->
-            <Menu Grid.Row="0" x:Name="menuBar" Padding="6,4" Background="#ffffff"
-                  BorderBrush="#e5e7eb" BorderThickness="0,0,0,1" FontSize="13">
+            <Menu Grid.Row="0" x:Name="menuBar" Padding="6,4" Background="{DynamicResource Brush.Bg.SurfaceAlt}"
+                  BorderBrush="{DynamicResource Brush.Border.Subtle}" BorderThickness="0,0,0,1" FontSize="13"
+                  Foreground="{DynamicResource Brush.Fg.Secondary}">
                 <MenuItem Header="_Arquivo">
                     <MenuItem Header="📂  _Abrir..." Command="{Binding OpenFileCommand}" InputGestureText="Ctrl+O" />
                     <MenuItem Header="💾  _Salvar" Command="{Binding SaveCommand}" InputGestureText="Ctrl+S" />
@@ -215,8 +216,8 @@
             </Menu>
 
             <!-- Modern Formatting Toolbar -->
-            <Border Grid.Row="1" x:Name="toolbarBorder" Background="#ffffff"
-                    BorderBrush="#e5e7eb" BorderThickness="0,0,0,1" Padding="6,4">
+            <Border Grid.Row="1" x:Name="toolbarBorder" Background="{DynamicResource Brush.Bg.SurfaceAlt}"
+                    BorderBrush="{DynamicResource Brush.Border.Subtle}" BorderThickness="0,0,0,1" Padding="6,4">
                 <WrapPanel x:Name="toolbarPanel">
                     <!-- View Mode Toggle -->
                     <ToggleButton x:Name="viewModeToggle" Style="{StaticResource ViewModeBtn}"
@@ -283,7 +284,7 @@
             </Border>
 
             <!-- Tab Strip - modern style -->
-            <Border Grid.Row="2" x:Name="tabStripBorder" Background="#ffffff" BorderBrush="#e5e7eb" BorderThickness="0,0,0,1">
+            <Border Grid.Row="2" x:Name="tabStripBorder" Background="{DynamicResource Brush.Bg.SurfaceAlt}" BorderBrush="{DynamicResource Brush.Border.Subtle}" BorderThickness="0,0,0,1">
                 <TabControl x:Name="tabControl"
                             ItemsSource="{Binding Tabs}"
                             SelectedItem="{Binding SelectedTab}"
@@ -320,7 +321,7 @@
 
                 <!-- Editor panel with subtle border -->
                 <Border Grid.Column="0" x:Name="editorBorder" Margin="4,4,0,4"
-                        Background="#ffffff" BorderBrush="#e5e7eb" BorderThickness="1" CornerRadius="6">
+                        Background="{DynamicResource Brush.Bg.Surface}" BorderBrush="{DynamicResource Brush.Border.Subtle}" BorderThickness="1" CornerRadius="6">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -335,7 +336,8 @@
                                        VerticalScrollBarVisibility="Auto"
                                        HorizontalScrollBarVisibility="Auto"
                                        Padding="8,8"
-                                       Background="White"
+                                       Background="{DynamicResource Brush.Bg.Surface}"
+                                       Foreground="{DynamicResource Brush.Fg.Primary}"
                                        BorderThickness="0" />
                     </Grid>
                 </Border>
@@ -348,29 +350,29 @@
 
                 <!-- Preview panel with subtle border -->
                 <Border Grid.Column="2" Margin="0,4,4,4"
-                        Background="#ffffff" BorderBrush="#e5e7eb" BorderThickness="1" CornerRadius="6">
+                        Background="{DynamicResource Brush.Bg.Surface}" BorderBrush="{DynamicResource Brush.Border.Subtle}" BorderThickness="1" CornerRadius="6">
                     <controls:MarkdownPreview x:Name="preview" />
                 </Border>
             </Grid>
 
             <!-- Modern Status Bar -->
-            <Border Grid.Row="4" x:Name="statusBorder" Background="#f1f5f9"
-                    BorderBrush="#e2e8f0" BorderThickness="0,1,0,0" Padding="8,3">
+            <Border Grid.Row="4" x:Name="statusBorder" Background="{DynamicResource Brush.Bg.SurfaceAlt}"
+                    BorderBrush="{DynamicResource Brush.Border.Subtle}" BorderThickness="0,1,0,0" Padding="8,3">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                        <TextBlock x:Name="viewModeText" Text="" FontSize="11.5" Foreground="#64748b"
+                        <TextBlock x:Name="viewModeText" Text="" FontSize="11.5" Foreground="{DynamicResource Brush.Fg.Tertiary}"
                                    Margin="0,0,16,0" VerticalAlignment="Center" />
-                        <TextBlock x:Name="lineColText" Text="Ln 1, Col 1" FontSize="11.5" Foreground="#64748b"
+                        <TextBlock x:Name="lineColText" Text="Ln 1, Col 1" FontSize="11.5" Foreground="{DynamicResource Brush.Fg.Tertiary}"
                                    Margin="0,0,16,0" VerticalAlignment="Center" />
-                        <TextBlock Text="UTF-8" FontSize="11.5" Foreground="#64748b" VerticalAlignment="Center" />
+                        <TextBlock Text="UTF-8" FontSize="11.5" Foreground="{DynamicResource Brush.Fg.Tertiary}" VerticalAlignment="Center" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock x:Name="statusText" Text="{Binding StatusText}" FontSize="11.5"
-                                   Foreground="#475569" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                   Foreground="{DynamicResource Brush.Fg.Tertiary}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
                                    MaxWidth="400" />
-                        <TextBlock Text=" • " FontSize="11.5" Foreground="#94a3b8" VerticalAlignment="Center"
+                        <TextBlock Text=" • " FontSize="11.5" Foreground="{DynamicResource Brush.Fg.Tertiary}" VerticalAlignment="Center"
                                    Visibility="{Binding SelectedTab, Converter={StaticResource NullToCollapsedConverter}}" />
-                        <TextBlock FontSize="11.5" Foreground="#64748b" VerticalAlignment="Center"
+                        <TextBlock FontSize="11.5" Foreground="{DynamicResource Brush.Fg.Tertiary}" VerticalAlignment="Center"
                                    Visibility="{Binding SelectedTab, Converter={StaticResource NullToCollapsedConverter}}">
                             <Run Text="{Binding SelectedTab.WordCount, Mode=OneWay}" />
                             <Run Text="palavras" />
