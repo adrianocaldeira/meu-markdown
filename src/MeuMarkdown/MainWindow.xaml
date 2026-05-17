@@ -306,6 +306,12 @@
                     </MenuItem>
                 </MenuItem>
                 <MenuItem Header="A_juda">
+                    <MenuItem Header="_Verificar atualizações..." Click="OnCheckForUpdates">
+                        <MenuItem.Icon>
+                            <controls:Icon Geometry="{StaticResource Icon.RefreshCw}" Size="14" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator />
                     <MenuItem Header="_Sobre Meu Markdown" Click="OnShowAbout" />
                 </MenuItem>
                     </Menu>

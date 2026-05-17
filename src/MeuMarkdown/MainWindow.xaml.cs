@@ -542,6 +542,12 @@ public partial class MainWindow : Window
         about.ShowDialog();
     }
 
+    private void OnCheckForUpdates(object sender, RoutedEventArgs e)
+    {
+        var update = new UpdateWindow { Owner = this };
+        update.ShowDialog();
+    }
+
     // === Window chrome (custom title bar) ===
 
     private void OnMinimizeWindow(object sender, RoutedEventArgs e)
