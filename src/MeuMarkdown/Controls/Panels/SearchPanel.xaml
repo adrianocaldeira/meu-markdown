@@ -46,7 +46,9 @@
 
         <DockPanel Grid.Row="1" Margin="12,0,12,4">
             <ToggleButton DockPanel.Dock="Right" Style="{StaticResource ToggleOpt}" x:Name="WholeWordToggle"
-                          Content="⌐|" ToolTip="Palavra inteira" Checked="OnOptionChanged" Unchecked="OnOptionChanged" />
+                          ToolTip="Palavra inteira" Checked="OnOptionChanged" Unchecked="OnOptionChanged">
+                <controls:Icon Geometry="{StaticResource Icon.WholeWord}" Size="12" />
+            </ToggleButton>
             <ToggleButton DockPanel.Dock="Right" Style="{StaticResource ToggleOpt}" x:Name="RegexToggle"
                           Content=".*" ToolTip="Regex" Checked="OnOptionChanged" Unchecked="OnOptionChanged" />
             <ToggleButton DockPanel.Dock="Right" Style="{StaticResource ToggleOpt}" x:Name="CaseToggle"
