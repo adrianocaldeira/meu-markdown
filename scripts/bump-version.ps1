@@ -1,16 +1,20 @@
 <#
 .SYNOPSIS
-    Atualiza a versão do Meu Markdown em todos os arquivos onde ela é declarada.
+    Atualiza a versão do Meu Markdown.
 
 .DESCRIPTION
-    Mantém .csproj e installer/.iss em sincronia. Sem este script, é fácil
-    publicar uma release com o instalador apontando uma versão antiga.
+    A versão é centralizada em Directory.Build.props na raiz do repo:
+      - csproj herda Version/AssemblyVersion/FileVersion
+      - build-installer.bat extrai e passa /DAppVersion=X.Y.Z ao ISCC
+      - SplashWindow/AboutWindow leem em runtime via Assembly.GetName().Version
+    Este script edita apenas Directory.Build.props — sem este atomizador é fácil
+    publicar release com instalador apontando versão desatualizada.
 
 .PARAMETER Version
     Versão alvo no formato MAJOR.MINOR.PATCH (ex: 1.2.0).
 
 .PARAMETER NoCommit
-    Apenas edita os arquivos. Sem este flag, cria commit e tag locais.
+    Apenas edita o arquivo. Sem este flag, cria commit e tag locais.
 
 .EXAMPLE
     .\scripts\bump-version.ps1 1.2.0
@@ -27,30 +31,22 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = Resolve-Path "$PSScriptRoot\.."
+$propsPath = Join-Path $repoRoot 'Directory.Build.props'
 
-$csproj = Join-Path $repoRoot 'src/MeuMarkdown/MeuMarkdown.csproj'
-$iss    = Join-Path $repoRoot 'installer/MeuMarkdown.iss'
-
-if (-not (Test-Path $csproj)) { throw "Não encontrei: $csproj" }
-if (-not (Test-Path $iss))    { throw "Não encontrei: $iss" }
+if (-not (Test-Path $propsPath)) { throw "Não encontrei: $propsPath" }
 
 Write-Host "Atualizando para versão: $Version" -ForegroundColor Cyan
 
-# .csproj: <Version>, <AssemblyVersion>, <FileVersion>
-$csprojContent = Get-Content $csproj -Raw
-$csprojContent = $csprojContent -replace '<Version>[^<]+</Version>',               "<Version>$Version</Version>"
-$csprojContent = $csprojContent -replace '<AssemblyVersion>[^<]+</AssemblyVersion>', "<AssemblyVersion>$Version.0</AssemblyVersion>"
-$csprojContent = $csprojContent -replace '<FileVersion>[^<]+</FileVersion>',         "<FileVersion>$Version.0</FileVersion>"
-Set-Content -Path $csproj -Value $csprojContent -NoNewline -Encoding utf8
+$content = Get-Content $propsPath -Raw
+$updated = $content -replace '<Version>[^<]+</Version>', "<Version>$Version</Version>"
 
-# installer.iss: #define AppVersion "X.Y.Z"
-$issContent = Get-Content $iss -Raw
-$issContent = $issContent -replace '#define AppVersion "[^"]+"', "#define AppVersion `"$Version`""
-Set-Content -Path $iss -Value $issContent -NoNewline -Encoding utf8
+if ($content -eq $updated) {
+    Write-Host "Versão já estava em $Version — nada a fazer." -ForegroundColor Yellow
+    exit 0
+}
 
-Write-Host "Arquivos atualizados:" -ForegroundColor Green
-Write-Host "  - $csproj"
-Write-Host "  - $iss"
+Set-Content -Path $propsPath -Value $updated -NoNewline -Encoding utf8
+Write-Host "Atualizado: $propsPath" -ForegroundColor Green
 
 if ($NoCommit) {
     Write-Host "`n-NoCommit: sem commit/tag. Revise e commite manualmente." -ForegroundColor Yellow
@@ -58,7 +54,7 @@ if ($NoCommit) {
 }
 
 Write-Host "`nCriando commit e tag locais..." -ForegroundColor Cyan
-git -C $repoRoot add src/MeuMarkdown/MeuMarkdown.csproj installer/MeuMarkdown.iss
+git -C $repoRoot add Directory.Build.props
 git -C $repoRoot commit -m "chore: bump version → $Version"
 git -C $repoRoot tag "v$Version"
 
