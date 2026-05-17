@@ -9,6 +9,21 @@ public class ExportService
 {
     private readonly MarkdownService _markdownService;
 
+    // CSS injetado em export light pra blindar contra Auto Dark Mode do Chromium / WebView2
+    // que pode aplicar dark scheme automaticamente baseado no tema do Windows mesmo quando
+    // o HTML não tem class="dark". Usa !important pra vencer qualquer cascade subsequente.
+    private const string LightModeForceCss = @"
+:root { color-scheme: light only !important; }
+html, body { background: #ffffff !important; color: #1f2328 !important; }
+body.markdown-body, .markdown-body { background: #ffffff !important; color: #1f2328 !important; }
+.markdown-body code { background: #f3f4f6 !important; color: #1f2328 !important; }
+.markdown-body pre { background: #f6f8fa !important; color: #1f2328 !important; border-color: #e5e7eb !important; }
+.markdown-body th { background: #f6f8fa !important; color: #1f2328 !important; }
+.markdown-body tr:nth-child(even) td { background: #fafbfc !important; }
+.markdown-body blockquote { color: #6b7280 !important; }
+.markdown-body a { color: #0969da !important; }
+";
+
     public ExportService(MarkdownService markdownService)
     {
         _markdownService = markdownService;
@@ -35,9 +50,11 @@ public class ExportService
 <html lang=""pt-BR"">
 <head>
 <meta charset=""UTF-8"">
+<meta name=""color-scheme"" content=""{(darkTheme ? "dark" : "light")} only"">
 <title>{System.Web.HttpUtility.HtmlEncode(tab.FileName)}</title>
 <style>
 {css}
+{(darkTheme ? "" : LightModeForceCss)}
 </style>
 </head>
 <body class=""{bodyClass}"">

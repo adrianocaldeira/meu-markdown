@@ -1064,9 +1064,11 @@ public partial class MainWindow : Window
         if (dlg.ShowDialog() != true) return;
         try
         {
+            // HTML export sempre usa tema claro — destinado a compartilhar/imprimir
             await Task.Run(() => _exportService.ExportHtml(_viewModel.SelectedTab, dlg.FileName,
-                darkTheme: _isDarkTheme, convertMdLinksToHtml: false));
+                darkTheme: false, convertMdLinksToHtml: false));
             _viewModel.StatusText = $"HTML exportado: {dlg.FileName}";
+            ShowExportSuccess("HTML exportado com sucesso", dlg.FileName);
         }
         catch (Exception ex)
         {
@@ -1095,9 +1097,14 @@ public partial class MainWindow : Window
         {
             _viewModel.StatusText = "Gerando PDF...";
             var success = await preview.PrintToPdfAsync(tempHtml, dlg.FileName);
-            _viewModel.StatusText = success ? $"PDF exportado: {dlg.FileName}" : "Falha ao gerar PDF";
-            if (!success)
+            if (success)
             {
+                _viewModel.StatusText = $"PDF exportado: {dlg.FileName}";
+                ShowExportSuccess("PDF exportado com sucesso", dlg.FileName);
+            }
+            else
+            {
+                _viewModel.StatusText = "Falha ao gerar PDF";
                 MessageBox.Show("Falha ao gerar PDF. Verifique o caminho de destino e tente novamente.",
                     "Exportar PDF", MessageBoxButton.OK, MessageBoxImage.Error);
             }
@@ -1114,6 +1121,31 @@ public partial class MainWindow : Window
                 var html = _viewModel.RenderMarkdown(textEditor.Text, _viewModel.SelectedTab.Directory);
                 preview.SetFullHtml(html);
                 preview.SetDarkTheme(_isDarkTheme);
+            }
+        }
+    }
+
+    private void ShowExportSuccess(string title, string filePath)
+    {
+        var result = MessageBox.Show(
+            $"{title}!\n\n{filePath}\n\nAbrir o arquivo agora?",
+            "Exportar",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Information);
+        if (result == MessageBoxResult.Yes)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = filePath,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Não foi possível abrir o arquivo:\n{ex.Message}",
+                    "Abrir arquivo", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
     }
