@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Pre-commit hook — Meu Markdown
+# Roda gitleaks no staging para impedir commit com segredos.
+# Ativado via: git config core.hooksPath .githooks
+
+set -e
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "[gitleaks] binário não encontrado no PATH — pulando varredura."
+  echo "[gitleaks] Instale: https://github.com/gitleaks/gitleaks#installation"
+  exit 0
+fi
+
+echo "[gitleaks] varrendo arquivos staged..."
+gitleaks protect --staged --verbose --redact --config .gitleaks.toml

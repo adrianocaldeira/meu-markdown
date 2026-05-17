@@ -55,3 +55,7 @@ installer/dist/
 src/MeuMarkdown/WebView2UserData/
 
 .superpowers/
+
+# Working docs / agent notes (uso interno, fora do repo público)
+docs/superpowers/
+CLAUDE.md
