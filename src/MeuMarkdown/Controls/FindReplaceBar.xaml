@@ -83,6 +83,10 @@
             <ToggleButton DockPanel.Dock="Right" Style="{StaticResource ToggleOpt}" x:Name="CaseSensitiveToggle"
                           Content="Aa" ToolTip="Diferenciar maiúsc./minúsc." Checked="OnOptionChanged" Unchecked="OnOptionChanged" />
             <TextBox x:Name="FindBox" FontSize="13" Padding="4,2" Margin="0,0,8,0"
+                     Background="{DynamicResource Brush.Bg.Elevated}"
+                     Foreground="{DynamicResource Brush.Fg.Primary}"
+                     CaretBrush="{DynamicResource Brush.Fg.Primary}"
+                     BorderBrush="{DynamicResource Brush.Border.Subtle}"
                      TextChanged="OnFindTextChanged" KeyDown="OnFindKeyDown" />
         </DockPanel>
 
@@ -91,7 +95,11 @@
                     Content="Todos" Width="48" ToolTip="Substituir todos" />
             <Button DockPanel.Dock="Right" Style="{StaticResource NavBtn}" Click="OnReplaceOne"
                     Content="Subst" Width="48" ToolTip="Substituir atual" />
-            <TextBox x:Name="ReplaceBox" FontSize="13" Padding="4,2" Margin="0,0,8,0" />
+            <TextBox x:Name="ReplaceBox" FontSize="13" Padding="4,2" Margin="0,0,8,0"
+                     Background="{DynamicResource Brush.Bg.Elevated}"
+                     Foreground="{DynamicResource Brush.Fg.Primary}"
+                     CaretBrush="{DynamicResource Brush.Fg.Primary}"
+                     BorderBrush="{DynamicResource Brush.Border.Subtle}" />
         </DockPanel>
     </Grid>
 </UserControl>
