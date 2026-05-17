@@ -191,6 +191,9 @@ public partial class MainWindow : Window
         sidebarHost.ExplorerPanel.CloseWorkspaceRequested += OnCloseWorkspaceRequested;
         sidebarHost.ExplorerPanel.ShowAllFilesChanged += OnShowAllFilesChanged;
 
+        sidebarHost.SearchPanel.Bind(_viewModel.WorkspaceService, _viewModel.WorkspaceSearchService);
+        sidebarHost.SearchPanel.MatchActivated += OnSearchMatchActivated;
+
         sidebarHost.SettingsPanel.Bind(_viewModel, App.State.Preferences.ExplorerShowAllFiles);
         sidebarHost.SettingsPanel.SyncScrollChanged += (_, val) =>
         {
@@ -1113,6 +1116,17 @@ public partial class MainWindow : Window
                 preview.SetDarkTheme(_isDarkTheme);
             }
         }
+    }
+
+    private void OnSearchMatchActivated(object? sender, MeuMarkdown.Controls.Panels.FileSearchMatchActivated e)
+    {
+        _viewModel.OpenFileByPath(e.FilePath);
+        // Move caret to the line
+        var line = Math.Max(1, Math.Min(e.LineNumber, textEditor.Document.LineCount));
+        var offset = textEditor.Document.GetOffset(line, 1);
+        textEditor.CaretOffset = offset;
+        textEditor.ScrollToLine(line);
+        textEditor.Focus();
     }
 }
 

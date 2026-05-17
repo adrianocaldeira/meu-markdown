@@ -16,6 +16,7 @@ public partial class SidebarHost : UserControl
     public Controls.Panels.OutlinePanel OutlinePanel => OutlinePanelInstance;
     public Controls.Panels.ExplorerPanel ExplorerPanel => ExplorerPanelInstance;
     public Controls.Panels.SettingsPanel SettingsPanel => SettingsPanelInstance;
+    public Controls.Panels.SearchPanel SearchPanel => SearchPanelInstance;
 
     /// <summary>
     /// Exibe o painel especificado escondendo os demais.
