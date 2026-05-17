@@ -69,6 +69,7 @@ Root: HKA; Subkey: "Software\Classes\MeuMarkdown.Document\shell\open\command"; V
 ; App registration
 Root: HKA; Subkey: "Software\MeuMarkdown"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Flags: uninsdeletekey
 Root: HKA; Subkey: "Software\MeuMarkdown"; ValueType: string; ValueName: "Version"; ValueData: "{#AppVersion}"
+Root: HKA; Subkey: "Software\MeuMarkdown"; ValueType: string; ValueName: "InstallScope"; ValueData: "{code:GetInstallScope}"
 
 [Run]
 Filename: "{app}\{#AppExeName}"; Description: "Iniciar {#AppName}"; Flags: nowait postinstall skipifsilent
@@ -77,6 +78,14 @@ Filename: "{app}\{#AppExeName}"; Description: "Iniciar {#AppName}"; Flags: nowai
 Type: filesandordirs; Name: "{app}"
 
 [Code]
+function GetInstallScope(Param: string): string;
+begin
+  if IsAdminInstallMode then
+    Result := 'machine'
+  else
+    Result := 'user';
+end;
+
 // Refresh file associations after install/uninstall
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
