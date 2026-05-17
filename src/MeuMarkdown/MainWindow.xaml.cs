@@ -558,13 +558,90 @@ public partial class MainWindow : Window
     protected override void OnStateChanged(EventArgs e)
     {
         base.OnStateChanged(e);
+        var maximized = WindowState == WindowState.Maximized;
+
         if (FindName("MaxIconNormal") is System.Windows.Shapes.Path normalIcon &&
             FindName("MaxIconRestore") is System.Windows.Shapes.Path restoreIcon)
         {
-            var maximized = WindowState == WindowState.Maximized;
             normalIcon.Visibility = maximized ? Visibility.Collapsed : Visibility.Visible;
             restoreIcon.Visibility = maximized ? Visibility.Visible : Visibility.Collapsed;
         }
+    }
+
+    // === Workaround do WindowChrome para maximize ===
+    // Com WindowStyle=None + WindowChrome, ao maximizar o Windows estende a janela
+    // ~7px além de cada borda da tela E ignora o taskbar (vai pra tela cheia).
+    // Resultado: title bar perde altura no topo, conteúdo no fundo é coberto pelo taskbar.
+    // Fix: interceptar WM_GETMINMAXINFO e informar o tamanho/posição corretos baseados
+    // no WorkArea do monitor (que exclui taskbar).
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        var handle = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+        var source = System.Windows.Interop.HwndSource.FromHwnd(handle);
+        source?.AddHook(WindowProc);
+    }
+
+    private const int WM_GETMINMAXINFO = 0x0024;
+    private const int MONITOR_DEFAULTTONEAREST = 0x00000002;
+
+    private static IntPtr WindowProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        if (msg == WM_GETMINMAXINFO)
+        {
+            WmGetMinMaxInfo(hwnd, lParam);
+            handled = true;
+        }
+        return IntPtr.Zero;
+    }
+
+    private static void WmGetMinMaxInfo(IntPtr hwnd, IntPtr lParam)
+    {
+        var mmi = System.Runtime.InteropServices.Marshal.PtrToStructure<MINMAXINFO>(lParam);
+        var monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+        if (monitor != IntPtr.Zero)
+        {
+            var mi = new MONITORINFO { cbSize = System.Runtime.InteropServices.Marshal.SizeOf<MONITORINFO>() };
+            GetMonitorInfo(monitor, ref mi);
+            var work = mi.rcWork;
+            var monitorArea = mi.rcMonitor;
+            mmi.ptMaxPosition.x = Math.Abs(work.left - monitorArea.left);
+            mmi.ptMaxPosition.y = Math.Abs(work.top - monitorArea.top);
+            mmi.ptMaxSize.x = Math.Abs(work.right - work.left);
+            mmi.ptMaxSize.y = Math.Abs(work.bottom - work.top);
+        }
+        System.Runtime.InteropServices.Marshal.StructureToPtr(mmi, lParam, true);
+    }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern IntPtr MonitorFromWindow(IntPtr handle, int flags);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct POINTAPI { public int x; public int y; }
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct RECT { public int left, top, right, bottom; }
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct MINMAXINFO
+    {
+        public POINTAPI ptReserved;
+        public POINTAPI ptMaxSize;
+        public POINTAPI ptMaxPosition;
+        public POINTAPI ptMinTrackSize;
+        public POINTAPI ptMaxTrackSize;
+    }
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct MONITORINFO
+    {
+        public int cbSize;
+        public RECT rcMonitor;
+        public RECT rcWork;
+        public uint dwFlags;
     }
 
     private void OnSetAsDefault(object sender, RoutedEventArgs e)
