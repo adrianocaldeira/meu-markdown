@@ -244,6 +244,153 @@
         <Setter Property="BorderThickness" Value="1" />
     </Style>
 
+    <!-- TabItem global style — aba ativa com fundo do tema (não mais branca do WPF default) -->
+    <Style TargetType="{x:Type TabItem}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Fg.Tertiary}" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type TabItem}">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="5,5,0,0"
+                            Margin="2,4,0,0"
+                            Padding="0">
+                        <ContentPresenter ContentSource="Header"
+                                          VerticalAlignment="Center"
+                                          HorizontalAlignment="Center"
+                                          RecognizesAccessKey="True" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background"
+                                    Value="{DynamicResource Brush.Bg.Hover}" />
+                            <Setter Property="Foreground"
+                                    Value="{DynamicResource Brush.Fg.Secondary}" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="border" Property="Background"
+                                    Value="{DynamicResource Brush.Bg.Surface}" />
+                            <Setter Property="Foreground"
+                                    Value="{DynamicResource Brush.Fg.Primary}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Button global style — substitui o chrome cinza-3D do Windows default.
+         Sem Padding default: botões icon-only (ex: MenuBtn 22x22) seriam estourados.
+         Botões com texto já setam Padding explícito (ver SettingsPanel). -->
+    <Style TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="{DynamicResource Brush.Bg.Surface}" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Fg.Primary}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Stronger}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="5"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background"
+                                    Value="{DynamicResource Brush.Bg.Hover}" />
+                            <Setter TargetName="border" Property="BorderBrush"
+                                    Value="{DynamicResource Brush.Fg.Tertiary}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="border" Property="Background"
+                                    Value="{DynamicResource Brush.Bg.Active}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground"
+                                    Value="{DynamicResource Brush.Fg.Disabled}" />
+                            <Setter TargetName="border" Property="Opacity" Value="0.6" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- CheckBox global style — substitui o box branco do Windows default -->
+    <Style TargetType="{x:Type CheckBox}">
+        <Setter Property="Background" Value="{DynamicResource Brush.Bg.Surface}" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Fg.Secondary}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Stronger}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type CheckBox}">
+                    <Grid Background="Transparent" SnapsToDevicePixels="True">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border x:Name="box" Grid.Column="0"
+                                Width="16" Height="16"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3"
+                                VerticalAlignment="Center">
+                            <Path x:Name="check"
+                                  Data="M 2,7 L 6,11 L 13,3"
+                                  Stroke="{DynamicResource Brush.Fg.Primary}"
+                                  StrokeThickness="1.7"
+                                  StrokeStartLineCap="Round"
+                                  StrokeEndLineCap="Round"
+                                  StrokeLineJoin="Round"
+                                  Visibility="Collapsed"
+                                  VerticalAlignment="Center"
+                                  HorizontalAlignment="Center" />
+                        </Border>
+                        <ContentPresenter Grid.Column="1"
+                                          VerticalAlignment="Center"
+                                          Margin="8,0,0,0"
+                                          RecognizesAccessKey="True"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="check" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="box" Property="Background"
+                                    Value="{DynamicResource Brush.Bg.Active}" />
+                            <Setter TargetName="box" Property="BorderBrush"
+                                    Value="{DynamicResource Brush.Fg.Tertiary}" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="box" Property="BorderBrush"
+                                    Value="{DynamicResource Brush.Fg.Secondary}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground"
+                                    Value="{DynamicResource Brush.Fg.Disabled}" />
+                            <Setter TargetName="box" Property="Opacity" Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ScrollBar Thumb minimal style -->
     <Style x:Key="MeuMarkdown.ScrollBar.Thumb" TargetType="{x:Type Thumb}">
         <Setter Property="IsTabStop" Value="False" />
