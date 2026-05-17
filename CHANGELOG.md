@@ -6,6 +6,14 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Adicionado
+- Auto-update "1-click" na janela "Verificar atualizações": baixa o instalador do GitHub, valida SHA-256 e executa o upgrade in-place silenciosamente. Funciona pra instalações per-user e per-machine (com UAC). Versões portable continuam abrindo o browser.
+- Detecção automática do tipo de instalação (per-user / per-machine / portable) via nova chave de registro `Software\MeuMarkdown\InstallScope`.
+- Log local em `%LocalAppData%\MeuMarkdown\update.log` pra debug de atualizações.
+
+### Mudado
+- Botão "Baixar instalador" virou "Atualizar agora" pras instalações com suporte a auto-update.
+
 ## [1.2.1] — 2026
 
 ### Corrigido
