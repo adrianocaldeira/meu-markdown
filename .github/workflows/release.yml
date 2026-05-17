@@ -52,12 +52,31 @@ jobs:
           $tag = if ($env:GITHUB_REF -like 'refs/tags/*') { $env:GITHUB_REF -replace '^refs/tags/','' } else { '${{ inputs.tag }}' }
           "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
+      - name: Extract release notes from CHANGELOG
+        shell: pwsh
+        run: |
+          $version = '${{ steps.version.outputs.version }}'
+          $changelog = Get-Content CHANGELOG.md -Raw
+          # Captura conteúdo entre "## [X.Y.Z]" e a próxima "## [" (ou EOF)
+          $escaped = [regex]::Escape($version)
+          $pattern = "(?ms)^## \[$escaped\][^\r\n]*\r?\n(.*?)(?=^## \[|\z)"
+          $match = [regex]::Match($changelog, $pattern)
+          if ($match.Success) {
+              $notes = $match.Groups[1].Value.Trim()
+              Write-Host "Release notes extraídos do CHANGELOG seção [$version]:"
+              Write-Host $notes
+          } else {
+              Write-Warning "Seção [$version] não encontrada no CHANGELOG.md — usando fallback."
+              $notes = "Release v$version — veja [CHANGELOG.md](https://github.com/$env:GITHUB_REPOSITORY/blob/main/CHANGELOG.md) para detalhes."
+          }
+          Set-Content -Path release-notes.md -Value $notes -Encoding utf8
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
           name: ${{ steps.tag.outputs.tag }}
-          generate_release_notes: true
+          body_path: release-notes.md
           files: |
             installer/dist/*.exe
             src/MeuMarkdown/bin/Release/net10.0-windows/win-x64/publish/MeuMarkdown.exe
