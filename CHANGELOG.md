@@ -6,6 +6,13 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.2.1] — 2026
+
+### Corrigido
+- `UpdateService`: desabilita autodetecção WPAD do `WebProxy` pra evitar timeout de ~20s na verificação de atualizações quando rodando a partir do `.exe` instalado
+
+## [1.2.0] — 2026
+
 ### Adicionado
 - Workflows de CI (build/test) e Release (build + instalador + GitHub Release)
 - Pre-commit hook via gitleaks
@@ -48,6 +55,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.1.0...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.2.1
+[1.2.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.2.0
 [1.1.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.1.0
 [1.0.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.0.0
