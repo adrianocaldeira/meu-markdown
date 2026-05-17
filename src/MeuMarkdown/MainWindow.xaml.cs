@@ -536,6 +536,12 @@ public partial class MainWindow : Window
         Close();
     }
 
+    private void OnShowAbout(object sender, RoutedEventArgs e)
+    {
+        var about = new AboutWindow { Owner = this };
+        about.ShowDialog();
+    }
+
     // === Window chrome (custom title bar) ===
 
     private void OnMinimizeWindow(object sender, RoutedEventArgs e)

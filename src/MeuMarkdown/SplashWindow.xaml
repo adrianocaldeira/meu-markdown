@@ -98,20 +98,16 @@ toolbar de formatação e suporte a múltiplas abas.
                            Text="Iniciando..." FontSize="11" Foreground="#64748b"
                            FontFamily="Segoe UI" Margin="0,0,0,12" />
 
-                <!-- Footer: MSATEC branding + version -->
+                <!-- Footer: copyright + version -->
                 <Grid Grid.Row="4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <!-- MSATEC -->
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="© 2026 " FontSize="11" Foreground="#475569" FontFamily="Segoe UI" />
-                        <TextBlock Text="MSATEC" FontSize="11" FontWeight="SemiBold"
-                                   Foreground="#3b82f6" FontFamily="Segoe UI" />
-                        <TextBlock Text=" — Todos os direitos reservados" FontSize="11"
-                                   Foreground="#475569" FontFamily="Segoe UI" />
+                        <TextBlock Text="© 2026 Adriano Caldeira" FontSize="11"
+                                   Foreground="#94a3b8" FontFamily="Segoe UI" />
                     </StackPanel>
 
                     <!-- Version badge -->

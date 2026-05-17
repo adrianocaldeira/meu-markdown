@@ -1,11 +1,9 @@
 ; Inno Setup Script - Meu Markdown
-; MSATEC - 2026
 ; Para compilar: baixe Inno Setup em https://jrsoftware.org/isinfo.php
 
 #define AppName "Meu Markdown"
 #define AppVersion "1.1.0"
-#define AppPublisher "MSATEC"
-#define AppURL "https://msatec.com.br"
+#define AppPublisher "Adriano Caldeira"
 #define AppExeName "MeuMarkdown.exe"
 #define AppDescription "Editor e Visualizador Markdown"
 
@@ -15,11 +13,8 @@ AppName={#AppName}
 AppVersion={#AppVersion}
 AppVerName={#AppName} {#AppVersion}
 AppPublisher={#AppPublisher}
-AppPublisherURL={#AppURL}
-AppSupportURL={#AppURL}
-AppUpdatesURL={#AppURL}
-DefaultDirName={autopf}\MSATEC\{#AppName}
-DefaultGroupName=MSATEC\{#AppName}
+DefaultDirName={autopf}\{#AppName}
+DefaultGroupName={#AppName}
 AllowNoIcons=yes
 ; Splash/wizard image (164x314 pixels, bmp)
 ; WizardImageFile=installer\wizard-image.bmp
@@ -64,8 +59,8 @@ Root: HKA; Subkey: "Software\Classes\MeuMarkdown.Document\DefaultIcon"; ValueTyp
 Root: HKA; Subkey: "Software\Classes\MeuMarkdown.Document\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExeName}"" ""%1"""; Tasks: fileassoc
 
 ; App registration
-Root: HKA; Subkey: "Software\MSATEC\MeuMarkdown"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Flags: uninsdeletekey
-Root: HKA; Subkey: "Software\MSATEC\MeuMarkdown"; ValueType: string; ValueName: "Version"; ValueData: "{#AppVersion}"
+Root: HKA; Subkey: "Software\MeuMarkdown"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\MeuMarkdown"; ValueType: string; ValueName: "Version"; ValueData: "{#AppVersion}"
 
 [Run]
 Filename: "{app}\{#AppExeName}"; Description: "Iniciar {#AppName}"; Flags: nowait postinstall skipifsilent

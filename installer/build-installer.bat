@@ -1,6 +1,6 @@
 @echo off
 echo ============================================
-echo  MSATEC - Meu Markdown - Build Instalador
+echo  Meu Markdown - Build Instalador
 echo ============================================
 echo.
 

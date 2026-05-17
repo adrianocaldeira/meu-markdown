@@ -305,6 +305,9 @@
                         </MenuItem.Icon>
                     </MenuItem>
                 </MenuItem>
+                <MenuItem Header="A_juda">
+                    <MenuItem Header="_Sobre Meu Markdown" Click="OnShowAbout" />
+                </MenuItem>
                     </Menu>
                 </StackPanel>
             </DockPanel>

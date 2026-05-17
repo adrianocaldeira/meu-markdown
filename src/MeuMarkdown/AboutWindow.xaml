@@ -1,0 +1,118 @@
+<Window x:Class="MeuMarkdown.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:MeuMarkdown.Controls"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        Title="Sobre Meu Markdown"
+        Width="440" Height="500"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        Background="{DynamicResource Brush.Bg.Window}"
+        AllowsTransparency="False"
+        ShowInTaskbar="False">
+
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="32"
+                            ResizeBorderThickness="0"
+                            CornerRadius="0"
+                            GlassFrameThickness="0"
+                            UseAeroCaptionButtons="False" />
+    </shell:WindowChrome.WindowChrome>
+
+    <Border BorderBrush="{DynamicResource Brush.Border.Stronger}" BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="32" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Title bar -->
+            <Border Grid.Row="0" Background="{DynamicResource Brush.Bg.SurfaceAlt}"
+                    BorderBrush="{DynamicResource Brush.Border.Subtle}" BorderThickness="0,0,0,1">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Click="OnClose" Style="{StaticResource WindowCloseBtn}"
+                            ToolTip="Fechar"
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                        <controls:Icon Geometry="{StaticResource Icon.X}" Size="10" />
+                    </Button>
+                    <TextBlock Text="Sobre Meu Markdown" FontSize="12"
+                               Foreground="{DynamicResource Brush.Fg.Secondary}"
+                               VerticalAlignment="Center" Margin="14,0,0,0" />
+                </DockPanel>
+            </Border>
+
+            <!-- Content -->
+            <StackPanel Grid.Row="1" Margin="28,24,28,16" VerticalAlignment="Top">
+                <!-- App brand row -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                    <Image Source="/Resources/app-icon.ico" Width="48" Height="48"
+                           Margin="0,0,16,0" VerticalAlignment="Center" />
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Meu Markdown" FontSize="22" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource Brush.Fg.Primary}" />
+                        <TextBlock Text="v1.1.0" FontSize="12" FontFamily="Consolas"
+                                   Foreground="{DynamicResource Brush.Fg.Tertiary}" Margin="0,2,0,0" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Description -->
+                <TextBlock Foreground="{DynamicResource Brush.Fg.Secondary}" FontSize="13"
+                           LineHeight="20" TextWrapping="Wrap" Margin="0,4,0,16">
+                    Editor e visualizador desktop de Markdown para Windows,
+                    com preview ao vivo, navegação entre arquivos linkados,
+                    syntax highlighting e suporte a múltiplas abas.
+                </TextBlock>
+
+                <!-- Tech stack -->
+                <TextBlock Text="CONSTRUÍDO COM" FontSize="10" FontWeight="SemiBold"
+                           Foreground="{DynamicResource Brush.Fg.Tertiary}"
+                           Margin="0,8,0,8" />
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock FontSize="12.5" Foreground="{DynamicResource Brush.Fg.Secondary}" Margin="0,2">
+                        <Run Text=".NET 10" FontWeight="SemiBold" />
+                        <Run Text=" · WPF · C#" Foreground="{DynamicResource Brush.Fg.Tertiary}" />
+                    </TextBlock>
+                    <TextBlock FontSize="12.5" Foreground="{DynamicResource Brush.Fg.Secondary}" Margin="0,2">
+                        <Run Text="Markdig" FontWeight="SemiBold" />
+                        <Run Text=" — conversão Markdown → HTML" Foreground="{DynamicResource Brush.Fg.Tertiary}" />
+                    </TextBlock>
+                    <TextBlock FontSize="12.5" Foreground="{DynamicResource Brush.Fg.Secondary}" Margin="0,2">
+                        <Run Text="AvalonEdit" FontWeight="SemiBold" />
+                        <Run Text=" — editor de código" Foreground="{DynamicResource Brush.Fg.Tertiary}" />
+                    </TextBlock>
+                    <TextBlock FontSize="12.5" Foreground="{DynamicResource Brush.Fg.Secondary}" Margin="0,2">
+                        <Run Text="Microsoft.Web.WebView2" FontWeight="SemiBold" />
+                        <Run Text=" — preview HTML" Foreground="{DynamicResource Brush.Fg.Tertiary}" />
+                    </TextBlock>
+                    <TextBlock FontSize="12.5" Foreground="{DynamicResource Brush.Fg.Secondary}" Margin="0,2">
+                        <Run Text="CommunityToolkit.Mvvm" FontWeight="SemiBold" />
+                        <Run Text=" — MVVM source generators" Foreground="{DynamicResource Brush.Fg.Tertiary}" />
+                    </TextBlock>
+                    <TextBlock FontSize="12.5" Foreground="{DynamicResource Brush.Fg.Secondary}" Margin="0,2">
+                        <Run Text="Lucide" FontWeight="SemiBold" />
+                        <Run Text=" — ícones outline" Foreground="{DynamicResource Brush.Fg.Tertiary}" />
+                    </TextBlock>
+                </StackPanel>
+
+                <!-- Copyright -->
+                <Border BorderBrush="{DynamicResource Brush.Border.Subtle}" BorderThickness="0,1,0,0"
+                        Padding="0,12,0,0">
+                    <TextBlock FontSize="11" Foreground="{DynamicResource Brush.Fg.Tertiary}">
+                        © 2026 Adriano Caldeira
+                    </TextBlock>
+                </Border>
+            </StackPanel>
+
+            <!-- Footer with close button -->
+            <Border Grid.Row="2" Background="{DynamicResource Brush.Bg.SurfaceAlt}"
+                    BorderBrush="{DynamicResource Brush.Border.Subtle}" BorderThickness="0,1,0,0"
+                    Padding="16,12">
+                <Button Content="Fechar" Click="OnClose"
+                        HorizontalAlignment="Right" Padding="20,5"
+                        MinWidth="80" />
+            </Border>
+        </Grid>
+    </Border>
+</Window>
