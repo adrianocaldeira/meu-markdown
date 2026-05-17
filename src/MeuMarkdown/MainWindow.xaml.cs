@@ -14,6 +14,7 @@ using MeuMarkdown.ViewModels;
 using MeuMarkdown.Services;
 using MeuMarkdown.EditorBehaviors;
 using MeuMarkdown.Controls;
+using MeuMarkdown.Themes;
 using Microsoft.Win32;
 
 namespace MeuMarkdown;
@@ -501,67 +502,7 @@ public partial class MainWindow : Window
 
     private void ApplyTheme()
     {
-        var bgMain = _isDarkTheme ? Color.FromRgb(17, 24, 39) : Color.FromRgb(248, 249, 250);
-        var bgSurface = _isDarkTheme ? Color.FromRgb(31, 41, 55) : Colors.White;
-        var bgToolbar = _isDarkTheme ? Color.FromRgb(31, 41, 55) : Colors.White;
-        var fgMain = _isDarkTheme ? Color.FromRgb(229, 231, 235) : Color.FromRgb(17, 24, 39);
-        var borderColor = _isDarkTheme ? Color.FromRgb(55, 65, 81) : Color.FromRgb(229, 231, 235);
-        var statusBg = _isDarkTheme ? Color.FromRgb(31, 41, 55) : Color.FromRgb(241, 245, 249);
-        var menuPopupBg = _isDarkTheme ? Color.FromRgb(40, 50, 65) : Color.FromRgb(249, 250, 251);
-
-        rootGrid.Background = new SolidColorBrush(bgMain);
-        menuBar.Background = new SolidColorBrush(bgToolbar);
-        menuBar.Foreground = new SolidColorBrush(fgMain);
-        toolbarBorder.Background = new SolidColorBrush(bgToolbar);
-        toolbarBorder.BorderBrush = new SolidColorBrush(borderColor);
-        editorBorder.Background = new SolidColorBrush(bgSurface);
-        editorBorder.BorderBrush = new SolidColorBrush(borderColor);
-        textEditor.Background = new SolidColorBrush(bgSurface);
-        textEditor.Foreground = new SolidColorBrush(fgMain);
-        statusBorder.Background = new SolidColorBrush(statusBg);
-        statusBorder.BorderBrush = new SolidColorBrush(borderColor);
-
-        // Apply theme to menu items (dropdown popups)
-        var menuItemStyle = new Style(typeof(MenuItem));
-        menuItemStyle.Setters.Add(new Setter(MenuItem.BackgroundProperty, new SolidColorBrush(menuPopupBg)));
-        menuItemStyle.Setters.Add(new Setter(MenuItem.ForegroundProperty, new SolidColorBrush(fgMain)));
-        menuItemStyle.Setters.Add(new Setter(MenuItem.BorderBrushProperty, new SolidColorBrush(borderColor)));
-
-        // Highlight on hover
-        var hoverTrigger = new Trigger { Property = MenuItem.IsHighlightedProperty, Value = true };
-        var hoverBg = _isDarkTheme ? Color.FromRgb(55, 65, 81) : Color.FromRgb(229, 231, 235);
-        hoverTrigger.Setters.Add(new Setter(MenuItem.BackgroundProperty, new SolidColorBrush(hoverBg)));
-        menuItemStyle.Triggers.Add(hoverTrigger);
-
-        // Apply to all menu items
-        menuBar.Resources[typeof(MenuItem)] = menuItemStyle;
-
-        // Separator: template explícito para garantir visibilidade em qualquer tema
-        var sepFactory = new FrameworkElementFactory(typeof(Border));
-        sepFactory.SetValue(Border.BorderThicknessProperty, new Thickness(0, 1, 0, 0));
-        sepFactory.SetValue(Border.BorderBrushProperty, new SolidColorBrush(borderColor));
-        sepFactory.SetValue(Border.MarginProperty, new Thickness(8, 3, 8, 3));
-        var sepTemplate = new ControlTemplate(typeof(Separator));
-        sepTemplate.VisualTree = sepFactory;
-        var sepStyle = new Style(typeof(Separator));
-        sepStyle.Setters.Add(new Setter(Separator.TemplateProperty, sepTemplate));
-        menuBar.Resources[typeof(Separator)] = sepStyle;
-
-        // Toolbar buttons and separators
-        var fgToolbar = new SolidColorBrush(_isDarkTheme ? Color.FromRgb(209, 213, 219) : Color.FromRgb(55, 65, 81));
-        var sepBrush = new SolidColorBrush(borderColor);
-        foreach (UIElement child in toolbarPanel.Children)
-        {
-            if (child is System.Windows.Controls.Button btn) btn.Foreground = fgToolbar;
-            else if (child is System.Windows.Controls.Primitives.ToggleButton tb) tb.Foreground = fgToolbar;
-            else if (child is Border sep) sep.Background = sepBrush;
-        }
-
-        // Tab strip
-        tabStripBorder.Background = new SolidColorBrush(bgSurface);
-        tabStripBorder.BorderBrush = new SolidColorBrush(borderColor);
-        tabControl.Foreground = new SolidColorBrush(fgMain);
-
+        ThemeManager.Apply(_isDarkTheme ? AppTheme.Dark : AppTheme.Light);
         preview.SetDarkTheme(_isDarkTheme);
     }
 
