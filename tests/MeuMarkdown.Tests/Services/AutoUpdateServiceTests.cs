@@ -74,4 +74,44 @@ public class AutoUpdateServiceTests : IDisposable
         Assert.Contains(progressEvents, p => p.Status == AutoUpdateStatus.Downloading);
         Assert.Contains(progressEvents, p => p.Status == AutoUpdateStatus.Validating);
     }
+
+    [Fact]
+    public async Task UpdateAsync_HashMismatch_DeletesFileAndReturnsIntegrityError()
+    {
+        var (bytes, _) = MakePayload();
+        var stub = new StubHttpHandler().Map("https://example.com/setup.exe",
+            new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(bytes) });
+        var http = new HttpClient(stub);
+
+        // Digest errado de propósito
+        var info = MakeInfo("sha256:0000000000000000000000000000000000000000000000000000000000000000", bytes.Length);
+
+        var service = new AutoUpdateService(http, _tempDir,
+            new UpdateLogger(Path.Combine(_tempDir, "log.txt")), launcher: _ => true);
+        var result = await service.UpdateAsync(info, () => Task.FromResult(true),
+            new Progress<AutoUpdateProgress>(_ => { }), CancellationToken.None);
+
+        Assert.Equal(AutoUpdateStatus.IntegrityError, result.Status);
+        Assert.False(File.Exists(Path.Combine(_tempDir, "MeuMarkdown-Setup-v1.3.0.exe")));
+    }
+
+    [Fact]
+    public async Task UpdateAsync_SizeMismatch_ReturnsIntegrityError()
+    {
+        var (bytes, digest) = MakePayload(size: 1024);
+        var stub = new StubHttpHandler().Map("https://example.com/setup.exe",
+            new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(bytes) });
+        var http = new HttpClient(stub);
+
+        // Diz que esperava 9999 bytes mas vai receber 1024
+        var info = MakeInfo(digest, 9999);
+
+        var service = new AutoUpdateService(http, _tempDir,
+            new UpdateLogger(Path.Combine(_tempDir, "log.txt")), launcher: _ => true);
+        var result = await service.UpdateAsync(info, () => Task.FromResult(true),
+            new Progress<AutoUpdateProgress>(_ => { }), CancellationToken.None);
+
+        Assert.Equal(AutoUpdateStatus.IntegrityError, result.Status);
+        Assert.False(File.Exists(Path.Combine(_tempDir, "MeuMarkdown-Setup-v1.3.0.exe")));
+    }
 }
