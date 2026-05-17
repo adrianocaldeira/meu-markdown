@@ -114,6 +114,16 @@
                                        FontFamily="Consolas" />
                         </ScrollViewer>
                     </Border>
+
+                    <Border x:Name="UacWarningPanel" Visibility="Collapsed"
+                            Margin="0,12,0,0" Padding="12,10"
+                            Background="{DynamicResource Brush.Bg.Surface}"
+                            BorderBrush="{DynamicResource Brush.Border.Subtle}"
+                            BorderThickness="1" CornerRadius="6">
+                        <TextBlock TextWrapping="Wrap" FontSize="11"
+                                   Foreground="{DynamicResource Brush.Fg.Secondary}"
+                                   Text="Esta instalação é para todos os usuários. A atualização vai pedir permissão de administrador (UAC)." />
+                    </Border>
                 </StackPanel>
 
                 <!-- Error state -->
@@ -142,6 +152,24 @@
                             MinWidth="140" />
                 </StackPanel>
 
+                <!-- Installing state -->
+                <StackPanel x:Name="InstallingPanel" VerticalAlignment="Center" Visibility="Collapsed">
+                    <TextBlock x:Name="InstallingStatusText"
+                               Text="Baixando atualização..."
+                               FontSize="14"
+                               Foreground="{DynamicResource Brush.Fg.Primary}"
+                               HorizontalAlignment="Center" />
+                    <ProgressBar x:Name="InstallingProgressBar"
+                                 Minimum="0" Maximum="100" Value="0"
+                                 Height="6" Margin="0,16,0,0"
+                                 Background="{DynamicResource Brush.Bg.SurfaceAlt}"
+                                 Foreground="{DynamicResource Brush.Accent.Heading}"
+                                 BorderThickness="0" />
+                    <TextBlock x:Name="InstallingDetailText" FontSize="11"
+                               Foreground="{DynamicResource Brush.Fg.Tertiary}"
+                               HorizontalAlignment="Center" Margin="0,8,0,0" />
+                </StackPanel>
+
             </Grid>
 
             <!-- Footer -->
@@ -149,15 +177,21 @@
                     BorderBrush="{DynamicResource Brush.Border.Subtle}" BorderThickness="0,1,0,0"
                     Padding="16,12">
                 <DockPanel>
+                    <!-- Modo: update available -->
                     <Button x:Name="DownloadBtn" DockPanel.Dock="Right" Click="OnDownload"
-                            Content="Baixar instalador" Padding="20,5" MinWidth="140"
+                            Content="Atualizar agora" Padding="20,5" MinWidth="140"
                             Margin="8,0,0,0" Visibility="Collapsed"
                             Background="{DynamicResource Brush.Bg.Active}"
                             BorderBrush="{DynamicResource Brush.Border.Stronger}" />
                     <Button x:Name="ReleaseNotesBtn" DockPanel.Dock="Right" Click="OnOpenReleasePage"
                             Content="Ver no GitHub" Padding="14,5" MinWidth="110"
                             Margin="8,0,0,0" Visibility="Collapsed" />
-                    <Button Content="Fechar" Click="OnClose"
+                    <!-- Modo: installing -->
+                    <Button x:Name="CancelInstallBtn" DockPanel.Dock="Right" Click="OnCancelInstall"
+                            Content="Cancelar" Padding="20,5" MinWidth="100"
+                            Margin="8,0,0,0" Visibility="Collapsed" />
+                    <!-- Sempre presente: fechar -->
+                    <Button x:Name="CloseBtn" Content="Fechar" Click="OnClose"
                             HorizontalAlignment="Left" Padding="20,5" MinWidth="80" />
                 </DockPanel>
             </Border>
