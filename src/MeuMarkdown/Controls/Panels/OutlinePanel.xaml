@@ -15,7 +15,7 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Text="OUTLINE" FontSize="11" FontWeight="SemiBold"
-                   Foreground="#6b7280" Margin="12,12,12,8" />
+                   Foreground="{DynamicResource Brush.Fg.Tertiary}" Margin="12,12,12,8" />
 
         <ListBox Grid.Row="1" x:Name="HeadingsList"
                  BorderThickness="0" Background="Transparent"
@@ -35,10 +35,10 @@
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="border" Property="Background" Value="#e5e7eb" />
+                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource Brush.Bg.Hover}" />
                                     </Trigger>
                                     <Trigger Property="IsSelected" Value="True">
-                                        <Setter TargetName="border" Property="Background" Value="#dbeafe" />
+                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource Brush.Bg.Active}" />
                                     </Trigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
@@ -50,6 +50,7 @@
                 <DataTemplate DataType="{x:Type models:Heading}">
                     <TextBlock Text="{Binding Text}" FontSize="12"
                                TextTrimming="CharacterEllipsis"
+                               Foreground="{DynamicResource Brush.Fg.Secondary}"
                                Margin="{Binding Indent, Converter={StaticResource IndentToMarginConverter}}" />
                 </DataTemplate>
             </ListBox.ItemTemplate>
@@ -57,7 +58,7 @@
 
         <TextBlock Grid.Row="2" x:Name="EmptyState"
                    Text="Sem headings no documento" Margin="12,8,12,12"
-                   Foreground="#9ca3af" FontStyle="Italic" FontSize="12"
+                   Foreground="{DynamicResource Brush.Fg.Tertiary}" FontStyle="Italic" FontSize="12"
                    Visibility="Visible" />
     </Grid>
 </UserControl>
