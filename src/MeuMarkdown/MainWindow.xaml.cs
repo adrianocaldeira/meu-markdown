@@ -536,6 +536,37 @@ public partial class MainWindow : Window
         Close();
     }
 
+    // === Window chrome (custom title bar) ===
+
+    private void OnMinimizeWindow(object sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState.Minimized;
+    }
+
+    private void OnMaximizeRestoreWindow(object sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState == WindowState.Maximized
+            ? WindowState.Normal
+            : WindowState.Maximized;
+    }
+
+    private void OnCloseWindow(object sender, RoutedEventArgs e)
+    {
+        Close();
+    }
+
+    protected override void OnStateChanged(EventArgs e)
+    {
+        base.OnStateChanged(e);
+        if (FindName("MaxIconNormal") is System.Windows.Shapes.Path normalIcon &&
+            FindName("MaxIconRestore") is System.Windows.Shapes.Path restoreIcon)
+        {
+            var maximized = WindowState == WindowState.Maximized;
+            normalIcon.Visibility = maximized ? Visibility.Collapsed : Visibility.Visible;
+            restoreIcon.Visibility = maximized ? Visibility.Visible : Visibility.Collapsed;
+        }
+    }
+
     private void OnSetAsDefault(object sender, RoutedEventArgs e)
     {
         try
