@@ -4,6 +4,7 @@
 #define AppName "Meu Markdown"
 #define AppVersion "1.1.0"
 #define AppPublisher "Adriano Caldeira"
+#define AppURL "https://github.com/adrianocaldeira/meu-markdown"
 #define AppExeName "MeuMarkdown.exe"
 #define AppDescription "Editor e Visualizador Markdown"
 
@@ -13,6 +14,9 @@ AppName={#AppName}
 AppVersion={#AppVersion}
 AppVerName={#AppName} {#AppVersion}
 AppPublisher={#AppPublisher}
+AppPublisherURL={#AppURL}
+AppSupportURL={#AppURL}/issues
+AppUpdatesURL={#AppURL}/releases
 DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppName}
 AllowNoIcons=yes

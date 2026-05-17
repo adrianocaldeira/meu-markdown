@@ -1,0 +1,68 @@
+name: 🐛 Bug report
+description: Reporte um bug ou comportamento inesperado.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por reportar! Quanto mais detalhes, mais rápido a gente corrige.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: O que aconteceu?
+      description: Descreva o bug em uma frase. O que você esperava vs. o que aconteceu.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Como reproduzir
+      description: Passos numerados que produzem o bug.
+      placeholder: |
+        1. Abrir Meu Markdown
+        2. Arrastar um arquivo .md de 5 MB
+        3. Clicar em F5
+        4. Observar...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamento esperado
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Versão do Meu Markdown
+      placeholder: "1.1.0 — veja em Ajuda → Sobre"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: windows
+    attributes:
+      label: Versão do Windows
+      options:
+        - Windows 11
+        - Windows 10 (1809+)
+        - Outra
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots ou GIF (se aplicável)
+      description: Arraste imagens/vídeos pra cá.
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs ou stack trace
+      description: Se houve crash, cole o conteúdo de `%AppData%/MeuMarkdown/` ou de qualquer log relevante.
+      render: text
