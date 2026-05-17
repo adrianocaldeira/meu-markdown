@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -20,6 +21,7 @@ public partial class SplashWindow : Window
     public SplashWindow()
     {
         InitializeComponent();
+        versionText.Text = "v" + VersionInfo.Current;
 
         _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1800) };
         _timer.Tick += OnTimerTick;

@@ -52,7 +52,7 @@
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="Meu Markdown" FontSize="22" FontWeight="SemiBold"
                                    Foreground="{DynamicResource Brush.Fg.Primary}" />
-                        <TextBlock Text="v1.1.0" FontSize="12" FontFamily="Consolas"
+                        <TextBlock x:Name="versionText" FontSize="12" FontFamily="Consolas"
                                    Foreground="{DynamicResource Brush.Fg.Tertiary}" Margin="0,2,0,0" />
                     </StackPanel>
                 </StackPanel>

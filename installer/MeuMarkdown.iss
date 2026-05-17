@@ -2,7 +2,11 @@
 ; Para compilar: baixe Inno Setup em https://jrsoftware.org/isinfo.php
 
 #define AppName "Meu Markdown"
-#define AppVersion "1.1.0"
+; Versão vem do build-installer.bat via ISCC /DAppVersion=X.Y.Z (lê de Directory.Build.props).
+; Default só pra IDE/abertura direta no Inno Setup Studio (build real sobrescreve).
+#ifndef AppVersion
+  #define AppVersion "0.0.0-dev"
+#endif
 #define AppPublisher "Adriano Caldeira"
 #define AppURL "https://github.com/adrianocaldeira/meu-markdown"
 #define AppExeName "MeuMarkdown.exe"

@@ -1,6 +1,5 @@
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Reflection;
 using System.Text.Json.Serialization;
 using System.Linq;
 
@@ -86,20 +85,7 @@ public class UpdateService
         }
     }
 
-    private static string GetCurrentVersion()
-    {
-        var asm = Assembly.GetExecutingAssembly();
-        var infoAttr = asm.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
-        if (infoAttr != null)
-        {
-            // pode vir com sufixo (+commit hash), corta no '+'
-            var v = infoAttr.InformationalVersion;
-            var plus = v.IndexOf('+');
-            if (plus > 0) v = v[..plus];
-            return v;
-        }
-        return asm.GetName().Version?.ToString(3) ?? "0.0.0";
-    }
+    private static string GetCurrentVersion() => VersionInfo.Current;
 
     private sealed class GitHubRelease
     {

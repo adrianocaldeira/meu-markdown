@@ -1,0 +1,13 @@
+<Project>
+
+  <!-- Fonte única de versão.
+       Para bumpar: edite a linha abaixo + crie o tag git (git tag vX.Y.Z + git push origin vX.Y.Z).
+       Lida em runtime pela SplashWindow e AboutWindow via Assembly.GetName().Version.
+       Lida em build do instalador pela build-installer.bat (passa /DAppVersion ao ISCC). -->
+  <PropertyGroup>
+    <Version>1.2.0</Version>
+    <AssemblyVersion>$(Version).0</AssemblyVersion>
+    <FileVersion>$(Version).0</FileVersion>
+  </PropertyGroup>
+
+</Project>
