@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 <SyntaxDefinition name="Markdown" extensions=".md;.markdown"
                   xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
-  <Color name="Heading" foreground="#0366d6" fontWeight="bold" />
+  <Color name="Heading" foreground="#e8a87c" fontWeight="bold" />
   <Color name="Bold" fontWeight="bold" />
   <Color name="Italic" fontStyle="italic" />
-  <Color name="Code" foreground="#e36209" background="#f6f8fa" />
-  <Color name="Link" foreground="#0366d6" />
-  <Color name="Quote" foreground="#6a737d" />
-  <Color name="ListMarker" foreground="#e36209" />
-  <Color name="HorizontalRule" foreground="#d1d5da" />
+  <Color name="Code" foreground="#b8c498" />
+  <Color name="Link" foreground="#58a6ff" />
+  <Color name="Quote" foreground="#888888" />
+  <Color name="ListMarker" foreground="#e8a87c" />
+  <Color name="HorizontalRule" foreground="#888888" />
 
   <RuleSet>
     <!-- Headings -->
