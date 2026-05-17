@@ -10,7 +10,9 @@ public record UpdateInfo(
     string CurrentVersion,
     string DownloadUrl,
     string ReleaseUrl,
-    string ReleaseNotes);
+    string ReleaseNotes,
+    string AssetDigest,
+    long AssetSize);
 
 public enum UpdateCheckStatus
 {
@@ -27,21 +29,36 @@ public class UpdateService
     private const string LatestReleaseApi =
         "https://api.github.com/repos/adrianocaldeira/meu-markdown/releases/latest";
 
+    private readonly HttpClient? _injectedHttp;
+
+    public UpdateService() { }
+    public UpdateService(HttpClient http) { _injectedHttp = http; }
+
     public async Task<UpdateCheckResult> CheckForUpdatesAsync(CancellationToken ct = default)
     {
         string currentVersion = GetCurrentVersion();
 
-        try
+        HttpClient? owned = null;
+        HttpClient http;
+        if (_injectedHttp != null)
+        {
+            http = _injectedHttp;
+        }
+        else
         {
             // UseProxy=false desabilita a auto-detecção WPAD do Windows.
             // Sem isso, o HttpClient num app WPF instalado pode demorar 30s+ na primeira
             // requisição enquanto procura PAC file na rede — mesmo se o usuário não tem
             // proxy configurado. github.com é acessível direto, então skip WPAD.
-            using var handler = new HttpClientHandler { UseProxy = false };
-            using var http = new HttpClient(handler);
-            http.DefaultRequestHeaders.UserAgent.ParseAdd("MeuMarkdown-UpdateChecker");
-            http.Timeout = TimeSpan.FromSeconds(30);
+            var handler = new HttpClientHandler { UseProxy = false };
+            owned = new HttpClient(handler);
+            owned.DefaultRequestHeaders.UserAgent.ParseAdd("MeuMarkdown-UpdateChecker");
+            owned.Timeout = TimeSpan.FromSeconds(30);
+            http = owned;
+        }
 
+        try
+        {
             var release = await http.GetFromJsonAsync<GitHubRelease>(LatestReleaseApi, ct);
             if (release == null || string.IsNullOrEmpty(release.TagName))
             {
@@ -63,14 +80,15 @@ public class UpdateService
 
             var installer = release.Assets?
                 .FirstOrDefault(a => a.Name?.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) == true);
-            var downloadUrl = installer?.BrowserDownloadUrl ?? release.HtmlUrl ?? "";
 
             var info = new UpdateInfo(
                 LatestVersion: latest.ToString(3),
                 CurrentVersion: current.ToString(3),
-                DownloadUrl: downloadUrl,
+                DownloadUrl: installer?.BrowserDownloadUrl ?? release.HtmlUrl ?? "",
                 ReleaseUrl: release.HtmlUrl ?? "",
-                ReleaseNotes: release.Body ?? "");
+                ReleaseNotes: release.Body ?? "",
+                AssetDigest: installer?.Digest ?? "",
+                AssetSize: installer?.Size ?? 0);
 
             return latest > current
                 ? new UpdateCheckResult(UpdateCheckStatus.UpdateAvailable, info, null)
@@ -88,6 +106,10 @@ public class UpdateService
         {
             return new UpdateCheckResult(UpdateCheckStatus.ParseError, null, ex.Message);
         }
+        finally
+        {
+            owned?.Dispose();
+        }
     }
 
     private static string GetCurrentVersion() => VersionInfo.Current;
@@ -104,5 +126,7 @@ public class UpdateService
     {
         [JsonPropertyName("name")] public string? Name { get; set; }
         [JsonPropertyName("browser_download_url")] public string? BrowserDownloadUrl { get; set; }
+        [JsonPropertyName("size")] public long Size { get; set; }
+        [JsonPropertyName("digest")] public string? Digest { get; set; }
     }
 }
