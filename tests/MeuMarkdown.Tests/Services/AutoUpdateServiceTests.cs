@@ -114,4 +114,64 @@ public class AutoUpdateServiceTests : IDisposable
         Assert.Equal(AutoUpdateStatus.IntegrityError, result.Status);
         Assert.False(File.Exists(Path.Combine(_tempDir, "MeuMarkdown-Setup-v1.3.0.exe")));
     }
+
+    [Fact]
+    public async Task UpdateAsync_StaleFileInDir_DeletesBeforeNewDownload()
+    {
+        // Cria um arquivo .exe stale no dir
+        var staleFile = Path.Combine(_tempDir, "MeuMarkdown-Setup-v0.0.1.exe");
+        File.WriteAllText(staleFile, "stale");
+
+        var (bytes, digest) = MakePayload();
+        var stub = new StubHttpHandler().Map("https://example.com/setup.exe",
+            new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(bytes) });
+        var http = new HttpClient(stub);
+        var info = MakeInfo(digest, bytes.Length);
+
+        var service = new AutoUpdateService(http, _tempDir,
+            new UpdateLogger(Path.Combine(_tempDir, "log.txt")), launcher: _ => true);
+        await service.UpdateAsync(info, () => Task.FromResult(true),
+            new Progress<AutoUpdateProgress>(_ => { }), CancellationToken.None);
+
+        Assert.False(File.Exists(staleFile), "Stale file deveria ter sido apagado");
+        Assert.True(File.Exists(Path.Combine(_tempDir, "MeuMarkdown-Setup-v1.3.0.exe")));
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ShutdownDenied_ReturnsUserCancelled()
+    {
+        var (bytes, digest) = MakePayload();
+        var stub = new StubHttpHandler().Map("https://example.com/setup.exe",
+            new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(bytes) });
+        var http = new HttpClient(stub);
+        var info = MakeInfo(digest, bytes.Length);
+
+        var service = new AutoUpdateService(http, _tempDir,
+            new UpdateLogger(Path.Combine(_tempDir, "log.txt")), launcher: _ => true);
+        var result = await service.UpdateAsync(info,
+            requestShutdown: () => Task.FromResult(false), // user negou
+            new Progress<AutoUpdateProgress>(_ => { }), CancellationToken.None);
+
+        Assert.Equal(AutoUpdateStatus.UserCancelled, result.Status);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_LauncherReturnsFalse_ReturnsLaunchError()
+    {
+        var (bytes, digest) = MakePayload();
+        var stub = new StubHttpHandler().Map("https://example.com/setup.exe",
+            new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(bytes) });
+        var http = new HttpClient(stub);
+        var info = MakeInfo(digest, bytes.Length);
+
+        var service = new AutoUpdateService(http, _tempDir,
+            new UpdateLogger(Path.Combine(_tempDir, "log.txt")),
+            launcher: _ => false); // launcher falha
+
+        var result = await service.UpdateAsync(info, () => Task.FromResult(true),
+            new Progress<AutoUpdateProgress>(_ => { }), CancellationToken.None);
+
+        Assert.Equal(AutoUpdateStatus.LaunchError, result.Status);
+        Assert.NotNull(result.DownloadedSetupPath);
+    }
 }
