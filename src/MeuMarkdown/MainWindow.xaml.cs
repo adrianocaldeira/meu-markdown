@@ -919,17 +919,41 @@ public partial class MainWindow : Window
         }
     }
 
-    protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+    private bool _bypassDirtyCheckOnClose = false;
+
+    /// <summary>
+    /// Verifica se há abas com mudanças não salvas e pergunta ao usuário se quer prosseguir.
+    /// Retorna true se OK pra fechar (sem dirty ou usuário aceitou descartar).
+    /// </summary>
+    private bool ConfirmCloseAllowingDirtyDiscard()
     {
         var dirtyTabs = _viewModel.Tabs.Where(t => t.IsDirty).ToList();
-        if (dirtyTabs.Count > 0)
+        if (dirtyTabs.Count == 0) return true;
+
+        var result = MessageBox.Show(
+            $"Existem {dirtyTabs.Count} arquivo(s) com alterações não salvas.\nDeseja sair mesmo assim?",
+            "Sair",
+            MessageBoxButton.YesNo, MessageBoxImage.Question);
+        return result == MessageBoxResult.Yes;
+    }
+
+    /// <summary>
+    /// Pergunta ao usuário se OK pra fechar (respeitando dirty tabs).
+    /// Se retornar true, próxima chamada de Close() NÃO vai mostrar prompt de novo.
+    /// Usado pelo AutoUpdateService antes de lançar o setup.
+    /// </summary>
+    public bool TryShutdownForUpdate()
+    {
+        if (!ConfirmCloseAllowingDirtyDiscard()) return false;
+        _bypassDirtyCheckOnClose = true;
+        return true;
+    }
+
+    protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+    {
+        if (!_bypassDirtyCheckOnClose && !ConfirmCloseAllowingDirtyDiscard())
         {
-            var result = MessageBox.Show(
-                $"Existem {dirtyTabs.Count} arquivo(s) com alterações não salvas.\nDeseja sair mesmo assim?",
-                "Sair",
-                MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (result == MessageBoxResult.No)
-                e.Cancel = true;
+            e.Cancel = true;
         }
         SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
         base.OnClosing(e);
