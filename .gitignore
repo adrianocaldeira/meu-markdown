@@ -53,3 +53,5 @@ installer/dist/
 
 # WebView2 user data (runtime cache)
 src/MeuMarkdown/WebView2UserData/
+
+.superpowers/
