@@ -135,8 +135,11 @@
                                HorizontalAlignment="Center" />
                     <TextBlock x:Name="ErrorMessageText" FontSize="12"
                                Foreground="{DynamicResource Brush.Fg.Tertiary}"
-                               HorizontalAlignment="Center" Margin="0,6,0,0"
+                               HorizontalAlignment="Center" Margin="0,6,0,16"
                                TextWrapping="Wrap" TextAlignment="Center" />
+                    <Button Content="Tentar novamente" Click="OnRetry"
+                            HorizontalAlignment="Center" Padding="16,5"
+                            MinWidth="140" />
                 </StackPanel>
 
             </Grid>

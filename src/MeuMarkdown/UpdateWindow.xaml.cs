@@ -17,6 +17,13 @@ public partial class UpdateWindow : Window
 
     private async Task CheckAsync()
     {
+        LoadingPanel.Visibility = Visibility.Visible;
+        UpToDatePanel.Visibility = Visibility.Collapsed;
+        UpdateAvailablePanel.Visibility = Visibility.Collapsed;
+        ErrorPanel.Visibility = Visibility.Collapsed;
+        DownloadBtn.Visibility = Visibility.Collapsed;
+        ReleaseNotesBtn.Visibility = Visibility.Collapsed;
+
         var service = new UpdateService();
         var result = await service.CheckForUpdatesAsync();
 
@@ -75,6 +82,11 @@ public partial class UpdateWindow : Window
         {
             // ignora — usuário pode copiar o link da modal se quiser
         }
+    }
+
+    private async void OnRetry(object sender, RoutedEventArgs e)
+    {
+        await CheckAsync();
     }
 
     private void OnClose(object sender, RoutedEventArgs e)

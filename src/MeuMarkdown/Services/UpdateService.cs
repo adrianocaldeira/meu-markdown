@@ -33,9 +33,14 @@ public class UpdateService
 
         try
         {
-            using var http = new HttpClient();
+            // UseProxy=false desabilita a auto-detecção WPAD do Windows.
+            // Sem isso, o HttpClient num app WPF instalado pode demorar 30s+ na primeira
+            // requisição enquanto procura PAC file na rede — mesmo se o usuário não tem
+            // proxy configurado. github.com é acessível direto, então skip WPAD.
+            using var handler = new HttpClientHandler { UseProxy = false };
+            using var http = new HttpClient(handler);
             http.DefaultRequestHeaders.UserAgent.ParseAdd("MeuMarkdown-UpdateChecker");
-            http.Timeout = TimeSpan.FromSeconds(10);
+            http.Timeout = TimeSpan.FromSeconds(30);
 
             var release = await http.GetFromJsonAsync<GitHubRelease>(LatestReleaseApi, ct);
             if (release == null || string.IsNullOrEmpty(release.TagName))
