@@ -76,7 +76,17 @@ public class AutoUpdateService
         var path = Path.Combine(_downloadDir, fileName);
 
         HttpClient? owned = null;
-        var http = _injectedHttp ?? (owned = new HttpClient(new HttpClientHandler { UseProxy = false }));
+        HttpClient http;
+        if (_injectedHttp != null)
+        {
+            http = _injectedHttp;
+        }
+        else
+        {
+            owned = new HttpClient(new HttpClientHandler { UseProxy = false });
+            owned.Timeout = TimeSpan.FromMinutes(5);
+            http = owned;
+        }
         try
         {
             progress.Report(new AutoUpdateProgress(AutoUpdateStatus.Downloading, 0, "Baixando atualização..."));
@@ -117,8 +127,11 @@ public class AutoUpdateService
             var expected = info.AssetDigest.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase)
                 ? info.AssetDigest[7..]
                 : info.AssetDigest;
-            if (!string.IsNullOrEmpty(expected) &&
-                !string.Equals(digest, expected, StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrEmpty(expected))
+            {
+                _logger.Log("WARN no digest available, integrity not verified");
+            }
+            else if (!string.Equals(digest, expected, StringComparison.OrdinalIgnoreCase))
             {
                 TryDelete(path);
                 _logger.Log($"FAIL hash mismatch: expected={expected}, got={digest}");
