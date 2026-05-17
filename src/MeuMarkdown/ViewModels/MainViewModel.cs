@@ -16,9 +16,11 @@ public partial class MainViewModel : ObservableObject
     private readonly NavigationService _navigationService;
     private readonly WorkspaceService _workspaceService = new();
     private readonly RecentFilesService _recentFilesService = new();
+    private readonly WorkspaceSearchService _workspaceSearchService;
 
     public WorkspaceService WorkspaceService => _workspaceService;
     public RecentFilesService RecentFilesService => _recentFilesService;
+    public WorkspaceSearchService WorkspaceSearchService => _workspaceSearchService;
 
     public ObservableCollection<DocumentTabViewModel> Tabs { get; } = new();
 
@@ -54,6 +56,7 @@ public partial class MainViewModel : ObservableObject
     {
         _navigationService = new NavigationService(_fileService);
         _navigationService.NavigationRequested += OnNavigationRequested;
+        _workspaceSearchService = new WorkspaceSearchService(new EditorSearchService());
     }
 
     [RelayCommand]
