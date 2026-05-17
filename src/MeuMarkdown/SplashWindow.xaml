@@ -117,7 +117,7 @@ toolbar de formatação e suporte a múltiplas abas.
                     <!-- Version badge -->
                     <Border Grid.Column="1" Background="#1e293b" CornerRadius="4"
                             BorderBrush="#334155" BorderThickness="1" Padding="8,2">
-                        <TextBlock Text="v1.0.0" FontSize="10.5" FontFamily="Consolas"
+                        <TextBlock Text="v1.1.0" FontSize="10.5" FontFamily="Consolas"
                                    Foreground="#64748b" />
                     </Border>
                 </Grid>

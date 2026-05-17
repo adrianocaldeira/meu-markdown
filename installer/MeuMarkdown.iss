@@ -3,7 +3,7 @@
 ; Para compilar: baixe Inno Setup em https://jrsoftware.org/isinfo.php
 
 #define AppName "Meu Markdown"
-#define AppVersion "1.0.0"
+#define AppVersion "1.1.0"
 #define AppPublisher "MSATEC"
 #define AppURL "https://msatec.com.br"
 #define AppExeName "MeuMarkdown.exe"
@@ -48,7 +48,7 @@ Name: "fileassoc"; Description: "Associar arquivos .md e .markdown com {#AppName
 
 [Files]
 ; Main executable (published single-file)
-Source: "..\src\MeuMarkdown\bin\Release\net9.0-windows\win-x64\publish\{#AppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\src\MeuMarkdown\bin\Release\net10.0-windows\win-x64\publish\{#AppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"

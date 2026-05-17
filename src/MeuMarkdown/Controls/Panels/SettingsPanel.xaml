@@ -35,7 +35,7 @@
             <Button x:Name="ClearRecentsBtn" Content="Limpar lista" HorizontalAlignment="Left" Margin="0,4,0,0" Padding="8,2" Click="OnClearRecents" />
 
             <TextBlock Style="{StaticResource SectionHeader}" Text="SOBRE" />
-            <TextBlock Style="{StaticResource SettingLabel}" Text="Meu Markdown — editor .NET 9 WPF" />
+            <TextBlock Style="{StaticResource SettingLabel}" Text="Meu Markdown — editor .NET 10 WPF" />
             <TextBlock Style="{StaticResource SettingLabel}" Text="Markdig · AvalonEdit · WebView2" />
         </StackPanel>
     </ScrollViewer>

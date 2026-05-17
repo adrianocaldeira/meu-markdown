@@ -28,7 +28,7 @@ if not exist %INNO% (
     echo Baixe em: https://jrsoftware.org/isinfo.php
     echo.
     echo O .exe publicado esta em:
-    echo   src\MeuMarkdown\bin\Release\net9.0-windows\win-x64\publish\MeuMarkdown.exe
+    echo   src\MeuMarkdown\bin\Release\net10.0-windows\win-x64\publish\MeuMarkdown.exe
     pause
     exit /b 0
 )
