@@ -26,8 +26,22 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Build (Release)
+        run: dotnet build -c Release
+
+      - name: Test (gate antes do publish)
+        run: dotnet test -c Release --no-build --logger "trx;LogFileName=results.trx" --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-test-results
+          path: TestResults/*.trx
+          retention-days: 30
+
       - name: Publish single-file
-        run: dotnet publish src/MeuMarkdown/MeuMarkdown.csproj -c Release
+        run: dotnet publish src/MeuMarkdown/MeuMarkdown.csproj -c Release --no-build
 
       - name: Install Inno Setup
         run: choco install innosetup -y --no-progress

@@ -57,6 +57,21 @@ Se `D:\src\meu-markdown.wiki` existir e tiver `uncommitted changes` ou commits l
 
 A skill **não modifica o wiki automaticamente** — apenas avisa. Wiki edits são deliberadas e caso-a-caso.
 
+## 0. Gate de qualidade (antes de qualquer write)
+
+Antes de tocar em CHANGELOG/README/props, valide que o código está saudável:
+
+```bash
+rtk dotnet build -c Release
+rtk dotnet test -c Release --no-build
+```
+
+Se **build** ou **teste** falhar, **pare imediatamente** — não comece a editar arquivos. Mostre o output do erro ao usuário e ofereça opções:
+- Investigar a falha (skill termina, usuário arruma e re-invoca)
+- Forçar o release mesmo assim (caso explícito — usuário tem que digitar "forçar" ou similar; nunca silencioso)
+
+Por que esse gate aqui, não confiando só no CI: o `ci.yml` no GitHub roda em paralelo com `release.yml` no push da tag, sem dependência entre eles. Se o teste quebrar, o release ainda sai. O gate local da skill garante que isso não aconteça antes mesmo de subir.
+
 ## Fluxo de decisão da versão alvo
 
 A versão alvo vem do argumento do usuário ou é decidida interativamente:
