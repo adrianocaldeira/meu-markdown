@@ -181,37 +181,92 @@
                   BorderBrush="{DynamicResource Brush.Border.Subtle}" BorderThickness="0,0,0,1" FontSize="13"
                   Foreground="{DynamicResource Brush.Fg.Secondary}">
                 <MenuItem Header="_Arquivo">
-                    <MenuItem Header="📂  _Abrir..." Command="{Binding OpenFileCommand}" InputGestureText="Ctrl+O" />
-                    <MenuItem Header="💾  _Salvar" Command="{Binding SaveCommand}" InputGestureText="Ctrl+S" />
-                    <MenuItem Header="📤  E_xportar">
+                    <MenuItem Header="_Abrir..." Command="{Binding OpenFileCommand}" InputGestureText="Ctrl+O">
+                        <MenuItem.Icon>
+                            <controls:Icon Geometry="{StaticResource Icon.FolderOpen}" Size="14" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="_Salvar" Command="{Binding SaveCommand}" InputGestureText="Ctrl+S">
+                        <MenuItem.Icon>
+                            <controls:Icon Geometry="{StaticResource Icon.Save}" Size="14" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="E_xportar">
+                        <MenuItem.Icon>
+                            <controls:Icon Geometry="{StaticResource Icon.Upload}" Size="14" />
+                        </MenuItem.Icon>
                         <MenuItem Header="HTML..." Click="OnExportHtml" />
                         <MenuItem Header="PDF..." Click="OnExportPdf" />
                     </MenuItem>
                     <Separator />
-                    <MenuItem Header="✕  _Fechar aba" Command="{Binding CloseTabCommand}" InputGestureText="Ctrl+W" />
+                    <MenuItem Header="_Fechar aba" Command="{Binding CloseTabCommand}" InputGestureText="Ctrl+W">
+                        <MenuItem.Icon>
+                            <controls:Icon Geometry="{StaticResource Icon.X}" Size="14" />
+                        </MenuItem.Icon>
+                    </MenuItem>
                     <Separator />
-                    <MenuItem Header="🚪  Sa_ir" Click="OnExit" />
+                    <MenuItem Header="Sa_ir" Click="OnExit">
+                        <MenuItem.Icon>
+                            <controls:Icon Geometry="{StaticResource Icon.LogOut}" Size="14" />
+                        </MenuItem.Icon>
+                    </MenuItem>
                 </MenuItem>
                 <MenuItem Header="_Navegar">
-                    <MenuItem Header="←  _Voltar" Command="{Binding GoBackCommand}" InputGestureText="Alt+Left" />
-                    <MenuItem Header="→  _Avançar" Command="{Binding GoForwardCommand}" InputGestureText="Alt+Right" />
+                    <MenuItem Header="_Voltar" Command="{Binding GoBackCommand}" InputGestureText="Alt+Left">
+                        <MenuItem.Icon>
+                            <controls:Icon Geometry="{StaticResource Icon.ArrowLeft}" Size="14" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="_Avançar" Command="{Binding GoForwardCommand}" InputGestureText="Alt+Right">
+                        <MenuItem.Icon>
+                            <controls:Icon Geometry="{StaticResource Icon.ArrowRight}" Size="14" />
+                        </MenuItem.Icon>
+                    </MenuItem>
                 </MenuItem>
                 <MenuItem Header="_Exibir">
-                    <MenuItem Header="👁  Modo _Visualização" x:Name="viewModeMenuItem" IsCheckable="True"
-                              Click="OnToggleViewMode" InputGestureText="F5" />
-                    <MenuItem Header="🌙  Tema _Escuro" x:Name="darkThemeMenuItem" IsCheckable="True"
-                              Click="OnToggleDarkTheme" InputGestureText="F6" />
-                    <MenuItem Header="↕  Sincronizar _scroll" x:Name="syncScrollMenuItem"
-                              IsCheckable="True" Click="OnToggleSyncScroll" />
-                    <MenuItem Header="⌨  _Typewriter mode" x:Name="typewriterMenuItem"
+                    <MenuItem Header="Modo _Visualização" x:Name="viewModeMenuItem" IsCheckable="True"
+                              Click="OnToggleViewMode" InputGestureText="F5">
+                        <MenuItem.Icon>
+                            <controls:Icon Geometry="{StaticResource Icon.Eye}" Size="14" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Tema _Escuro" x:Name="darkThemeMenuItem" IsCheckable="True"
+                              Click="OnToggleDarkTheme" InputGestureText="F6">
+                        <MenuItem.Icon>
+                            <controls:Icon Geometry="{StaticResource Icon.Moon}" Size="14" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Sincronizar _scroll" x:Name="syncScrollMenuItem"
+                              IsCheckable="True" Click="OnToggleSyncScroll">
+                        <MenuItem.Icon>
+                            <controls:Icon Geometry="{StaticResource Icon.ArrowUpDown}" Size="14" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="_Typewriter mode" x:Name="typewriterMenuItem"
                               IsCheckable="True" Click="OnToggleTypewriter"
-                              InputGestureText="Ctrl+Shift+T" />
-                    <MenuItem Header="⛶  _Zen mode" Click="OnToggleZen" InputGestureText="F11" />
+                              InputGestureText="Ctrl+Shift+T">
+                        <MenuItem.Icon>
+                            <controls:Icon Geometry="{StaticResource Icon.Keyboard}" Size="14" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="_Zen mode" Click="OnToggleZen" InputGestureText="F11">
+                        <MenuItem.Icon>
+                            <controls:Icon Geometry="{StaticResource Icon.Maximize}" Size="14" />
+                        </MenuItem.Icon>
+                    </MenuItem>
                     <Separator />
-                    <MenuItem Header="◧  Alternar _Sidebar" Click="OnToggleSidebar" InputGestureText="Ctrl+\" />
+                    <MenuItem Header="Alternar _Sidebar" Click="OnToggleSidebar" InputGestureText="Ctrl+\">
+                        <MenuItem.Icon>
+                            <controls:Icon Geometry="{StaticResource Icon.PanelLeft}" Size="14" />
+                        </MenuItem.Icon>
+                    </MenuItem>
                 </MenuItem>
                 <MenuItem Header="Ferr_amentas">
-                    <MenuItem Header="⚙  Definir ._md como padrão" Click="OnSetAsDefault" />
+                    <MenuItem Header="Definir ._md como padrão" Click="OnSetAsDefault">
+                        <MenuItem.Icon>
+                            <controls:Icon Geometry="{StaticResource Icon.Settings2}" Size="14" />
+                        </MenuItem.Icon>
+                    </MenuItem>
                 </MenuItem>
             </Menu>
 
@@ -222,7 +277,7 @@
                     <!-- View Mode Toggle -->
                     <ToggleButton x:Name="viewModeToggle" Style="{StaticResource ViewModeBtn}"
                                   ToolTip="Modo Visualização (F5)" Click="OnToggleViewModeButton">
-                        <TextBlock Text="&#x1F441;" FontSize="14" />
+                        <controls:Icon Geometry="{StaticResource Icon.Eye}" Size="15" />
                     </ToggleButton>
                     <Border Style="{StaticResource ToolbarSep}" />
 
@@ -247,38 +302,43 @@
 
                     <!-- Links and images -->
                     <Button Click="OnFormatLink" ToolTip="Link (Ctrl+K)" Style="{StaticResource ToolbarBtn}">
-                        <TextBlock Text="&#x1F517;" FontSize="13" />
+                        <controls:Icon Geometry="{StaticResource Icon.Link}" Size="15" />
                     </Button>
                     <Button Click="OnFormatImage" ToolTip="Imagem" Style="{StaticResource ToolbarBtn}">
-                        <TextBlock Text="&#x1F5BC;" FontSize="13" />
+                        <controls:Icon Geometry="{StaticResource Icon.Image}" Size="15" />
                     </Button>
                     <Border Style="{StaticResource ToolbarSep}" />
 
                     <!-- Code -->
-                    <Button Click="OnFormatInlineCode" ToolTip="Código inline (Ctrl+E)" Style="{StaticResource ToolbarBtn}"
-                            FontFamily="Consolas" FontSize="12" Content="&lt;/&gt;" />
-                    <Button Click="OnFormatCodeBlock" ToolTip="Bloco de código" Style="{StaticResource ToolbarBtn}"
-                            FontFamily="Consolas" FontSize="12" Content="{}{}" />
+                    <Button Click="OnFormatInlineCode" ToolTip="Código inline (Ctrl+E)" Style="{StaticResource ToolbarBtn}">
+                        <controls:Icon Geometry="{StaticResource Icon.Code}" Size="15" />
+                    </Button>
+                    <Button Click="OnFormatCodeBlock" ToolTip="Bloco de código" Style="{StaticResource ToolbarBtn}">
+                        <controls:Icon Geometry="{StaticResource Icon.CodeBlock}" Size="15" />
+                    </Button>
                     <Border Style="{StaticResource ToolbarSep}" />
 
                     <!-- Lists -->
                     <Button Click="OnFormatBulletList" ToolTip="Lista" Style="{StaticResource ToolbarBtn}">
-                        <TextBlock Text="&#x2022; List" FontSize="12" />
+                        <controls:Icon Geometry="{StaticResource Icon.List}" Size="15" />
                     </Button>
-                    <Button Click="OnFormatNumberedList" ToolTip="Lista numerada" Style="{StaticResource ToolbarBtn}"
-                            FontSize="12" Content="1. List" />
-                    <Button Click="OnFormatCheckbox" ToolTip="Checkbox" Style="{StaticResource ToolbarBtn}"
-                            FontFamily="Consolas" FontSize="12" Content="&#x2610;" />
+                    <Button Click="OnFormatNumberedList" ToolTip="Lista numerada" Style="{StaticResource ToolbarBtn}">
+                        <controls:Icon Geometry="{StaticResource Icon.ListOrdered}" Size="15" />
+                    </Button>
+                    <Button Click="OnFormatCheckbox" ToolTip="Checkbox" Style="{StaticResource ToolbarBtn}">
+                        <controls:Icon Geometry="{StaticResource Icon.SquareCheck}" Size="15" />
+                    </Button>
                     <Border Style="{StaticResource ToolbarSep}" />
 
                     <!-- Block elements -->
                     <Button Click="OnFormatQuote" ToolTip="Citação" Style="{StaticResource ToolbarBtn}">
-                        <TextBlock Text="&#x201C;" FontSize="18" Margin="0,-4,0,0" />
+                        <controls:Icon Geometry="{StaticResource Icon.Quote}" Size="15" />
                     </Button>
-                    <Button Click="OnFormatHorizontalRule" ToolTip="Linha horizontal" Style="{StaticResource ToolbarBtn}"
-                            FontSize="12" Content="---" />
+                    <Button Click="OnFormatHorizontalRule" ToolTip="Linha horizontal" Style="{StaticResource ToolbarBtn}">
+                        <controls:Icon Geometry="{StaticResource Icon.Minus}" Size="15" />
+                    </Button>
                     <Button Click="OnFormatTable" ToolTip="Tabela" Style="{StaticResource ToolbarBtn}">
-                        <TextBlock Text="&#x2637;" FontSize="16" />
+                        <controls:Icon Geometry="{StaticResource Icon.Table}" Size="15" />
                     </Button>
                 </WrapPanel>
             </Border>
@@ -297,11 +357,12 @@
                             <StackPanel Orientation="Horizontal" Margin="6,4">
                                 <TextBlock Text="{Binding TabTitle}" VerticalAlignment="Center"
                                            FontSize="12.5" />
-                                <Button Content="&#x2715;" Margin="8,0,0,0"
+                                <Button Margin="8,0,0,0"
                                         Style="{StaticResource TabCloseBtn}"
-                                        FontSize="9"
                                         Click="OnCloseTabClick"
-                                        ToolTip="Fechar aba" />
+                                        ToolTip="Fechar aba">
+                                    <controls:Icon Geometry="{StaticResource Icon.X}" Size="10" />
+                                </Button>
                             </StackPanel>
                         </DataTemplate>
                     </TabControl.ItemTemplate>
