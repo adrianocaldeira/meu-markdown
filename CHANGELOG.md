@@ -6,6 +6,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.7.1] — 2026
+
 ### Adicionado
 - Link "Saiba mais" no toast de atualização — abre a página completa do release no GitHub pra você ver as notas inteiras antes de atualizar.
 
@@ -170,7 +172,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.7.0...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.7.1...HEAD
+[1.7.1]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.1
 [1.7.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.0
 [1.6.3]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.6.3
 [1.6.2]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.6.2
