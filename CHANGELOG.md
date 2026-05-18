@@ -6,6 +6,9 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Mudado
+- Verificação silenciosa de atualização agora grava eventos em `%LocalAppData%\MeuMarkdown\update.log` (scheduled / starting / result / toast / exception). Ajuda a diagnosticar quando o toast não aparece (timing, rede, dispensa, etc.).
+
 ## [1.5.0] — 2026
 
 ### Adicionado

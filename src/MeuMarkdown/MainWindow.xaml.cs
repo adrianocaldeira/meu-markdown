@@ -581,13 +581,18 @@ public partial class MainWindow : Window
 
     private async void CheckForUpdatesInBackgroundAsync()
     {
+        var logger = new UpdateLogger();
         try
         {
+            logger.Log("BG_CHECK scheduled (delay 10s)");
             // Pequeno delay pra não atrapalhar o startup.
             await Task.Delay(TimeSpan.FromSeconds(10));
 
+            logger.Log($"BG_CHECK starting (current=v{VersionInfo.Current})");
             var service = new UpdateService();
             var result = await service.CheckForUpdatesAsync();
+            logger.Log($"BG_CHECK result status={result.Status} latest={result.Info?.LatestVersion ?? "?"} err={result.ErrorMessage ?? ""}");
+
             if (result.Status != UpdateCheckStatus.UpdateAvailable || result.Info == null)
                 return;
 
@@ -597,14 +602,19 @@ public partial class MainWindow : Window
             // (mas o diálogo do fechar também não vai disparar — vide OnClosing).
             if (string.Equals(App.State.Preferences.DismissedUpdateVersion,
                               result.Info.LatestVersion, StringComparison.OrdinalIgnoreCase))
+            {
+                logger.Log($"BG_CHECK toast suppressed (dismissed={App.State.Preferences.DismissedUpdateVersion})");
                 return;
+            }
 
             UpdateToastVersionText.Text = $"v{result.Info.CurrentVersion}  →  v{result.Info.LatestVersion}";
             UpdateToast.Visibility = Visibility.Visible;
+            logger.Log("BG_CHECK toast shown");
         }
-        catch
+        catch (Exception ex)
         {
             // Check silencioso — não atrapalha o usuário se falhar.
+            logger.Log($"BG_CHECK exception: {ex.GetType().Name}: {ex.Message}");
         }
     }
 
