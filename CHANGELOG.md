@@ -6,6 +6,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.3.3] — 2026
+
 ### Corrigido
 - Auto-update agora relança o app automaticamente depois de instalar a nova versão. Antes, o setup terminava silenciosamente e o app ficava fechado — agora ele abre sozinho na versão nova.
 
@@ -78,7 +80,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.3.2...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.3.3...HEAD
+[1.3.3]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.3.3
 [1.3.2]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.3.2
 [1.3.1]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.3.1
 [1.3.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.3.0
