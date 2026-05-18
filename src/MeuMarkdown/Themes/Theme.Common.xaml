@@ -236,12 +236,35 @@
         </Setter>
     </Style>
 
-    <!-- ContextMenu default — usado por TreeView, ListBox, etc -->
+    <!-- ContextMenu default — usado por TreeView, ListBox, e botões via Button.ContextMenu.
+         O template default do WPF mantém uma "icon gutter" cinza-claro do Aero2 que ignora
+         o Background que setamos. Aqui damos um chrome próprio (mesmo visual do popup do
+         menu top-level: Bg.Elevated + borda sutil + corner radius + drop shadow). -->
     <Style TargetType="{x:Type ContextMenu}">
         <Setter Property="Background" Value="{DynamicResource Brush.Bg.Elevated}" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.Fg.Primary}" />
         <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Subtle}" />
         <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="HasDropShadow" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ContextMenu}">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8"
+                            Padding="4"
+                            SnapsToDevicePixels="True">
+                        <Border.Effect>
+                            <DropShadowEffect Color="Black" Opacity="0.45"
+                                              BlurRadius="14" ShadowDepth="3" />
+                        </Border.Effect>
+                        <StackPanel IsItemsHost="True"
+                                    KeyboardNavigation.DirectionalNavigation="Cycle" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!-- Window control buttons (min/max/close) na title bar customizada -->
