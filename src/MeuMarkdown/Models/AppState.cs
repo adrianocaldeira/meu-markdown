@@ -7,6 +7,7 @@ public class AppState
     public string? LastWorkspace { get; set; }
     public List<string> OpenTabs { get; set; } = new();
     public string? ActiveTab { get; set; }
+    public List<string> PinnedTabs { get; set; } = new();
     public List<string> RecentFiles { get; set; } = new();
     public PreferencesInfo Preferences { get; set; } = new();
 }

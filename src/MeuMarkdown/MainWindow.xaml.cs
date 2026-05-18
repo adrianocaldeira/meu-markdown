@@ -264,6 +264,14 @@ public partial class MainWindow : Window
             var active = _viewModel.Tabs.FirstOrDefault(t => t.FilePath == App.State.ActiveTab);
             if (active != null) _viewModel.SelectedTab = active;
         }
+        // Restaurar quais abas estavam fixadas (pinned)
+        var pinnedSet = new HashSet<string>(
+            App.State.PinnedTabs ?? new List<string>(),
+            StringComparer.OrdinalIgnoreCase);
+        foreach (var tab in _viewModel.Tabs)
+        {
+            if (pinnedSet.Contains(tab.FilePath)) tab.IsPinned = true;
+        }
 
         // Restaurar modo de visualização (F5)
         _isViewMode = App.State.Preferences.ViewMode;
@@ -1006,6 +1014,10 @@ public partial class MainWindow : Window
             .Where(p => !string.IsNullOrEmpty(p))
             .ToList();
         state.ActiveTab = _viewModel.SelectedTab?.FilePath;
+        state.PinnedTabs = _viewModel.Tabs
+            .Where(t => t.IsPinned && !string.IsNullOrEmpty(t.FilePath))
+            .Select(t => t.FilePath)
+            .ToList();
 
         try
         {

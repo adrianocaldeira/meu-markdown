@@ -6,6 +6,10 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Adicionado
+- Menu de contexto nas abas (clique direito) com: Fechar esta aba · Fixar/Desafixar · Fechar todas exceto esta · Fechar todas exceto as fixadas · Fechar à esquerda · Fechar à direita · Fechar inalteradas. Todos os itens têm ícone.
+- Abas fixadas (pinned): ícone de pin antes do nome no tab strip, estado persistido em `state.json` entre sessões. Fixar protege a aba do "fechar todas exceto fixadas".
+
 ## [1.4.0] — 2026
 
 ### Adicionado

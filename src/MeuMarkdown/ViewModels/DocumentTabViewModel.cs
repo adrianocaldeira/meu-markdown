@@ -18,6 +18,9 @@ public partial class DocumentTabViewModel : ObservableObject
     private bool _isDirty;
 
     [ObservableProperty]
+    private bool _isPinned;
+
+    [ObservableProperty]
     private int _wordCount;
 
     [ObservableProperty]

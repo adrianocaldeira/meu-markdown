@@ -22,6 +22,8 @@
     </shell:WindowChrome.WindowChrome>
 
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+
         <!-- Modern flat button style for toolbar -->
         <Style x:Key="ToolbarBtn" TargetType="Button">
             <Setter Property="MinWidth" Value="32" />
@@ -425,6 +427,61 @@
                     <TabControl.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" Margin="6,4">
+                                <StackPanel.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Fechar esta aba"
+                                                  Command="{Binding DataContext.CloseTabCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                  CommandParameter="{Binding}">
+                                            <MenuItem.Icon><controls:Icon Geometry="{StaticResource Icon.X}" Size="14" /></MenuItem.Icon>
+                                        </MenuItem>
+                                        <Separator />
+                                        <MenuItem x:Name="PinMenuItem"
+                                                  Header="Fixar aba"
+                                                  Command="{Binding DataContext.TogglePinTabCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                  CommandParameter="{Binding}">
+                                            <MenuItem.Icon><controls:Icon Geometry="{StaticResource Icon.Pin}" Size="14" /></MenuItem.Icon>
+                                            <MenuItem.Style>
+                                                <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsPinned}" Value="True">
+                                                            <Setter Property="Header" Value="Desafixar aba" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </MenuItem.Style>
+                                        </MenuItem>
+                                        <Separator />
+                                        <MenuItem Header="Fechar todas as abas, exceto esta"
+                                                  Command="{Binding DataContext.CloseOtherTabsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                  CommandParameter="{Binding}">
+                                            <MenuItem.Icon><controls:Icon Geometry="{StaticResource Icon.X}" Size="14" /></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Fechar todas, exceto as fixadas"
+                                                  Command="{Binding DataContext.CloseUnpinnedTabsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                  CommandParameter="{Binding}">
+                                            <MenuItem.Icon><controls:Icon Geometry="{StaticResource Icon.Pin}" Size="14" /></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Fechar todas à esquerda"
+                                                  Command="{Binding DataContext.CloseLeftTabsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                  CommandParameter="{Binding}">
+                                            <MenuItem.Icon><controls:Icon Geometry="{StaticResource Icon.ArrowLeft}" Size="14" /></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Fechar todas à direita"
+                                                  Command="{Binding DataContext.CloseRightTabsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                  CommandParameter="{Binding}">
+                                            <MenuItem.Icon><controls:Icon Geometry="{StaticResource Icon.ArrowRight}" Size="14" /></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Fechar todas inalteradas"
+                                                  Command="{Binding DataContext.CloseUnchangedTabsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                  CommandParameter="{Binding}">
+                                            <MenuItem.Icon><controls:Icon Geometry="{StaticResource Icon.SquareCheck}" Size="14" /></MenuItem.Icon>
+                                        </MenuItem>
+                                    </ContextMenu>
+                                </StackPanel.ContextMenu>
+                                <controls:Icon Geometry="{StaticResource Icon.Pin}" Size="11"
+                                               Margin="0,0,4,0" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource Brush.Accent.Heading}"
+                                               Visibility="{Binding IsPinned, Converter={StaticResource BoolToVisibilityConverter}}" />
                                 <TextBlock Text="{Binding TabTitle}" VerticalAlignment="Center"
                                            FontSize="12.5" />
                                 <Button Margin="8,0,0,0"
