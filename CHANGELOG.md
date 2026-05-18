@@ -6,6 +6,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.6.3] — 2026
+
 ### Corrigido
 - Clicar num item do Outline não scrollava o preview até o heading quando o app estava em modo Visualização (F5). Causa: o handler só movia o editor (que está oculto nesse modo). Agora dispara o scroll do preview também.
 
@@ -152,7 +154,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.6.2...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.6.3...HEAD
+[1.6.3]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.6.3
 [1.6.2]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.6.2
 [1.6.1]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.6.1
 [1.6.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.6.0
