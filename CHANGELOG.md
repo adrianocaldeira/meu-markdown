@@ -6,6 +6,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.3.4] — 2026
+
 ### Corrigido
 - Sessão é preservada corretamente após auto-update: abas abertas, aba ativa, workspace, layout da sidebar e preferências eram perdidos quando o app reabria. Causa: `Application.Shutdown()` no fim do auto-update não disparava `Window.Closing`, então o `state.json` não era salvo.
 - Lista de abas abertas e aba ativa agora são realmente persistidas entre sessões (bug pré-existente — os campos `openTabs` e `activeTab` existiam em `state.json` mas nunca eram populados nem restaurados).
@@ -84,7 +86,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.3.3...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.3.4...HEAD
+[1.3.4]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.3.4
 [1.3.3]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.3.3
 [1.3.2]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.3.2
 [1.3.1]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.3.1
