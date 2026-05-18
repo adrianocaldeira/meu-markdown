@@ -6,6 +6,9 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Adicionado
+- Menu de contexto no preview: clique direito sobre texto selecionado mostra **Copiar**; sobre link mostra **Copiar endereço do link**; sobre imagem mostra **Copiar imagem**. Itens nativos não-úteis do Edge (Print, Reload, Save As, etc.) ficam ocultos.
+
 ## [1.6.3] — 2026
 
 ### Corrigido

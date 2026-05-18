@@ -34,8 +34,12 @@ public partial class MarkdownPreview : UserControl
             await webView.EnsureCoreWebView2Async(env);
             webView.CoreWebView2.NavigationStarting += OnNavigationStarting;
             webView.CoreWebView2.Settings.IsScriptEnabled = true;
-            webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
+            // Habilitamos o context menu pra ter "Copiar" quando há texto selecionado.
+            // O handler ContextMenuRequested filtra pra deixar SÓ os itens de cópia
+            // (sem print, reload, saveAs, etc).
+            webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
             webView.CoreWebView2.Settings.AreDevToolsEnabled = false;
+            webView.CoreWebView2.ContextMenuRequested += OnContextMenuRequested;
             _isInitialized = true;
             webView.CoreWebView2.WebMessageReceived += OnWebMessageReceived;
             loadingText.Visibility = Visibility.Collapsed;
@@ -173,6 +177,25 @@ public partial class MarkdownPreview : UserControl
     }
 
     private record ScrollMessage(string Type, int Line);
+
+    private static readonly HashSet<string> _allowedContextMenuItems = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "copy",             // Copiar (quando há seleção)
+        "copyLinkLocation", // Copiar endereço do link (quando direito em link)
+        "copyImage",        // Copiar imagem (quando direito em imagem)
+        "copyImageLink",    // Copiar link da imagem
+    };
+
+    private void OnContextMenuRequested(object? sender, CoreWebView2ContextMenuRequestedEventArgs e)
+    {
+        // Remove tudo que não for ação de cópia. Itera de trás pra frente pq estamos
+        // modificando a coleção. Mantém apenas o que está em _allowedContextMenuItems.
+        for (int i = e.MenuItems.Count - 1; i >= 0; i--)
+        {
+            if (!_allowedContextMenuItems.Contains(e.MenuItems[i].Name))
+                e.MenuItems.RemoveAt(i);
+        }
+    }
 
     private void OnNavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
     {
