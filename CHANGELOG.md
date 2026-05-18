@@ -6,6 +6,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.3.6] — 2026
+
 ### Corrigido
 - Item selecionado no Explorer (TreeView) agora usa as cores do tema em vez do azul/cinza padrão do Windows que ficava ilegível no dark mode.
 - Ao trocar de aba, o Explorer rola automaticamente até o arquivo da aba ativa ficar visível na árvore (antes só expandia as pastas, podia ficar fora do viewport).
@@ -97,7 +99,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.3.5...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.3.6...HEAD
+[1.3.6]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.3.6
 [1.3.5]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.3.5
 [1.3.4]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.3.4
 [1.3.3]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.3.3
