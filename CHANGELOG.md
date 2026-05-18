@@ -6,6 +6,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.5.2] — 2026
+
 ### Corrigido
 - Menu de contexto das abas (clique direito) — nenhum dos itens funcionava. Causa: o `Command` binding com `RelativeSource={AncestorType=Window}` não resolve dentro de `ContextMenu` (que vive em popup separado, fora do visual tree). Trocado por `Click` handlers no code-behind.
 
@@ -120,7 +122,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.5.1...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.5.2...HEAD
+[1.5.2]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.5.2
 [1.5.1]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.5.1
 [1.5.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.5.0
 [1.4.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.4.0
