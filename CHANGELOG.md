@@ -6,6 +6,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.5.1] — 2026
+
 ### Mudado
 - Verificação silenciosa de atualização agora grava eventos em `%LocalAppData%\MeuMarkdown\update.log` (scheduled / starting / result / toast / exception). Ajuda a diagnosticar quando o toast não aparece (timing, rede, dispensa, etc.).
 
@@ -115,7 +117,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.5.0...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.5.1...HEAD
+[1.5.1]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.5.1
 [1.5.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.5.0
 [1.4.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.4.0
 [1.3.6]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.3.6
