@@ -6,6 +6,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.5.0] — 2026
+
 ### Adicionado
 - Menu de contexto nas abas (clique direito) com: Fechar esta aba · Fixar/Desafixar · Fechar todas exceto esta · Fechar todas exceto as fixadas · Fechar à esquerda · Fechar à direita · Fechar inalteradas. Todos os itens têm ícone.
 - Abas fixadas (pinned): ícone de pin antes do nome no tab strip, estado persistido em `state.json` entre sessões. Fixar protege a aba do "fechar todas exceto fixadas".
@@ -110,7 +112,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.4.0...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.5.0
 [1.4.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.4.0
 [1.3.6]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.3.6
 [1.3.5]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.3.5
