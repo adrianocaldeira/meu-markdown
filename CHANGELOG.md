@@ -6,6 +6,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.6.1] — 2026
+
 ### Corrigido
 - Hover do Explorer (TreeView) destacava vários itens ao mesmo tempo ao passar o mouse — pai, avô e item ficavam todos coloridos. Causa: `IsMouseOver` em WPF propaga pra ancestrais. Agora o hover observa só o `IsMouseOver` do header do próprio item, isolando o efeito.
 
@@ -141,7 +143,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.6.0...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.6.1...HEAD
+[1.6.1]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.6.1
 [1.6.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.6.0
 [1.5.3]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.5.3
 [1.5.2]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.5.2
