@@ -6,6 +6,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.3.5] — 2026
+
 ### Corrigido
 - Preview vinha em branco (com tema light) quando o app restaurava abas no startup em tema escuro. Causa: `SetDarkTheme()` era chamado antes do WebView2 inicializar e o tema acumulado nunca era reaplicado pós-init.
 - Modo de visualização (F5) não era preservado entre sessões — agora persiste em `state.json` junto das outras preferências.
@@ -91,7 +93,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.3.4...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.3.5...HEAD
+[1.3.5]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.3.5
 [1.3.4]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.3.4
 [1.3.3]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.3.3
 [1.3.2]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.3.2
