@@ -6,6 +6,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.3.2] — 2026
+
 ### Corrigido
 - Menus de contexto (clique direito em arquivos do Explorer, botão "more" no header da panel, etc.) agora respeitam o tema do app — antes mostravam o chrome cinza-claro padrão do Windows, ignorando dark/light mode.
 
@@ -73,7 +75,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.3.1...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.3.2...HEAD
+[1.3.2]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.3.2
 [1.3.1]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.3.1
 [1.3.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.3.0
 [1.2.1]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.2.1
