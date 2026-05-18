@@ -143,7 +143,11 @@
                                     <Trigger Property="HasItems" Value="False">
                                         <Setter TargetName="Expander" Property="Visibility" Value="Hidden" />
                                     </Trigger>
-                                    <Trigger Property="IsMouseOver" Value="True">
+                                    <!-- Hover só ativa quando o mouse está sobre o header deste
+                                         item, não sobre seus filhos (caso contrário, IsMouseOver
+                                         do TreeViewItem propaga pros ancestrais e visualmente
+                                         vários itens ficam destacados ao mesmo tempo). -->
+                                    <Trigger SourceName="ItemBorder" Property="IsMouseOver" Value="True">
                                         <Setter TargetName="ItemBorder" Property="Background"
                                                 Value="{DynamicResource Brush.Bg.Hover}" />
                                     </Trigger>

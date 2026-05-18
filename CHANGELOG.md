@@ -6,6 +6,9 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Corrigido
+- Hover do Explorer (TreeView) destacava vários itens ao mesmo tempo ao passar o mouse — pai, avô e item ficavam todos coloridos. Causa: `IsMouseOver` em WPF propaga pra ancestrais. Agora o hover observa só o `IsMouseOver` do header do próprio item, isolando o efeito.
+
 ## [1.6.0] — 2026
 
 ### Adicionado
