@@ -15,6 +15,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ### Corrigido
 - Janela de progresso do auto-update não aparecia visualmente quando o user clicava "Atualizar agora" no toast — a janela era criada mas o download começava antes dela ter tempo de pintar, dando a impressão de "tela travada com o instalador na frente". Agora damos tempo da janela renderizar antes de iniciar o download.
+- Instalador mostrava o erro "Incapaz de fechar automaticamente todos os aplicativos" porque o setup era disparado mais rápido do que o app conseguia fechar. Agora o setup é lançado via `cmd /c timeout 2 & start setup.exe` — dá 2 segundos pro app fechar antes do Inno tentar copiar os arquivos. Também trocado `/SILENT` por `/VERYSILENT /SUPPRESSMSGBOXES` pra esconder UI residual do Inno e suprimir prompts de erro.
 
 ## [1.7.0] — 2026
 

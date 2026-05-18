@@ -188,14 +188,24 @@ public class AutoUpdateService
     {
         try
         {
-            // /SILENT: install sem UI mas com barra de progresso minimalista (mantém feedback se demorar).
-            // /NORESTART: nunca reinicia o Windows mesmo que algum DLL peça.
-            // O relaunch do app após o install é feito pelo [Run] Check:WizardSilent no MeuMarkdown.iss
-            // — NÃO via /RESTARTAPPLICATIONS (que depende de WTSRegisterApplicationRestart, não usado).
-            var psi = new ProcessStartInfo(setupPath, "/SILENT /NORESTART")
+            // Disparar o setup direto causa race: o app ainda está rodando quando o Inno
+            // tenta copiar arquivos, e mostra "incapaz de fechar automaticamente". Solução:
+            // lançar via cmd.exe com `timeout 2` antes do setup — dá 2s pro app fechar
+            // após o Process.Start retornar.
+            //
+            // /VERYSILENT: zero UI do instalador (a UpdateWindow do app já mostra progresso).
+            // /SUPPRESSMSGBOXES: se houver erro residual de file lock, aborta silenciosamente.
+            // /NORESTART: nunca reinicia o Windows.
+            // O relaunch do app é feito pelo [Run] Check:WizardSilent no MeuMarkdown.iss.
+            var workingDir = Path.GetDirectoryName(setupPath) ?? "";
+            var args = $"/c timeout /t 2 /nobreak >nul & start \"\" \"{setupPath}\" " +
+                       "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART";
+            var psi = new ProcessStartInfo("cmd.exe", args)
             {
-                UseShellExecute = true,
-                WorkingDirectory = Path.GetDirectoryName(setupPath) ?? "",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                WorkingDirectory = workingDir,
             };
             var p = Process.Start(psi);
             return p != null;
