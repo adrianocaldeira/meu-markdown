@@ -36,7 +36,15 @@ public partial class UpdateWindow : Window
             {
                 PresentUpdateAvailable(_preloadedInfo);
                 if (_autoStart)
+                {
+                    // Antes de começar o download, dá um pequeno tempo pra esta janela
+                    // pintar de fato (sem isso, a UpdateWindow pode "piscar" e ir direto
+                    // pro setup sem mostrar o progresso visualmente).
+                    await Dispatcher.InvokeAsync(() => { },
+                        System.Windows.Threading.DispatcherPriority.ContextIdle);
+                    await Task.Delay(150);
                     await StartAutoUpdate(_preloadedInfo);
+                }
             }
             else
             {

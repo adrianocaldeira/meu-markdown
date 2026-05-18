@@ -578,7 +578,7 @@
                 Background="{DynamicResource Brush.Bg.Elevated}"
                 BorderBrush="{DynamicResource Brush.Accent.Heading}"
                 BorderThickness="1" CornerRadius="10" Padding="18,14"
-                MinWidth="380">
+                MinWidth="480" MaxWidth="520">
             <Border.RenderTransform>
                 <TranslateTransform x:Name="UpdateToastTransform" X="0" Y="0" />
             </Border.RenderTransform>
@@ -638,22 +638,33 @@
                 </Button>
 
                 <!-- Botões de ação -->
-                <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2"
-                            Orientation="Horizontal" HorizontalAlignment="Right"
-                            Margin="0,14,0,0">
-                    <Button Click="OnUpdateToastLater"
-                            Content="Mais tarde" Padding="14,6" MinWidth="100"
-                            Background="Transparent"
-                            BorderBrush="{DynamicResource Brush.Border.Subtle}"
-                            Foreground="{DynamicResource Brush.Fg.Secondary}" />
-                    <Button Click="OnUpdateToastInstall"
-                            Content="Atualizar agora" Padding="14,6" MinWidth="130"
-                            Margin="8,0,0,0"
-                            Background="{DynamicResource Brush.Accent.Heading}"
-                            BorderBrush="{DynamicResource Brush.Accent.Heading}"
-                            Foreground="White"
-                            FontWeight="SemiBold" />
-                </StackPanel>
+                <DockPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2"
+                           Margin="0,14,0,0">
+                    <!-- Link discreto à esquerda: abre página do release no browser -->
+                    <Button DockPanel.Dock="Left"
+                            Click="OnUpdateToastReleaseNotes"
+                            Content="Saiba mais"
+                            Background="Transparent" BorderThickness="0"
+                            Padding="0,6" Cursor="Hand"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Foreground="{DynamicResource Brush.Accent.Heading}" />
+                    <!-- Botões de ação à direita -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Click="OnUpdateToastLater"
+                                Content="Mais tarde" Padding="14,6" MinWidth="100"
+                                Background="Transparent"
+                                BorderBrush="{DynamicResource Brush.Border.Subtle}"
+                                Foreground="{DynamicResource Brush.Fg.Secondary}" />
+                        <Button Click="OnUpdateToastInstall"
+                                Content="Atualizar agora" Padding="14,6" MinWidth="130"
+                                Margin="8,0,0,0"
+                                Background="{DynamicResource Brush.Accent.Heading}"
+                                BorderBrush="{DynamicResource Brush.Accent.Heading}"
+                                Foreground="White"
+                                FontWeight="SemiBold" />
+                    </StackPanel>
+                </DockPanel>
             </Grid>
         </Border>
         </Popup>

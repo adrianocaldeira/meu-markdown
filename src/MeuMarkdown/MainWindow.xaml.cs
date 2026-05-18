@@ -253,6 +253,12 @@ public partial class MainWindow : Window
 
         Closing += OnWindowClosing;
 
+        // Toast só fica visível enquanto o app tem foco. Quando user vai pra outra
+        // janela do Windows, o toast some (evita ficar topmost sobre tudo). Volta a
+        // aparecer quando user retorna ao app, desde que ainda não tenha dispensado.
+        Activated += (_, _) => { if (_pendingUpdateForToast) UpdateToastPopup.IsOpen = true; };
+        Deactivated += (_, _) => { if (UpdateToastPopup.IsOpen) UpdateToastPopup.IsOpen = false; };
+
         // Restaurar abas abertas da sessão anterior
         foreach (var path in App.State.OpenTabs ?? new List<string>())
         {
@@ -580,6 +586,9 @@ public partial class MainWindow : Window
     // Quando o user clica "Atualizar agora" no toast/diálogo, marca que o flow do
     // auto-update está em curso pra evitar que o diálogo do fechar dispare de novo.
     private bool _updateFlowInProgress;
+    // True enquanto o user ainda não dispensou nem clicou "Atualizar" no toast.
+    // Controla se o toast deve reaparecer quando a app volta a ter foco.
+    private bool _pendingUpdateForToast;
 
     private async void CheckForUpdatesInBackgroundAsync()
     {
@@ -622,6 +631,7 @@ public partial class MainWindow : Window
                 UpdateToastNotesText.Visibility = Visibility.Collapsed;
             }
 
+            _pendingUpdateForToast = true;
             ShowUpdateToastAnimated();
             logger.Log("BG_CHECK toast shown");
         }
@@ -636,7 +646,7 @@ public partial class MainWindow : Window
     /// Extrai os primeiros bullets da seção de release notes (markdown-style)
     /// pra mostrar no toast. Pega até 3 itens, máx ~180 chars, com elipse no fim.
     /// </summary>
-    private static string ExtractNotesSummary(string? notes, int maxItems = 3, int maxChars = 180)
+    private static string ExtractNotesSummary(string? notes, int maxItems = 5, int maxChars = 350)
     {
         if (string.IsNullOrWhiteSpace(notes)) return string.Empty;
         var bullets = notes
@@ -699,6 +709,7 @@ public partial class MainWindow : Window
 
     private void OnUpdateToastInstall(object sender, RoutedEventArgs e)
     {
+        _pendingUpdateForToast = false;
         HideUpdateToast();
         if (_backgroundUpdateInfo == null) return;
         _updateFlowInProgress = true;
@@ -716,6 +727,7 @@ public partial class MainWindow : Window
     private void OnUpdateToastLater(object sender, RoutedEventArgs e)
     {
         // Esconde nesta sessão; o diálogo do fechar ainda vai oferecer.
+        _pendingUpdateForToast = false;
         HideUpdateToast();
     }
 
@@ -723,7 +735,22 @@ public partial class MainWindow : Window
     {
         // X = mesmo comportamento do "Mais tarde": só esconde, não persiste dismissal
         // (que fica reservado pro botão explícito do diálogo do fechar).
+        _pendingUpdateForToast = false;
         HideUpdateToast();
+    }
+
+    private void OnUpdateToastReleaseNotes(object sender, RoutedEventArgs e)
+    {
+        // Abre a página do release no browser sem fechar o toast.
+        if (_backgroundUpdateInfo == null || string.IsNullOrEmpty(_backgroundUpdateInfo.ReleaseUrl)) return;
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(_backgroundUpdateInfo.ReleaseUrl)
+            {
+                UseShellExecute = true
+            });
+        }
+        catch { }
     }
 
     // === Tab drag-drop reorder ===

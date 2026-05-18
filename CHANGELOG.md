@@ -6,6 +6,16 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Adicionado
+- Link "Saiba mais" no toast de atualização — abre a página completa do release no GitHub pra você ver as notas inteiras antes de atualizar.
+
+### Mudado
+- Toast de atualização agora some quando o app perde foco e reaparece quando você volta. Antes ficava topmost sobre TODAS as janelas do Windows (mesmo quando você ia usar outra aplicação).
+- Toast ficou mais largo (480px) e mostra mais bullets das release notes (até 5 itens, até 350 caracteres) — antes o texto era truncado cedo demais.
+
+### Corrigido
+- Janela de progresso do auto-update não aparecia visualmente quando o user clicava "Atualizar agora" no toast — a janela era criada mas o download começava antes dela ter tempo de pintar, dando a impressão de "tela travada com o instalador na frente". Agora damos tempo da janela renderizar antes de iniciar o download.
+
 ## [1.7.0] — 2026
 
 ### Adicionado
