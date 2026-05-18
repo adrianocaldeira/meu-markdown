@@ -647,6 +647,56 @@ public partial class MainWindow : Window
         UpdateToast.Visibility = Visibility.Collapsed;
     }
 
+    // === Tab context menu handlers ===
+    // O DataContext do MenuItem dentro do ContextMenu é o DocumentTabViewModel da aba clicada
+    // (vem do StackPanel.PlacementTarget). Comandos são acessados via Execute() pq RelativeSource
+    // pra Window não funciona dentro de Popup (ContextMenu vive fora do visual tree).
+
+    private DocumentTabViewModel? TabFromMenu(object sender)
+        => (sender as FrameworkElement)?.DataContext as DocumentTabViewModel;
+
+    private void OnTabCtxCloseThis(object sender, RoutedEventArgs e)
+    {
+        var tab = TabFromMenu(sender);
+        if (tab != null) _viewModel.CloseTabCommand.Execute(tab);
+    }
+
+    private void OnTabCtxTogglePin(object sender, RoutedEventArgs e)
+    {
+        var tab = TabFromMenu(sender);
+        if (tab != null) _viewModel.TogglePinTabCommand.Execute(tab);
+    }
+
+    private void OnTabCtxCloseOthers(object sender, RoutedEventArgs e)
+    {
+        var tab = TabFromMenu(sender);
+        if (tab != null) _viewModel.CloseOtherTabsCommand.Execute(tab);
+    }
+
+    private void OnTabCtxCloseUnpinned(object sender, RoutedEventArgs e)
+    {
+        var tab = TabFromMenu(sender);
+        _viewModel.CloseUnpinnedTabsCommand.Execute(tab);
+    }
+
+    private void OnTabCtxCloseLeft(object sender, RoutedEventArgs e)
+    {
+        var tab = TabFromMenu(sender);
+        if (tab != null) _viewModel.CloseLeftTabsCommand.Execute(tab);
+    }
+
+    private void OnTabCtxCloseRight(object sender, RoutedEventArgs e)
+    {
+        var tab = TabFromMenu(sender);
+        if (tab != null) _viewModel.CloseRightTabsCommand.Execute(tab);
+    }
+
+    private void OnTabCtxCloseUnchanged(object sender, RoutedEventArgs e)
+    {
+        var tab = TabFromMenu(sender);
+        _viewModel.CloseUnchangedTabsCommand.Execute(tab);
+    }
+
     private void OnCheckForUpdates(object sender, RoutedEventArgs e)
     {
         var update = new UpdateWindow { Owner = this };

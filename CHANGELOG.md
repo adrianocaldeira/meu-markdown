@@ -6,6 +6,9 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Corrigido
+- Menu de contexto das abas (clique direito) — nenhum dos itens funcionava. Causa: o `Command` binding com `RelativeSource={AncestorType=Window}` não resolve dentro de `ContextMenu` (que vive em popup separado, fora do visual tree). Trocado por `Click` handlers no code-behind.
+
 ## [1.5.1] — 2026
 
 ### Mudado

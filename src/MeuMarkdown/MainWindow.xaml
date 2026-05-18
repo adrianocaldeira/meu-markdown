@@ -429,16 +429,11 @@
                             <StackPanel Orientation="Horizontal" Margin="6,4">
                                 <StackPanel.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Header="Fechar esta aba"
-                                                  Command="{Binding DataContext.CloseTabCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                  CommandParameter="{Binding}">
+                                        <MenuItem Header="Fechar esta aba" Click="OnTabCtxCloseThis">
                                             <MenuItem.Icon><controls:Icon Geometry="{StaticResource Icon.X}" Size="14" /></MenuItem.Icon>
                                         </MenuItem>
                                         <Separator />
-                                        <MenuItem x:Name="PinMenuItem"
-                                                  Header="Fixar aba"
-                                                  Command="{Binding DataContext.TogglePinTabCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                  CommandParameter="{Binding}">
+                                        <MenuItem Header="Fixar aba" Click="OnTabCtxTogglePin">
                                             <MenuItem.Icon><controls:Icon Geometry="{StaticResource Icon.Pin}" Size="14" /></MenuItem.Icon>
                                             <MenuItem.Style>
                                                 <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
@@ -451,29 +446,19 @@
                                             </MenuItem.Style>
                                         </MenuItem>
                                         <Separator />
-                                        <MenuItem Header="Fechar todas as abas, exceto esta"
-                                                  Command="{Binding DataContext.CloseOtherTabsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                  CommandParameter="{Binding}">
+                                        <MenuItem Header="Fechar todas as abas, exceto esta" Click="OnTabCtxCloseOthers">
                                             <MenuItem.Icon><controls:Icon Geometry="{StaticResource Icon.X}" Size="14" /></MenuItem.Icon>
                                         </MenuItem>
-                                        <MenuItem Header="Fechar todas, exceto as fixadas"
-                                                  Command="{Binding DataContext.CloseUnpinnedTabsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                  CommandParameter="{Binding}">
+                                        <MenuItem Header="Fechar todas, exceto as fixadas" Click="OnTabCtxCloseUnpinned">
                                             <MenuItem.Icon><controls:Icon Geometry="{StaticResource Icon.Pin}" Size="14" /></MenuItem.Icon>
                                         </MenuItem>
-                                        <MenuItem Header="Fechar todas à esquerda"
-                                                  Command="{Binding DataContext.CloseLeftTabsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                  CommandParameter="{Binding}">
+                                        <MenuItem Header="Fechar todas à esquerda" Click="OnTabCtxCloseLeft">
                                             <MenuItem.Icon><controls:Icon Geometry="{StaticResource Icon.ArrowLeft}" Size="14" /></MenuItem.Icon>
                                         </MenuItem>
-                                        <MenuItem Header="Fechar todas à direita"
-                                                  Command="{Binding DataContext.CloseRightTabsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                  CommandParameter="{Binding}">
+                                        <MenuItem Header="Fechar todas à direita" Click="OnTabCtxCloseRight">
                                             <MenuItem.Icon><controls:Icon Geometry="{StaticResource Icon.ArrowRight}" Size="14" /></MenuItem.Icon>
                                         </MenuItem>
-                                        <MenuItem Header="Fechar todas inalteradas"
-                                                  Command="{Binding DataContext.CloseUnchangedTabsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                  CommandParameter="{Binding}">
+                                        <MenuItem Header="Fechar todas inalteradas" Click="OnTabCtxCloseUnchanged">
                                             <MenuItem.Icon><controls:Icon Geometry="{StaticResource Icon.SquareCheck}" Size="14" /></MenuItem.Icon>
                                         </MenuItem>
                                     </ContextMenu>
