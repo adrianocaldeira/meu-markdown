@@ -14,11 +14,35 @@ public partial class UpdateWindow : Window
     private CancellationTokenSource? _installCts;
     private bool _installing = false;
 
-    public UpdateWindow()
+    private readonly UpdateInfo? _preloadedInfo;
+    private readonly bool _autoStart;
+
+    public UpdateWindow() : this(null, autoStart: false) { }
+
+    /// <summary>
+    /// Construtor que pula a checagem inicial e abre direto no estado "atualização disponível".
+    /// Se autoStart=true, dispara o auto-update assim que carregar (sem o usuário precisar clicar).
+    /// Usado pelo toast e pelo diálogo de fechar quando já temos UpdateInfo em mãos.
+    /// </summary>
+    public UpdateWindow(UpdateInfo? info, bool autoStart)
     {
         InitializeComponent();
         _installContext = InstallContext.Detect();
-        Loaded += async (_, _) => await CheckAsync();
+        _preloadedInfo = info;
+        _autoStart = autoStart && info != null;
+        Loaded += async (_, _) =>
+        {
+            if (_preloadedInfo != null)
+            {
+                PresentUpdateAvailable(_preloadedInfo);
+                if (_autoStart)
+                    await StartAutoUpdate(_preloadedInfo);
+            }
+            else
+            {
+                await CheckAsync();
+            }
+        };
     }
 
     private async Task CheckAsync()
@@ -40,30 +64,7 @@ public partial class UpdateWindow : Window
                 break;
 
             case UpdateCheckStatus.UpdateAvailable when result.Info != null:
-                _info = result.Info;
-                _downloadUrl = result.Info.DownloadUrl;
-                _releaseUrl = result.Info.ReleaseUrl;
-
-                ShowOnly(UpdateAvailablePanel);
-                UpdateVersionText.Text = $"v{result.Info.CurrentVersion}  →  v{result.Info.LatestVersion}";
-                ReleaseNotesText.Text = string.IsNullOrWhiteSpace(result.Info.ReleaseNotes)
-                    ? "(sem release notes)"
-                    : result.Info.ReleaseNotes;
-
-                var ctx = _installContext ?? InstallContext.Detect();
-                if (ctx.SupportsAutoUpdate)
-                {
-                    DownloadBtn.Content = "Atualizar agora";
-                    DownloadBtn.Visibility = string.IsNullOrEmpty(_downloadUrl) ? Visibility.Collapsed : Visibility.Visible;
-                    UacWarningPanel.Visibility = ctx.RequiresElevation ? Visibility.Visible : Visibility.Collapsed;
-                }
-                else
-                {
-                    // Portable: mantém comportamento antigo (abre browser)
-                    DownloadBtn.Content = "Baixar instalador";
-                    DownloadBtn.Visibility = string.IsNullOrEmpty(_downloadUrl) ? Visibility.Collapsed : Visibility.Visible;
-                }
-                ReleaseNotesBtn.Visibility = string.IsNullOrEmpty(_releaseUrl) ? Visibility.Collapsed : Visibility.Visible;
+                PresentUpdateAvailable(result.Info);
                 break;
 
             default:
@@ -71,6 +72,34 @@ public partial class UpdateWindow : Window
                 ErrorMessageText.Text = result.ErrorMessage ?? "Erro desconhecido.";
                 break;
         }
+    }
+
+    private void PresentUpdateAvailable(UpdateInfo info)
+    {
+        _info = info;
+        _downloadUrl = info.DownloadUrl;
+        _releaseUrl = info.ReleaseUrl;
+
+        ShowOnly(UpdateAvailablePanel);
+        UpdateVersionText.Text = $"v{info.CurrentVersion}  →  v{info.LatestVersion}";
+        ReleaseNotesText.Text = string.IsNullOrWhiteSpace(info.ReleaseNotes)
+            ? "(sem release notes)"
+            : info.ReleaseNotes;
+
+        var ctx = _installContext ?? InstallContext.Detect();
+        if (ctx.SupportsAutoUpdate)
+        {
+            DownloadBtn.Content = "Atualizar agora";
+            DownloadBtn.Visibility = string.IsNullOrEmpty(_downloadUrl) ? Visibility.Collapsed : Visibility.Visible;
+            UacWarningPanel.Visibility = ctx.RequiresElevation ? Visibility.Visible : Visibility.Collapsed;
+        }
+        else
+        {
+            // Portable: mantém comportamento antigo (abre browser)
+            DownloadBtn.Content = "Baixar instalador";
+            DownloadBtn.Visibility = string.IsNullOrEmpty(_downloadUrl) ? Visibility.Collapsed : Visibility.Visible;
+        }
+        ReleaseNotesBtn.Visibility = string.IsNullOrEmpty(_releaseUrl) ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private void ShowOnly(FrameworkElement panel)

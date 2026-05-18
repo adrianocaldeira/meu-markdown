@@ -278,6 +278,9 @@ public partial class MainWindow : Window
                  args[i].EndsWith(".markdown", StringComparison.OrdinalIgnoreCase)))
                 _viewModel.OpenFileByPath(args[i]);
         }
+
+        // Verificação silenciosa de atualização (toast aparece ~10s depois se houver versão nova).
+        CheckForUpdatesInBackgroundAsync();
     }
 
     private void LoadMarkdownSyntaxHighlighting()
@@ -559,6 +562,71 @@ public partial class MainWindow : Window
     {
         var about = new AboutWindow { Owner = this };
         about.ShowDialog();
+    }
+
+    // Cacheado em memória após o check em background no startup. Usado pelo toast e
+    // pelo diálogo do fechar pra evitar refazer a chamada HTTP.
+    private UpdateInfo? _backgroundUpdateInfo;
+    // Quando o user clica "Atualizar agora" no toast/diálogo, marca que o flow do
+    // auto-update está em curso pra evitar que o diálogo do fechar dispare de novo.
+    private bool _updateFlowInProgress;
+
+    private async void CheckForUpdatesInBackgroundAsync()
+    {
+        try
+        {
+            // Pequeno delay pra não atrapalhar o startup.
+            await Task.Delay(TimeSpan.FromSeconds(10));
+
+            var service = new UpdateService();
+            var result = await service.CheckForUpdatesAsync();
+            if (result.Status != UpdateCheckStatus.UpdateAvailable || result.Info == null)
+                return;
+
+            _backgroundUpdateInfo = result.Info;
+
+            // Se o user já dispensou exatamente essa versão, não mostra o toast
+            // (mas o diálogo do fechar também não vai disparar — vide OnClosing).
+            if (string.Equals(App.State.Preferences.DismissedUpdateVersion,
+                              result.Info.LatestVersion, StringComparison.OrdinalIgnoreCase))
+                return;
+
+            UpdateToastVersionText.Text = $"v{result.Info.CurrentVersion}  →  v{result.Info.LatestVersion}";
+            UpdateToast.Visibility = Visibility.Visible;
+        }
+        catch
+        {
+            // Check silencioso — não atrapalha o usuário se falhar.
+        }
+    }
+
+    private void OnUpdateToastInstall(object sender, RoutedEventArgs e)
+    {
+        UpdateToast.Visibility = Visibility.Collapsed;
+        if (_backgroundUpdateInfo == null) return;
+        _updateFlowInProgress = true;
+        var update = new UpdateWindow(_backgroundUpdateInfo, autoStart: true) { Owner = this };
+        if (update.ShowDialog() == true)
+        {
+            Close();
+        }
+        else
+        {
+            _updateFlowInProgress = false;
+        }
+    }
+
+    private void OnUpdateToastLater(object sender, RoutedEventArgs e)
+    {
+        // Esconde nesta sessão; o diálogo do fechar ainda vai oferecer.
+        UpdateToast.Visibility = Visibility.Collapsed;
+    }
+
+    private void OnUpdateToastDismiss(object sender, RoutedEventArgs e)
+    {
+        // X = mesmo comportamento do "Mais tarde": só esconde, não persiste dismissal
+        // (que fica reservado pro botão explícito do diálogo do fechar).
+        UpdateToast.Visibility = Visibility.Collapsed;
     }
 
     private void OnCheckForUpdates(object sender, RoutedEventArgs e)
@@ -985,7 +1053,54 @@ public partial class MainWindow : Window
         {
             e.Cancel = true;
         }
-        SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
+
+        // Diálogo C: oferece atualizar antes de sair (só dispara se há update novo
+        // não-dispensado E o flow de auto-update ainda não está em curso via toast).
+        if (!e.Cancel && !_updateFlowInProgress && _backgroundUpdateInfo != null)
+        {
+            var info = _backgroundUpdateInfo;
+            if (!string.Equals(App.State.Preferences.DismissedUpdateVersion,
+                               info.LatestVersion, StringComparison.OrdinalIgnoreCase))
+            {
+                var result = MessageBox.Show(
+                    $"A versão v{info.LatestVersion} está disponível. Atualizar antes de sair?",
+                    "Nova versão disponível",
+                    MessageBoxButton.YesNoCancel, MessageBoxImage.Question, MessageBoxResult.No);
+
+                if (result == MessageBoxResult.Cancel)
+                {
+                    e.Cancel = true;
+                }
+                else if (result == MessageBoxResult.Yes)
+                {
+                    // Cancela o close atual; o flow do auto-update vai fechar a janela
+                    // depois de coordenar shutdown + save state via TryShutdownForUpdate.
+                    e.Cancel = true;
+                    _updateFlowInProgress = true;
+                    Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        var w = new UpdateWindow(info, autoStart: true) { Owner = this };
+                        if (w.ShowDialog() == true)
+                        {
+                            Close();
+                        }
+                        else
+                        {
+                            _updateFlowInProgress = false;
+                        }
+                    }), System.Windows.Threading.DispatcherPriority.Background);
+                }
+                else // No = "Sair sem atualizar"
+                {
+                    App.State.Preferences.DismissedUpdateVersion = info.LatestVersion;
+                }
+            }
+        }
+
+        if (!e.Cancel)
+        {
+            SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
+        }
         base.OnClosing(e);
     }
 

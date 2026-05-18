@@ -517,5 +517,42 @@
         </Grid>
 
         <controls:QuickSwitcherPopup x:Name="quickSwitcher" Grid.Row="1" Grid.ColumnSpan="4" />
+
+        <!-- Toast de atualização disponível (canto inferior direito, sobre tudo) -->
+        <Border x:Name="UpdateToast" Grid.Row="1" Grid.ColumnSpan="4"
+                HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                Margin="0,0,20,40"
+                Background="{DynamicResource Brush.Bg.Elevated}"
+                BorderBrush="{DynamicResource Brush.Border.Stronger}"
+                BorderThickness="1" CornerRadius="8" Padding="14,10"
+                Visibility="Collapsed">
+            <Border.Effect>
+                <DropShadowEffect Color="Black" Opacity="0.4" BlurRadius="14" ShadowDepth="3" />
+            </Border.Effect>
+            <DockPanel>
+                <Button DockPanel.Dock="Right" Click="OnUpdateToastDismiss"
+                        Style="{StaticResource WindowCloseBtn}" Width="22" Height="22"
+                        ToolTip="Dispensar">
+                    <controls:Icon Geometry="{StaticResource Icon.X}" Size="10" />
+                </Button>
+                <Button DockPanel.Dock="Right" Click="OnUpdateToastLater"
+                        Content="Mais tarde" Padding="10,4" Margin="6,0,8,0"
+                        Background="Transparent" BorderThickness="0"
+                        Foreground="{DynamicResource Brush.Fg.Secondary}" />
+                <Button DockPanel.Dock="Right" Click="OnUpdateToastInstall"
+                        Content="Atualizar agora" Padding="12,4" Margin="6,0,0,0"
+                        Background="{DynamicResource Brush.Bg.Active}"
+                        BorderBrush="{DynamicResource Brush.Border.Stronger}"
+                        Foreground="{DynamicResource Brush.Fg.Primary}" />
+                <StackPanel Orientation="Vertical" VerticalAlignment="Center" Margin="0,0,16,0">
+                    <TextBlock Text="Nova versão disponível"
+                               Foreground="{DynamicResource Brush.Fg.Primary}"
+                               FontSize="13" FontWeight="SemiBold" />
+                    <TextBlock x:Name="UpdateToastVersionText"
+                               Foreground="{DynamicResource Brush.Fg.Tertiary}"
+                               FontSize="11" FontFamily="Consolas" Margin="0,2,0,0" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
     </Grid>
 </Window>

@@ -35,4 +35,5 @@ public class PreferencesInfo
     public string? DarkThemeOverride { get; set; }
     public bool ExplorerShowAllFiles { get; set; }
     public bool ViewMode { get; set; }
+    public string? DismissedUpdateVersion { get; set; }
 }

@@ -6,6 +6,11 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Adicionado
+- Verificação silenciosa de atualização no startup: ~10s após abrir o app, ele consulta o GitHub em background e mostra um toast discreto no canto inferior se houver versão nova ("Atualizar agora" / "Mais tarde").
+- Diálogo "Atualizar antes de sair?" no fechamento do app quando há versão nova pendente que você ainda não atualizou nem dispensou. Três opções: atualizar, sair sem atualizar (dispensa essa versão pra não perguntar de novo), ou cancelar o fechamento.
+- Nova preferência `dismissedUpdateVersion` em `state.json` pra lembrar qual versão você dispensou explicitamente (o app só volta a sugerir quando sair uma versão maior).
+
 ## [1.3.6] — 2026
 
 ### Corrigido
