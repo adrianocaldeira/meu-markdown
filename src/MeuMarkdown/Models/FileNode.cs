@@ -17,6 +17,9 @@ public partial class FileNode : ObservableObject
     [ObservableProperty]
     private bool _isVisible = true;
 
+    [ObservableProperty]
+    private bool _isSelected;
+
     public FileNode(string name, string fullPath, bool isDirectory)
     {
         Name = name;

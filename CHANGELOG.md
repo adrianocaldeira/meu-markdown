@@ -6,6 +6,10 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Corrigido
+- Item selecionado no Explorer (TreeView) agora usa as cores do tema em vez do azul/cinza padrão do Windows que ficava ilegível no dark mode.
+- Ao trocar de aba, o Explorer rola automaticamente até o arquivo da aba ativa ficar visível na árvore (antes só expandia as pastas, podia ficar fora do viewport).
+
 ## [1.3.5] — 2026
 
 ### Corrigido

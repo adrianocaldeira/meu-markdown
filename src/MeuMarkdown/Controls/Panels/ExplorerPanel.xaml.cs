@@ -68,29 +68,65 @@ public partial class ExplorerPanel : UserControl
     }
 
     /// <summary>
-    /// Expande os ancestrais do arquivo até revelá-lo na árvore.
-    /// No-op se o arquivo não está dentro do workspace ativo.
+    /// Expande os ancestrais do arquivo, marca-o como selecionado e rola o TreeView
+    /// até ele ficar visível. No-op se o arquivo não está dentro do workspace ativo.
     /// </summary>
     public void RevealFile(string? filePath)
     {
         if (string.IsNullOrEmpty(filePath) || _workspace?.Root == null) return;
-        RevealRec(_workspace.Root, filePath);
+
+        ClearSelection(_workspace.Root);
+        var target = RevealRec(_workspace.Root, filePath);
+        if (target == null) return;
+
+        target.IsSelected = true;
+
+        // Containers do TreeView só são gerados depois que IsExpanded propaga e o layout
+        // atualiza. Agendar BringIntoView pra rodar depois do próximo render pass.
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            var container = FindContainer(FileTree, target);
+            container?.BringIntoView();
+        }), System.Windows.Threading.DispatcherPriority.Background);
     }
 
-    private static bool RevealRec(FileNode node, string targetPath)
+    private static FileNode? RevealRec(FileNode node, string targetPath)
     {
         if (string.Equals(node.FullPath, targetPath, StringComparison.OrdinalIgnoreCase))
-            return true;
-        if (!node.IsDirectory) return false;
+            return node;
+        if (!node.IsDirectory) return null;
         foreach (var c in node.Children)
         {
-            if (RevealRec(c, targetPath))
+            var found = RevealRec(c, targetPath);
+            if (found != null)
             {
                 node.IsExpanded = true;
-                return true;
+                return found;
             }
         }
-        return false;
+        return null;
+    }
+
+    private static void ClearSelection(FileNode node)
+    {
+        if (node.IsSelected) node.IsSelected = false;
+        foreach (var c in node.Children) ClearSelection(c);
+    }
+
+    private static TreeViewItem? FindContainer(ItemsControl parent, FileNode target)
+    {
+        if (parent == null) return null;
+        parent.UpdateLayout();
+        if (parent.ItemContainerGenerator.ContainerFromItem(target) is TreeViewItem direct)
+            return direct;
+        foreach (var item in parent.Items)
+        {
+            if (parent.ItemContainerGenerator.ContainerFromItem(item) is not TreeViewItem child)
+                continue;
+            var found = FindContainer(child, target);
+            if (found != null) return found;
+        }
+        return null;
     }
 
     private bool ApplyFilterRec(FileNode node, string filter)
