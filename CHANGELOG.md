@@ -6,6 +6,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.6.0] — 2026
+
 ### Adicionado
 - Drag-and-drop pra reordenar abas. Clique e arraste uma aba pra trocar de posição com outra. Funciona com abas fixadas também.
 - Toast de "nova versão disponível" agora tem animação de entrada (slide-in da direita + fade-in) e borda em cor de destaque, pra chamar mais atenção.
@@ -136,7 +138,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.5.3...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.6.0
 [1.5.3]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.5.3
 [1.5.2]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.5.2
 [1.5.1]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.5.1

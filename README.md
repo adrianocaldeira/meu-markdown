@@ -144,9 +144,9 @@ Arquitetura **MVVM** simples e enxuta — detalhes na [Wiki/Arquitetura](https:/
 
 ## 🗺️ Roadmap
 
-### ✅ Já entregue (v1.5.0)
+### ✅ Já entregue (v1.6.0)
 - Editor + preview live com syntax highlighting
-- Múltiplas abas com menu de contexto (fechar variantes, fixar aba)
+- Múltiplas abas com menu de contexto (fechar variantes, fixar aba) e drag-and-drop pra reordenar
 - Navegação entre `.md` linkados com histórico
 - Workspace (Explorer + Outline + Busca no workspace)
 - Quick Switcher fuzzy
