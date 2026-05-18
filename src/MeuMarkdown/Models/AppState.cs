@@ -34,4 +34,5 @@ public class PreferencesInfo
     public bool TypewriterMode { get; set; }
     public string? DarkThemeOverride { get; set; }
     public bool ExplorerShowAllFiles { get; set; }
+    public bool ViewMode { get; set; }
 }

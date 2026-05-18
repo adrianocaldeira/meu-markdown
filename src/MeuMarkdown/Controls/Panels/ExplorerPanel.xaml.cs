@@ -67,6 +67,32 @@ public partial class ExplorerPanel : UserControl
         ApplyFilterRec(_workspace.Root, filter);
     }
 
+    /// <summary>
+    /// Expande os ancestrais do arquivo até revelá-lo na árvore.
+    /// No-op se o arquivo não está dentro do workspace ativo.
+    /// </summary>
+    public void RevealFile(string? filePath)
+    {
+        if (string.IsNullOrEmpty(filePath) || _workspace?.Root == null) return;
+        RevealRec(_workspace.Root, filePath);
+    }
+
+    private static bool RevealRec(FileNode node, string targetPath)
+    {
+        if (string.Equals(node.FullPath, targetPath, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (!node.IsDirectory) return false;
+        foreach (var c in node.Children)
+        {
+            if (RevealRec(c, targetPath))
+            {
+                node.IsExpanded = true;
+                return true;
+            }
+        }
+        return false;
+    }
+
     private bool ApplyFilterRec(FileNode node, string filter)
     {
         if (string.IsNullOrEmpty(filter))

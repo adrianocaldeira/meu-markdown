@@ -6,6 +6,11 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Corrigido
+- Preview vinha em branco (com tema light) quando o app restaurava abas no startup em tema escuro. Causa: `SetDarkTheme()` era chamado antes do WebView2 inicializar e o tema acumulado nunca era reaplicado pós-init.
+- Modo de visualização (F5) não era preservado entre sessões — agora persiste em `state.json` junto das outras preferências.
+- Explorer agora expande automaticamente as pastas até revelar o arquivo da aba ativa, em vez de manter a árvore toda colapsada.
+
 ## [1.3.4] — 2026
 
 ### Corrigido

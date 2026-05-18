@@ -45,6 +45,19 @@ public partial class MarkdownPreview : UserControl
                 webView.NavigateToString(_pendingHtml);
                 _pendingHtml = null;
             }
+
+            // `SetDarkTheme` chamado antes do WebView2 inicializar é descartado
+            // (só armazena `_isDarkTheme`). Aplicar o tema agora — depois que a
+            // navegação inicial completar, pra garantir que o JS da página esteja pronto.
+            if (_isDarkTheme)
+            {
+                void OnNavCompletedOnce(object? s, CoreWebView2NavigationCompletedEventArgs ev)
+                {
+                    webView.CoreWebView2.NavigationCompleted -= OnNavCompletedOnce;
+                    _ = webView.CoreWebView2.ExecuteScriptAsync("setTheme(true)");
+                }
+                webView.CoreWebView2.NavigationCompleted += OnNavCompletedOnce;
+            }
         }
         catch (Exception ex)
         {

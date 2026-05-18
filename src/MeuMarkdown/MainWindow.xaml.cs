@@ -265,6 +265,10 @@ public partial class MainWindow : Window
             if (active != null) _viewModel.SelectedTab = active;
         }
 
+        // Restaurar modo de visualização (F5)
+        _isViewMode = App.State.Preferences.ViewMode;
+        ApplyViewMode();
+
         // Open files passed as command-line arguments (after session restore — viram aba ativa)
         var args = Environment.GetCommandLineArgs();
         for (int i = 1; i < args.Length; i++)
@@ -446,6 +450,9 @@ public partial class MainWindow : Window
         textEditor.Text = _viewModel.SelectedTab.Content;
         _suppressEditorUpdate = false;
         UpdatePreview();
+
+        // Reveal o arquivo ativo na árvore do Explorer (no-op se fora do workspace).
+        sidebarHost.ExplorerPanel.RevealFile(_viewModel.SelectedTab.FilePath);
     }
 
     private void OnPreviewLinkClicked(string relativePath)
@@ -923,6 +930,7 @@ public partial class MainWindow : Window
         state.Sidebar.ActivityBarVisible = _viewModel.IsActivityBarVisible;
         state.Preferences.SyncScrollEnabled = _viewModel.SyncScrollEnabled;
         state.Preferences.TypewriterMode = _viewModel.TypewriterMode;
+        state.Preferences.ViewMode = _isViewMode;
         state.LastWorkspace = _viewModel.WorkspaceService.RootPath;
         state.RecentFiles = _viewModel.RecentFilesService.Snapshot().ToList();
         state.OpenTabs = _viewModel.Tabs
