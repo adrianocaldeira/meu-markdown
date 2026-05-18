@@ -6,6 +6,9 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Corrigido
+- Menus de contexto (clique direito em arquivos do Explorer, botão "more" no header da panel, etc.) agora respeitam o tema do app — antes mostravam o chrome cinza-claro padrão do Windows, ignorando dark/light mode.
+
 ## [1.3.1] — 2026
 
 ### Adicionado
