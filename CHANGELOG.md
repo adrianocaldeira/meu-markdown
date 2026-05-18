@@ -6,6 +6,9 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Adicionado
+- Links para o repositório no GitHub e a wiki na janela "Sobre" (Ajuda → Sobre).
+
 ## [1.3.0] — 2026
 
 ### Adicionado

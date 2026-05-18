@@ -59,10 +59,28 @@
 
                 <!-- Description -->
                 <TextBlock Foreground="{DynamicResource Brush.Fg.Secondary}" FontSize="13"
-                           LineHeight="20" TextWrapping="Wrap" Margin="0,4,0,16">
+                           LineHeight="20" TextWrapping="Wrap" Margin="0,4,0,12">
                     Editor e visualizador desktop de Markdown para Windows,
                     com preview ao vivo, navegação entre arquivos linkados,
                     syntax highlighting e suporte a múltiplas abas.
+                </TextBlock>
+
+                <!-- Links -->
+                <TextBlock FontSize="12.5" Margin="0,0,0,16"
+                           Foreground="{DynamicResource Brush.Fg.Tertiary}">
+                    <Hyperlink NavigateUri="https://github.com/adrianocaldeira/meu-markdown"
+                               RequestNavigate="OnHyperlinkRequestNavigate"
+                               Foreground="{DynamicResource Brush.Accent.Heading}"
+                               TextDecorations="None">
+                        Repositório no GitHub
+                    </Hyperlink>
+                    <Run Text="  ·  " />
+                    <Hyperlink NavigateUri="https://github.com/adrianocaldeira/meu-markdown/wiki"
+                               RequestNavigate="OnHyperlinkRequestNavigate"
+                               Foreground="{DynamicResource Brush.Accent.Heading}"
+                               TextDecorations="None">
+                        Wiki
+                    </Hyperlink>
                 </TextBlock>
 
                 <!-- Tech stack -->
