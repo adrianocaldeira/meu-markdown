@@ -577,38 +577,84 @@
         <Border x:Name="UpdateToast"
                 Background="{DynamicResource Brush.Bg.Elevated}"
                 BorderBrush="{DynamicResource Brush.Accent.Heading}"
-                BorderThickness="1" CornerRadius="8" Padding="14,10"
-                RenderTransformOrigin="0.5,0.5">
+                BorderThickness="1" CornerRadius="10" Padding="18,14"
+                MinWidth="380">
             <Border.RenderTransform>
                 <TranslateTransform x:Name="UpdateToastTransform" X="0" Y="0" />
             </Border.RenderTransform>
             <Border.Effect>
-                <DropShadowEffect Color="Black" Opacity="0.55" BlurRadius="18" ShadowDepth="4" />
+                <DropShadowEffect Color="Black" Opacity="0.65" BlurRadius="24" ShadowDepth="6" />
             </Border.Effect>
-            <DockPanel>
-                <Button DockPanel.Dock="Right" Click="OnUpdateToastDismiss"
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Ícone destacado à esquerda -->
+                <Border Grid.Row="0" Grid.RowSpan="4" Grid.Column="0"
+                        Width="44" Height="44" CornerRadius="22"
+                        Background="{DynamicResource Brush.Bg.Active}"
+                        VerticalAlignment="Top" Margin="0,2,16,0">
+                    <controls:Icon Geometry="{StaticResource Icon.Upload}" Size="22"
+                                   Foreground="{DynamicResource Brush.Accent.Heading}" />
+                </Border>
+
+                <!-- Textos -->
+                <TextBlock Grid.Row="0" Grid.Column="1"
+                           Text="Nova versão disponível"
+                           Foreground="{DynamicResource Brush.Fg.Primary}"
+                           FontSize="15" FontWeight="SemiBold"
+                           VerticalAlignment="Center" />
+                <TextBlock Grid.Row="1" Grid.Column="1"
+                           x:Name="UpdateToastVersionText"
+                           Foreground="{DynamicResource Brush.Fg.Tertiary}"
+                           FontSize="12" FontFamily="Consolas"
+                           Margin="0,4,0,0" />
+
+                <!-- Resumo das release notes (primeiros itens da seção [X.Y.Z] do CHANGELOG) -->
+                <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"
+                           x:Name="UpdateToastNotesText"
+                           Foreground="{DynamicResource Brush.Fg.Secondary}"
+                           FontSize="12" LineHeight="17"
+                           TextWrapping="Wrap"
+                           Margin="0,10,0,0"
+                           Visibility="Collapsed" />
+
+                <!-- Botão de dispensar (X) no canto superior direito -->
+                <Button Grid.Row="0" Grid.Column="2"
+                        Click="OnUpdateToastDismiss"
                         Style="{StaticResource WindowCloseBtn}" Width="22" Height="22"
+                        VerticalAlignment="Top" HorizontalAlignment="Right"
                         ToolTip="Dispensar">
                     <controls:Icon Geometry="{StaticResource Icon.X}" Size="10" />
                 </Button>
-                <Button DockPanel.Dock="Right" Click="OnUpdateToastLater"
-                        Content="Mais tarde" Padding="10,4" Margin="6,0,8,0"
-                        Background="Transparent" BorderThickness="0"
-                        Foreground="{DynamicResource Brush.Fg.Secondary}" />
-                <Button DockPanel.Dock="Right" Click="OnUpdateToastInstall"
-                        Content="Atualizar agora" Padding="12,4" Margin="6,0,0,0"
-                        Background="{DynamicResource Brush.Bg.Active}"
-                        BorderBrush="{DynamicResource Brush.Border.Stronger}"
-                        Foreground="{DynamicResource Brush.Fg.Primary}" />
-                <StackPanel Orientation="Vertical" VerticalAlignment="Center" Margin="0,0,16,0">
-                    <TextBlock Text="Nova versão disponível"
-                               Foreground="{DynamicResource Brush.Fg.Primary}"
-                               FontSize="13" FontWeight="SemiBold" />
-                    <TextBlock x:Name="UpdateToastVersionText"
-                               Foreground="{DynamicResource Brush.Fg.Tertiary}"
-                               FontSize="11" FontFamily="Consolas" Margin="0,2,0,0" />
+
+                <!-- Botões de ação -->
+                <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2"
+                            Orientation="Horizontal" HorizontalAlignment="Right"
+                            Margin="0,14,0,0">
+                    <Button Click="OnUpdateToastLater"
+                            Content="Mais tarde" Padding="14,6" MinWidth="100"
+                            Background="Transparent"
+                            BorderBrush="{DynamicResource Brush.Border.Subtle}"
+                            Foreground="{DynamicResource Brush.Fg.Secondary}" />
+                    <Button Click="OnUpdateToastInstall"
+                            Content="Atualizar agora" Padding="14,6" MinWidth="130"
+                            Margin="8,0,0,0"
+                            Background="{DynamicResource Brush.Accent.Heading}"
+                            BorderBrush="{DynamicResource Brush.Accent.Heading}"
+                            Foreground="White"
+                            FontWeight="SemiBold" />
                 </StackPanel>
-            </DockPanel>
+            </Grid>
         </Border>
         </Popup>
     </Grid>

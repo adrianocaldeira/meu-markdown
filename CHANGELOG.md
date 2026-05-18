@@ -6,6 +6,10 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Mudado
+- Toast de atualização redesenhado pra ficar mais visível: layout maior com ícone destacado à esquerda, botão "Atualizar agora" em cor de destaque sólida, animação slide-up subindo da base (em vez do slide horizontal anterior). Inspirado no estilo do Claude Desktop.
+- Toast agora mostra um resumo das release notes da nova versão (primeiros 3 bullets extraídos do CHANGELOG) — assim você vê o que mudou antes de decidir atualizar.
+
 ## [1.6.1] — 2026
 
 ### Corrigido

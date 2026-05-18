@@ -610,6 +610,18 @@ public partial class MainWindow : Window
             }
 
             UpdateToastVersionText.Text = $"v{result.Info.CurrentVersion}  →  v{result.Info.LatestVersion}";
+
+            var notesSummary = ExtractNotesSummary(result.Info.ReleaseNotes);
+            if (!string.IsNullOrEmpty(notesSummary))
+            {
+                UpdateToastNotesText.Text = notesSummary;
+                UpdateToastNotesText.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                UpdateToastNotesText.Visibility = Visibility.Collapsed;
+            }
+
             ShowUpdateToastAnimated();
             logger.Log("BG_CHECK toast shown");
         }
@@ -618,6 +630,28 @@ public partial class MainWindow : Window
             // Check silencioso — não atrapalha o usuário se falhar.
             logger.Log($"BG_CHECK exception: {ex.GetType().Name}: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Extrai os primeiros bullets da seção de release notes (markdown-style)
+    /// pra mostrar no toast. Pega até 3 itens, máx ~180 chars, com elipse no fim.
+    /// </summary>
+    private static string ExtractNotesSummary(string? notes, int maxItems = 3, int maxChars = 180)
+    {
+        if (string.IsNullOrWhiteSpace(notes)) return string.Empty;
+        var bullets = notes
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Select(l => l.TrimEnd('\r').TrimStart())
+            .Where(l => l.StartsWith("- ") || l.StartsWith("* "))
+            .Select(l => "• " + l[2..].Trim())
+            .Take(maxItems)
+            .ToList();
+        if (bullets.Count == 0) return string.Empty;
+
+        var text = string.Join("\n", bullets);
+        if (text.Length > maxChars)
+            text = text[..maxChars].TrimEnd() + "…";
+        return text;
     }
 
     private void ShowUpdateToastAnimated()
@@ -634,11 +668,13 @@ public partial class MainWindow : Window
         };
         UpdateToastPopup.IsOpen = true;
 
-        // Slide-in da direita (60px) + fade-in pra chamar atenção sem ser intrusivo.
+        // Slide-up (sobe da base 80px) + fade-in. Easing "EaseOut" desacelera no final
+        // dando uma sensação de "pousando" no lugar.
         UpdateToast.Opacity = 0;
-        UpdateToastTransform.X = 60;
+        UpdateToastTransform.X = 0;
+        UpdateToastTransform.Y = 80;
 
-        var dur = TimeSpan.FromMilliseconds(280);
+        var dur = TimeSpan.FromMilliseconds(360);
         var ease = new System.Windows.Media.Animation.CubicEase
         {
             EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut
@@ -646,13 +682,13 @@ public partial class MainWindow : Window
 
         var slide = new System.Windows.Media.Animation.DoubleAnimation
         {
-            From = 60, To = 0, Duration = dur, EasingFunction = ease
+            From = 80, To = 0, Duration = dur, EasingFunction = ease
         };
         var fade = new System.Windows.Media.Animation.DoubleAnimation
         {
             From = 0, To = 1, Duration = dur, EasingFunction = ease
         };
-        UpdateToastTransform.BeginAnimation(System.Windows.Media.TranslateTransform.XProperty, slide);
+        UpdateToastTransform.BeginAnimation(System.Windows.Media.TranslateTransform.YProperty, slide);
         UpdateToast.BeginAnimation(OpacityProperty, fade);
     }
 
