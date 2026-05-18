@@ -172,9 +172,10 @@ public class WorkspaceService : IDisposable
     {
         if (RootPath == null) return;
 
-        // Debounce: reset timer; only rebuild when no events arrive for 300ms
+        // Debounce: reset timer; only rebuild when no events arrive for 800ms.
+        // Janela maior agrupa rajadas (build/test, save em massa, git operations).
         _debounceTimer?.Stop();
-        _debounceTimer ??= new System.Timers.Timer(300) { AutoReset = false };
+        _debounceTimer ??= new System.Timers.Timer(800) { AutoReset = false };
         _debounceTimer.Elapsed -= OnDebounceTimerElapsed;
         _debounceTimer.Elapsed += OnDebounceTimerElapsed;
         _debounceTimer.Start();
@@ -185,14 +186,38 @@ public class WorkspaceService : IDisposable
         if (RootPath == null) return;
         try
         {
-            Root = BuildNode(RootPath);
-            Root.IsExpanded = true;
+            // Snapshot do estado atual antes do rebuild — sem isso, todas as pastas
+            // abertas colapsariam a cada save de arquivo (FsWatcher dispara muito).
+            var expandedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            string? selectedPath = null;
+            if (Root != null) CollectState(Root, expandedPaths, ref selectedPath);
+
+            var newRoot = BuildNode(RootPath);
+            newRoot.IsExpanded = true;
+            RestoreState(newRoot, expandedPaths, selectedPath);
+            Root = newRoot;
+
             TreeChanged?.Invoke(this, EventArgs.Empty);
         }
         catch
         {
             // Silently ignore — directory may have been deleted mid-rebuild
         }
+    }
+
+    private static void CollectState(FileNode node, HashSet<string> expanded, ref string? selected)
+    {
+        if (node.IsExpanded) expanded.Add(node.FullPath);
+        if (node.IsSelected) selected = node.FullPath;
+        foreach (var c in node.Children) CollectState(c, expanded, ref selected);
+    }
+
+    private static void RestoreState(FileNode node, HashSet<string> expanded, string? selected)
+    {
+        if (expanded.Contains(node.FullPath)) node.IsExpanded = true;
+        if (selected != null && string.Equals(node.FullPath, selected, StringComparison.OrdinalIgnoreCase))
+            node.IsSelected = true;
+        foreach (var c in node.Children) RestoreState(c, expanded, selected);
     }
 
     public void Dispose() => Close();

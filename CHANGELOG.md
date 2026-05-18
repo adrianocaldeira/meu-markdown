@@ -6,6 +6,10 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Corrigido
+- Explorer não fecha mais as pastas abertas sozinho quando há mudança nos arquivos (save, rename, criar). Causa: o rebuild da árvore após eventos do `FileSystemWatcher` criava `FileNode`s novos com `IsExpanded=false`, perdendo todo o estado. Agora a árvore é reconstruída preservando quais pastas estavam abertas e o arquivo selecionado.
+- Aumentado o debounce do rebuild da árvore de 300ms para 800ms — agrupa melhor rajadas de eventos (build, git operations, save em massa) e reduz o pisca visual.
+
 ## [1.5.2] — 2026
 
 ### Corrigido
