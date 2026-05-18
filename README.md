@@ -144,7 +144,7 @@ Arquitetura **MVVM** simples e enxuta — detalhes na [Wiki/Arquitetura](https:/
 
 ## 🗺️ Roadmap
 
-### ✅ Já entregue (v1.6.0)
+### ✅ Já entregue (v1.7.0)
 - Editor + preview live com syntax highlighting
 - Múltiplas abas com menu de contexto (fechar variantes, fixar aba) e drag-and-drop pra reordenar
 - Navegação entre `.md` linkados com histórico
@@ -155,6 +155,7 @@ Arquitetura **MVVM** simples e enxuta — detalhes na [Wiki/Arquitetura](https:/
 - Custom window chrome
 - Zen mode / Typewriter mode
 - Auto-update com verificação silenciosa em background (toast no startup + diálogo no fechar)
+- Menu de contexto no preview (copiar texto/link/imagem)
 
 ### 🚧 Em estudo
 - Snippets / templates de documento

@@ -6,6 +6,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.7.0] — 2026
+
 ### Adicionado
 - Menu de contexto no preview: clique direito sobre texto selecionado mostra **Copiar**; sobre link mostra **Copiar endereço do link**; sobre imagem mostra **Copiar imagem**. Itens nativos não-úteis do Edge (Print, Reload, Save As, etc.) ficam ocultos.
 
@@ -157,7 +159,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.6.3...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.0
 [1.6.3]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.6.3
 [1.6.2]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.6.2
 [1.6.1]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.6.1
