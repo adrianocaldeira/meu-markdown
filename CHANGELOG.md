@@ -6,6 +6,14 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Adicionado
+- Drag-and-drop pra reordenar abas. Clique e arraste uma aba pra trocar de posição com outra. Funciona com abas fixadas também.
+- Toast de "nova versão disponível" agora tem animação de entrada (slide-in da direita + fade-in) e borda em cor de destaque, pra chamar mais atenção.
+
+### Corrigido
+- Toast de atualização não aparecia na prática mesmo com o log dizendo "toast shown". Causa: o `WebView2` (preview) é uma janela nativa do Windows dentro do WPF — devido ao "airspace problem", qualquer elemento WPF tentando renderizar sobre o WebView2 fica invisível. O toast estava posicionado exatamente em cima da área do preview. Resolvido envolvendo o toast num `Popup` WPF, que roda em hwnd próprio e fica naturalmente acima.
+- Preview ficava mostrando o HTML da última aba quando você fechava a única aba aberta. Agora o preview também é limpo quando não há aba ativa.
+
 ## [1.5.3] — 2026
 
 ### Corrigido

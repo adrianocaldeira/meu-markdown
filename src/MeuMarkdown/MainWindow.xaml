@@ -426,7 +426,12 @@
                             Margin="4,0,0,0">
                     <TabControl.ItemTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal" Margin="6,4">
+                            <StackPanel Orientation="Horizontal" Margin="6,4"
+                                        AllowDrop="True"
+                                        MouseLeftButtonDown="OnTabHeaderMouseDown"
+                                        MouseMove="OnTabHeaderMouseMove"
+                                        DragOver="OnTabHeaderDragOver"
+                                        Drop="OnTabHeaderDrop">
                                 <StackPanel.ContextMenu>
                                     <ContextMenu>
                                         <MenuItem Header="Fechar esta aba" Click="OnTabCtxCloseThis">
@@ -560,16 +565,25 @@
 
         <controls:QuickSwitcherPopup x:Name="quickSwitcher" Grid.Row="1" Grid.ColumnSpan="4" />
 
-        <!-- Toast de atualização disponível (canto inferior direito, sobre tudo) -->
-        <Border x:Name="UpdateToast" Grid.Row="1" Grid.ColumnSpan="4"
-                HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                Margin="0,0,20,40"
+        <!-- Toast de atualização disponível: envolvido num Popup pra ficar acima do WebView2
+             (sem Popup, o WebView2 — sendo hwnd nativo — renderiza por cima do toast WPF
+             devido ao "airspace problem"). -->
+        <Popup x:Name="UpdateToastPopup"
+               PlacementTarget="{Binding ElementName=rootGrid}"
+               Placement="Custom"
+               AllowsTransparency="True"
+               StaysOpen="True"
+               PopupAnimation="None">
+        <Border x:Name="UpdateToast"
                 Background="{DynamicResource Brush.Bg.Elevated}"
-                BorderBrush="{DynamicResource Brush.Border.Stronger}"
+                BorderBrush="{DynamicResource Brush.Accent.Heading}"
                 BorderThickness="1" CornerRadius="8" Padding="14,10"
-                Visibility="Collapsed">
+                RenderTransformOrigin="0.5,0.5">
+            <Border.RenderTransform>
+                <TranslateTransform x:Name="UpdateToastTransform" X="0" Y="0" />
+            </Border.RenderTransform>
             <Border.Effect>
-                <DropShadowEffect Color="Black" Opacity="0.4" BlurRadius="14" ShadowDepth="3" />
+                <DropShadowEffect Color="Black" Opacity="0.55" BlurRadius="18" ShadowDepth="4" />
             </Border.Effect>
             <DockPanel>
                 <Button DockPanel.Dock="Right" Click="OnUpdateToastDismiss"
@@ -596,5 +610,6 @@
                 </StackPanel>
             </DockPanel>
         </Border>
+        </Popup>
     </Grid>
 </Window>

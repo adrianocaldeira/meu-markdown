@@ -453,6 +453,8 @@ public partial class MainWindow : Window
         {
             textEditor.Text = string.Empty;
             textEditor.IsEnabled = false;
+            // Sem aba ativa: limpa o preview também (antes ficava mostrando o HTML da última aba).
+            preview.SetFullHtml("");
             return;
         }
 
@@ -608,7 +610,7 @@ public partial class MainWindow : Window
             }
 
             UpdateToastVersionText.Text = $"v{result.Info.CurrentVersion}  →  v{result.Info.LatestVersion}";
-            UpdateToast.Visibility = Visibility.Visible;
+            ShowUpdateToastAnimated();
             logger.Log("BG_CHECK toast shown");
         }
         catch (Exception ex)
@@ -618,9 +620,50 @@ public partial class MainWindow : Window
         }
     }
 
+    private void ShowUpdateToastAnimated()
+    {
+        // Posiciona o popup no canto inferior direito da janela. Custom placement callback
+        // recebe os tamanhos atualizados a cada IsOpen=true ou move/resize da Window.
+        UpdateToastPopup.CustomPopupPlacementCallback = (popupSize, targetSize, offset) =>
+        {
+            var x = targetSize.Width - popupSize.Width - 20;
+            var y = targetSize.Height - popupSize.Height - 40;
+            return new[] { new System.Windows.Controls.Primitives.CustomPopupPlacement(
+                new Point(x, y),
+                System.Windows.Controls.Primitives.PopupPrimaryAxis.None) };
+        };
+        UpdateToastPopup.IsOpen = true;
+
+        // Slide-in da direita (60px) + fade-in pra chamar atenção sem ser intrusivo.
+        UpdateToast.Opacity = 0;
+        UpdateToastTransform.X = 60;
+
+        var dur = TimeSpan.FromMilliseconds(280);
+        var ease = new System.Windows.Media.Animation.CubicEase
+        {
+            EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut
+        };
+
+        var slide = new System.Windows.Media.Animation.DoubleAnimation
+        {
+            From = 60, To = 0, Duration = dur, EasingFunction = ease
+        };
+        var fade = new System.Windows.Media.Animation.DoubleAnimation
+        {
+            From = 0, To = 1, Duration = dur, EasingFunction = ease
+        };
+        UpdateToastTransform.BeginAnimation(System.Windows.Media.TranslateTransform.XProperty, slide);
+        UpdateToast.BeginAnimation(OpacityProperty, fade);
+    }
+
+    private void HideUpdateToast()
+    {
+        UpdateToastPopup.IsOpen = false;
+    }
+
     private void OnUpdateToastInstall(object sender, RoutedEventArgs e)
     {
-        UpdateToast.Visibility = Visibility.Collapsed;
+        HideUpdateToast();
         if (_backgroundUpdateInfo == null) return;
         _updateFlowInProgress = true;
         var update = new UpdateWindow(_backgroundUpdateInfo, autoStart: true) { Owner = this };
@@ -637,14 +680,74 @@ public partial class MainWindow : Window
     private void OnUpdateToastLater(object sender, RoutedEventArgs e)
     {
         // Esconde nesta sessão; o diálogo do fechar ainda vai oferecer.
-        UpdateToast.Visibility = Visibility.Collapsed;
+        HideUpdateToast();
     }
 
     private void OnUpdateToastDismiss(object sender, RoutedEventArgs e)
     {
         // X = mesmo comportamento do "Mais tarde": só esconde, não persiste dismissal
         // (que fica reservado pro botão explícito do diálogo do fechar).
-        UpdateToast.Visibility = Visibility.Collapsed;
+        HideUpdateToast();
+    }
+
+    // === Tab drag-drop reorder ===
+    private System.Windows.Point _tabDragStart;
+    private DocumentTabViewModel? _tabDragSource;
+
+    private void OnTabHeaderMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        // Não inicia drag se o clique foi no botão de fechar (X) da aba.
+        if (e.OriginalSource is DependencyObject d && FindAncestor<Button>(d) != null) return;
+
+        _tabDragStart = e.GetPosition(null);
+        _tabDragSource = (sender as FrameworkElement)?.DataContext as DocumentTabViewModel;
+    }
+
+    private void OnTabHeaderMouseMove(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed || _tabDragSource == null) return;
+        var diff = e.GetPosition(null) - _tabDragStart;
+        if (Math.Abs(diff.X) < SystemParameters.MinimumHorizontalDragDistance &&
+            Math.Abs(diff.Y) < SystemParameters.MinimumVerticalDragDistance) return;
+
+        if (sender is DependencyObject element)
+        {
+            DragDrop.DoDragDrop(element, _tabDragSource, DragDropEffects.Move);
+        }
+        _tabDragSource = null;
+    }
+
+    private void OnTabHeaderDragOver(object sender, DragEventArgs e)
+    {
+        e.Effects = e.Data.GetDataPresent(typeof(DocumentTabViewModel))
+            ? DragDropEffects.Move
+            : DragDropEffects.None;
+        e.Handled = true;
+    }
+
+    private void OnTabHeaderDrop(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetData(typeof(DocumentTabViewModel)) is not DocumentTabViewModel source) return;
+        var target = (sender as FrameworkElement)?.DataContext as DocumentTabViewModel;
+        if (target == null || ReferenceEquals(target, source)) return;
+
+        var oldIdx = _viewModel.Tabs.IndexOf(source);
+        var newIdx = _viewModel.Tabs.IndexOf(target);
+        if (oldIdx < 0 || newIdx < 0) return;
+
+        _viewModel.Tabs.Move(oldIdx, newIdx);
+        _viewModel.SelectedTab = source;
+        e.Handled = true;
+    }
+
+    private static T? FindAncestor<T>(DependencyObject? d) where T : DependencyObject
+    {
+        while (d != null)
+        {
+            if (d is T t) return t;
+            d = System.Windows.Media.VisualTreeHelper.GetParent(d);
+        }
+        return null;
     }
 
     // === Tab context menu handlers ===
