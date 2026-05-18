@@ -6,6 +6,9 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Corrigido
+- Clicar num item do Outline não scrollava o preview até o heading quando o app estava em modo Visualização (F5). Causa: o handler só movia o editor (que está oculto nesse modo). Agora dispara o scroll do preview também.
+
 ## [1.6.2] — 2026
 
 ### Mudado

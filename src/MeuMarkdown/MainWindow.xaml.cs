@@ -1141,7 +1141,10 @@ public partial class MainWindow : Window
         var offset = textEditor.Document.GetOffset(line, 1);
         textEditor.CaretOffset = offset;
         textEditor.ScrollToLine(line);
-        textEditor.Focus();
+        // Em modo Visualização o editor fica oculto, então o sync via OnEditorScrollChanged
+        // não chega no preview. Disparamos o scroll do preview explicitamente também.
+        preview.ScrollToLine(line);
+        if (!_isViewMode) textEditor.Focus();
     }
 
     private void OnExplorerFileActivated(object? sender, string filePath)
