@@ -6,6 +6,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.5.3] — 2026
+
 ### Corrigido
 - Explorer não fecha mais as pastas abertas sozinho quando há mudança nos arquivos (save, rename, criar). Causa: o rebuild da árvore após eventos do `FileSystemWatcher` criava `FileNode`s novos com `IsExpanded=false`, perdendo todo o estado. Agora a árvore é reconstruída preservando quais pastas estavam abertas e o arquivo selecionado.
 - Aumentado o debounce do rebuild da árvore de 300ms para 800ms — agrupa melhor rajadas de eventos (build, git operations, save em massa) e reduz o pisca visual.
@@ -126,7 +128,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.5.2...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.5.3...HEAD
+[1.5.3]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.5.3
 [1.5.2]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.5.2
 [1.5.1]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.5.1
 [1.5.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.5.0
