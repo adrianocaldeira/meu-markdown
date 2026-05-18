@@ -72,7 +72,11 @@ Root: HKA; Subkey: "Software\MeuMarkdown"; ValueType: string; ValueName: "Versio
 Root: HKA; Subkey: "Software\MeuMarkdown"; ValueType: string; ValueName: "InstallScope"; ValueData: "{code:GetInstallScope}"
 
 [Run]
+; Install interativo: checkbox "Iniciar agora" na tela final.
 Filename: "{app}\{#AppExeName}"; Description: "Iniciar {#AppName}"; Flags: nowait postinstall skipifsilent
+; Install silencioso (caso do auto-update do app): relança automaticamente.
+; runasoriginaluser garante que o app não herda privilégios elevados em install per-machine.
+Filename: "{app}\{#AppExeName}"; Flags: nowait shellexec runasoriginaluser; Check: WizardSilent
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"

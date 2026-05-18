@@ -188,7 +188,11 @@ public class AutoUpdateService
     {
         try
         {
-            var psi = new ProcessStartInfo(setupPath, "/SILENT /NORESTART /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS")
+            // /SILENT: install sem UI mas com barra de progresso minimalista (mantém feedback se demorar).
+            // /NORESTART: nunca reinicia o Windows mesmo que algum DLL peça.
+            // O relaunch do app após o install é feito pelo [Run] Check:WizardSilent no MeuMarkdown.iss
+            // — NÃO via /RESTARTAPPLICATIONS (que depende de WTSRegisterApplicationRestart, não usado).
+            var psi = new ProcessStartInfo(setupPath, "/SILENT /NORESTART")
             {
                 UseShellExecute = true,
                 WorkingDirectory = Path.GetDirectoryName(setupPath) ?? "",

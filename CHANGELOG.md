@@ -6,6 +6,9 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Corrigido
+- Auto-update agora relança o app automaticamente depois de instalar a nova versão. Antes, o setup terminava silenciosamente e o app ficava fechado — agora ele abre sozinho na versão nova.
+
 ## [1.3.2] — 2026
 
 ### Corrigido
