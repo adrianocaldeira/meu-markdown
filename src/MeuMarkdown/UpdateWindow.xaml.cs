@@ -131,8 +131,11 @@ public partial class UpdateWindow : Window
 
         if (result.Status == AutoUpdateStatus.Completed)
         {
-            // Setup foi disparado; só fechamos o app
-            Application.Current.Shutdown();
+            // Setup foi disparado. Sinaliza pra MainWindow fechar via Close() (e não
+            // Application.Shutdown(), que NÃO dispara Window.Closing e por isso pula
+            // a persistência do state.json — perdendo abas, workspace, layout etc).
+            DialogResult = true;
+            Close();
             return;
         }
 

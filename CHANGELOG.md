@@ -6,6 +6,10 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Corrigido
+- Sessão é preservada corretamente após auto-update: abas abertas, aba ativa, workspace, layout da sidebar e preferências eram perdidos quando o app reabria. Causa: `Application.Shutdown()` no fim do auto-update não disparava `Window.Closing`, então o `state.json` não era salvo.
+- Lista de abas abertas e aba ativa agora são realmente persistidas entre sessões (bug pré-existente — os campos `openTabs` e `activeTab` existiam em `state.json` mas nunca eram populados nem restaurados).
+
 ## [1.3.3] — 2026
 
 ### Corrigido

@@ -253,7 +253,19 @@ public partial class MainWindow : Window
 
         Closing += OnWindowClosing;
 
-        // Open files passed as command-line arguments
+        // Restaurar abas abertas da sessão anterior
+        foreach (var path in App.State.OpenTabs ?? new List<string>())
+        {
+            if (File.Exists(path))
+                _viewModel.OpenFileByPath(path);
+        }
+        if (!string.IsNullOrEmpty(App.State.ActiveTab))
+        {
+            var active = _viewModel.Tabs.FirstOrDefault(t => t.FilePath == App.State.ActiveTab);
+            if (active != null) _viewModel.SelectedTab = active;
+        }
+
+        // Open files passed as command-line arguments (after session restore — viram aba ativa)
         var args = Environment.GetCommandLineArgs();
         for (int i = 1; i < args.Length; i++)
         {
@@ -545,7 +557,12 @@ public partial class MainWindow : Window
     private void OnCheckForUpdates(object sender, RoutedEventArgs e)
     {
         var update = new UpdateWindow { Owner = this };
-        update.ShowDialog();
+        if (update.ShowDialog() == true)
+        {
+            // Auto-update disparou o setup. Fechar a MainWindow pra rodar o OnClosing,
+            // que persiste state.json antes do app encerrar.
+            Close();
+        }
     }
 
     // === Window chrome (custom title bar) ===
@@ -908,6 +925,11 @@ public partial class MainWindow : Window
         state.Preferences.TypewriterMode = _viewModel.TypewriterMode;
         state.LastWorkspace = _viewModel.WorkspaceService.RootPath;
         state.RecentFiles = _viewModel.RecentFilesService.Snapshot().ToList();
+        state.OpenTabs = _viewModel.Tabs
+            .Select(t => t.FilePath)
+            .Where(p => !string.IsNullOrEmpty(p))
+            .ToList();
+        state.ActiveTab = _viewModel.SelectedTab?.FilePath;
 
         try
         {
