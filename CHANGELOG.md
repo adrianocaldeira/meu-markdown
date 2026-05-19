@@ -6,6 +6,11 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.7.6] — 2026
+
+### Corrigido
+- Menu de contexto do preview (clique direito) não mostrava "Exportar para HTML…" e "Exportar para PDF…" em alguns casos. A condição que dependia do `Kind == Page` do WebView2 não disparava em situações esperadas. Agora os exports estão **sempre disponíveis** no menu de contexto — independente de haver seleção, link ou imagem. Quando há seleção, o "Copiar" aparece também, separado por divisor.
+
 ## [1.7.5] — 2026
 
 ### Removido
@@ -198,7 +203,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.7.5...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.7.6...HEAD
+[1.7.6]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.6
 [1.7.5]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.5
 [1.7.4]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.4
 [1.7.3]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.3
