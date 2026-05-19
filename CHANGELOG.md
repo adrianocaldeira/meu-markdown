@@ -6,6 +6,14 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.7.7] — 2026
+
+### Adicionado
+- Opção de ordenação no Explorer (menu de 3 pontinhos → **Ordenar por**): **Nome** (natural sort — entende números, igual ao Windows Explorer: 9, 10, 11, …, 31, …, 292) ou **Data de modificação** (mais recente primeiro). Preferência persistida em `state.json`.
+
+### Corrigido
+- Arquivos numerados no Explorer (ex: `pbi-31`, `pbi-292`) ficavam fora de ordem por usar ordenação alfabética pura — `pbi-292` aparecia antes de `pbi-31` porque "2" < "3". Agora a ordenação padrão é natural sort.
+
 ## [1.7.6] — 2026
 
 ### Corrigido
@@ -203,7 +211,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.7.6...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.7.7...HEAD
+[1.7.7]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.7
 [1.7.6]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.6
 [1.7.5]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.5
 [1.7.4]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.4
