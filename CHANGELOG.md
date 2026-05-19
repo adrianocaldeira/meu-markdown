@@ -6,6 +6,9 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Corrigido
+- Drag-and-drop pra reordenar abas não funcionava: o `TabItem` consumia os eventos de mouse antes do nosso handler. Trocado por `PreviewMouseLeftButtonDown`/`PreviewMouseMove` (tunnel events) — agora o drag inicia corretamente.
+
 ## [1.7.1] — 2026
 
 ### Adicionado

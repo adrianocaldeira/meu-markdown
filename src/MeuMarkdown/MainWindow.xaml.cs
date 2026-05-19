@@ -766,6 +766,12 @@ public partial class MainWindow : Window
         _tabDragSource = (sender as FrameworkElement)?.DataContext as DocumentTabViewModel;
     }
 
+    private void OnTabHeaderMouseUp(object sender, MouseButtonEventArgs e)
+    {
+        // Click puro (sem arrastar) — limpa o estado pra próxima interação.
+        _tabDragSource = null;
+    }
+
     private void OnTabHeaderMouseMove(object sender, MouseEventArgs e)
     {
         if (e.LeftButton != MouseButtonState.Pressed || _tabDragSource == null) return;
@@ -775,9 +781,10 @@ public partial class MainWindow : Window
 
         if (sender is DependencyObject element)
         {
-            DragDrop.DoDragDrop(element, _tabDragSource, DragDropEffects.Move);
+            var source = _tabDragSource;
+            _tabDragSource = null; // limpa antes do DoDragDrop (que é bloqueante)
+            DragDrop.DoDragDrop(element, source, DragDropEffects.Move);
         }
-        _tabDragSource = null;
     }
 
     private void OnTabHeaderDragOver(object sender, DragEventArgs e)

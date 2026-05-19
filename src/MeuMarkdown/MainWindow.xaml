@@ -428,8 +428,9 @@
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" Margin="6,4"
                                         AllowDrop="True"
-                                        MouseLeftButtonDown="OnTabHeaderMouseDown"
-                                        MouseMove="OnTabHeaderMouseMove"
+                                        PreviewMouseLeftButtonDown="OnTabHeaderMouseDown"
+                                        PreviewMouseLeftButtonUp="OnTabHeaderMouseUp"
+                                        PreviewMouseMove="OnTabHeaderMouseMove"
                                         DragOver="OnTabHeaderDragOver"
                                         Drop="OnTabHeaderDrop">
                                 <StackPanel.ContextMenu>
