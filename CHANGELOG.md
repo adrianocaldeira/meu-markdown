@@ -6,6 +6,13 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Mudado
+- Toast de atualização agora é persistente — fica visível até você clicar em "Atualizar agora", "Mais tarde" ou "×". Antes ele sumia quando você ia pra outra janela do Windows e voltava só ao recuperar foco, dando a impressão de "sumiu sem fazer nada". Tradeoff conhecido: como o toast é um `Popup` WPF, ele aparece sobre outras apps quando o Meu Markdown está em background.
+- Diálogo "Atualizar antes de sair?" (no fechamento do app) agora tem **Cancelar** como botão padrão em vez de "Sair sem atualizar". Apertar Enter sem ler antes dispensava a versão silenciosamente; agora apertar Enter cancela o fechamento.
+
+### Adicionado
+- Verificação silenciosa de atualização agora tenta de novo se falhar por erro de rede: até 3 tentativas com delays de 0s, 30s e 90s. Pega cenários onde a rede está instável no momento exato do startup.
+
 ## [1.7.2] — 2026
 
 ### Corrigido
