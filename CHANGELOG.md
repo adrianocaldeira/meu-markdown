@@ -6,6 +6,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.7.5] — 2026
+
 ### Removido
 - Diálogo "Atualizar antes de sair?" no fechamento do app. A UX ficava confusa (clicar Não silenciava a versão pra sempre) e com o check periódico de 30min em vigor o caso ficou menos necessário. Agora a verificação de atualização acontece apenas via toast (no startup + a cada 30min) ou manualmente via Ajuda → Verificar atualizações.
 - Checagem do campo `dismissedUpdateVersion` no toast — quem foi pego pelo diálogo C antigo agora volta a receber notificações normalmente.
@@ -196,7 +198,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.7.4...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.7.5...HEAD
+[1.7.5]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.5
 [1.7.4]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.4
 [1.7.3]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.3
 [1.7.2]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.2
