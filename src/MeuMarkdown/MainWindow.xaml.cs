@@ -639,15 +639,6 @@ public partial class MainWindow : Window
 
             _backgroundUpdateInfo = result.Info;
 
-            // Se o user já dispensou exatamente essa versão, não mostra o toast
-            // (mas o diálogo do fechar também não vai disparar — vide OnClosing).
-            if (string.Equals(App.State.Preferences.DismissedUpdateVersion,
-                              result.Info.LatestVersion, StringComparison.OrdinalIgnoreCase))
-            {
-                logger.Log($"BG_CHECK toast suppressed (dismissed={App.State.Preferences.DismissedUpdateVersion})");
-                return;
-            }
-
             UpdateToastVersionText.Text = $"v{result.Info.CurrentVersion}  →  v{result.Info.LatestVersion}";
 
             var notesSummary = ExtractNotesSummary(result.Info.ReleaseNotes);
@@ -1326,49 +1317,6 @@ public partial class MainWindow : Window
         if (!_bypassDirtyCheckOnClose && !ConfirmCloseAllowingDirtyDiscard())
         {
             e.Cancel = true;
-        }
-
-        // Diálogo C: oferece atualizar antes de sair (só dispara se há update novo
-        // não-dispensado E o flow de auto-update ainda não está em curso via toast).
-        if (!e.Cancel && !_updateFlowInProgress && _backgroundUpdateInfo != null)
-        {
-            var info = _backgroundUpdateInfo;
-            if (!string.Equals(App.State.Preferences.DismissedUpdateVersion,
-                               info.LatestVersion, StringComparison.OrdinalIgnoreCase))
-            {
-                var result = MessageBox.Show(
-                    $"A versão v{info.LatestVersion} está disponível. Atualizar antes de sair?",
-                    "Nova versão disponível",
-                    MessageBoxButton.YesNoCancel, MessageBoxImage.Question, MessageBoxResult.Cancel);
-
-                if (result == MessageBoxResult.Cancel)
-                {
-                    e.Cancel = true;
-                }
-                else if (result == MessageBoxResult.Yes)
-                {
-                    // Cancela o close atual; o flow do auto-update vai fechar a janela
-                    // depois de coordenar shutdown + save state via TryShutdownForUpdate.
-                    e.Cancel = true;
-                    _updateFlowInProgress = true;
-                    Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        var w = new UpdateWindow(info, autoStart: true) { Owner = this };
-                        if (w.ShowDialog() == true)
-                        {
-                            Close();
-                        }
-                        else
-                        {
-                            _updateFlowInProgress = false;
-                        }
-                    }), System.Windows.Threading.DispatcherPriority.Background);
-                }
-                else // No = "Sair sem atualizar"
-                {
-                    App.State.Preferences.DismissedUpdateVersion = info.LatestVersion;
-                }
-            }
         }
 
         if (!e.Cancel)

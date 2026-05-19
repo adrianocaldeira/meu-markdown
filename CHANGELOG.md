@@ -6,6 +6,10 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Removido
+- Diálogo "Atualizar antes de sair?" no fechamento do app. A UX ficava confusa (clicar Não silenciava a versão pra sempre) e com o check periódico de 30min em vigor o caso ficou menos necessário. Agora a verificação de atualização acontece apenas via toast (no startup + a cada 30min) ou manualmente via Ajuda → Verificar atualizações.
+- Checagem do campo `dismissedUpdateVersion` no toast — quem foi pego pelo diálogo C antigo agora volta a receber notificações normalmente.
+
 ## [1.7.4] — 2026
 
 ### Adicionado
