@@ -72,6 +72,59 @@ Se **build** ou **teste** falhar, **pare imediatamente** — não comece a edita
 
 Por que esse gate aqui, não confiando só no CI: o `ci.yml` no GitHub roda em paralelo com `release.yml` no push da tag, sem dependência entre eles. Se o teste quebrar, o release ainda sai. O gate local da skill garante que isso não aconteça antes mesmo de subir.
 
+## 0.5. Audit de docs (obrigatório, antes do bump)
+
+**Não pule.** Releases sem revisão de docs já entregaram texto desatualizado (ex: wiki afirmando "não tem auto-update" depois da feature ser lançada).
+
+Gere um relatório explícito antes de tocar em CHANGELOG/README/props.
+
+### Passos
+
+1. **Lista os commits desde o último tag** (`git log <last_tag>..HEAD --pretty=format:"%h %s"`). Filtra ruído (chore: bump, docs(plano), etc.).
+
+2. **Para cada commit user-facing** (`feat:`, `fix:` com impacto, `refactor:` que muda comportamento visível), extraia **keywords** do subject:
+   - Nomes de feature ("drag-and-drop", "toast", "tabs", "context menu")
+   - Atalhos ("F5", "Ctrl+P")
+   - Caminhos de menu ("Ajuda → Verificar atualizações")
+
+3. **Grep no README + wiki** por essas keywords:
+   - `D:\src\meu-markdown\README.md`
+   - `D:\src\meu-markdown.wiki\*.md`
+   - Liste arquivos com matches.
+
+4. **Wiki tocada desde o último tag**: `cd D:\src\meu-markdown.wiki && git log <last_tag_date>..HEAD --name-only` (ou olhe commits recentes do wiki).
+
+5. **Apresente o relatório formatado** ao usuário via texto (não AskUserQuestion ainda):
+
+   ```
+   📋 DOCS AUDIT — release vX.Y.Z
+
+   Commits user-facing desde vPREV (N):
+   - feat(tabs): drag-and-drop reorder    keywords: drag-and-drop, abas, tabs
+   - fix(installer): cmd timeout 2s       keywords: installer, setup, instalador
+
+   Wiki tocada desde vPREV:
+   - Funcionalidades.md (commit abc1234) ✓
+   - (outras NÃO foram tocadas)
+
+   Possíveis docs a revisar:
+   - README.md              — matches: "drag", "abas"
+   - Funcionalidades.md     — matches: "drag-and-drop", "abas"   ✓ já tocada
+   - Atalhos-de-teclado.md  — matches: "abas"
+   - Versao-e-atualizacoes  — matches: "installer", "setup"
+   ```
+
+6. **Pergunte ao user via AskUserQuestion**:
+   - **Docs OK, pode seguir** — prossegue pro gate de qualidade e bump
+   - **Vou ajustar primeiro** — skill termina; usuário ajusta docs e re-invoca `/release`
+   - **Pular audit (caso excepcional)** — registra justificativa textual e prossegue
+
+### O que NÃO fazer
+
+- **Não pule este passo silenciosamente.** Mesmo em patch pequeno, gere o relatório (pode ser curto: "Nenhum commit user-facing desde vPREV. Docs OK.").
+- **Não decida por conta própria que "wiki não precisa".** Sempre pergunte.
+- **Não confunda "wiki commit existe" com "wiki está correta"** — só lista o que tem commit, não certifica conteúdo.
+
 ## Fluxo de decisão da versão alvo
 
 A versão alvo vem do argumento do usuário ou é decidida interativamente:
