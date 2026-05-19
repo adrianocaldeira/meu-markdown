@@ -6,6 +6,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.7.3] — 2026
+
 ### Mudado
 - Toast de atualização agora é persistente — fica visível até você clicar em "Atualizar agora", "Mais tarde" ou "×". Antes ele sumia quando você ia pra outra janela do Windows e voltava só ao recuperar foco, dando a impressão de "sumiu sem fazer nada". Tradeoff conhecido: como o toast é um `Popup` WPF, ele aparece sobre outras apps quando o Meu Markdown está em background.
 - Diálogo "Atualizar antes de sair?" (no fechamento do app) agora tem **Cancelar** como botão padrão em vez de "Sair sem atualizar". Apertar Enter sem ler antes dispensava a versão silenciosamente; agora apertar Enter cancela o fechamento.
@@ -184,7 +186,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.7.2...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.7.3...HEAD
+[1.7.3]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.3
 [1.7.2]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.2
 [1.7.1]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.1
 [1.7.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.0
