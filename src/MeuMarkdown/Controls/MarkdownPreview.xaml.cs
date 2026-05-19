@@ -190,31 +190,33 @@ public partial class MarkdownPreview : UserControl
 
     private void OnContextMenuRequested(object? sender, CoreWebView2ContextMenuRequestedEventArgs e)
     {
-        // Remove tudo que não for ação de cópia.
+        // Remove items default que não são ações de cópia (Print, Reload, Save As, etc).
         for (int i = e.MenuItems.Count - 1; i >= 0; i--)
         {
             if (!_allowedContextMenuItems.Contains(e.MenuItems[i].Name))
                 e.MenuItems.RemoveAt(i);
         }
 
-        // Clique direito em área vazia (sem seleção, sem link, sem imagem) → o menu
-        // ficaria vazio. Aproveita pra mostrar ações relevantes do documento todo.
-        var kind = e.ContextMenuTarget.Kind;
-        var hasSelection = !string.IsNullOrEmpty(e.ContextMenuTarget.SelectionText);
-        if (kind == CoreWebView2ContextMenuTargetKind.Page && !hasSelection)
+        var env = webView.CoreWebView2.Environment;
+
+        // Se sobrou alguma ação de cópia, adiciona um separator antes dos exports.
+        if (e.MenuItems.Count > 0)
         {
-            var env = webView.CoreWebView2.Environment;
-
-            var exportHtml = env.CreateContextMenuItem(
-                "Exportar para HTML…", null, CoreWebView2ContextMenuItemKind.Command);
-            exportHtml.CustomItemSelected += (_, _) => ExportHtmlRequested?.Invoke();
-            e.MenuItems.Add(exportHtml);
-
-            var exportPdf = env.CreateContextMenuItem(
-                "Exportar para PDF…", null, CoreWebView2ContextMenuItemKind.Command);
-            exportPdf.CustomItemSelected += (_, _) => ExportPdfRequested?.Invoke();
-            e.MenuItems.Add(exportPdf);
+            var sep = env.CreateContextMenuItem(
+                string.Empty, null, CoreWebView2ContextMenuItemKind.Separator);
+            e.MenuItems.Add(sep);
         }
+
+        // Exports do documento — sempre disponíveis (clique em qualquer ponto do preview).
+        var exportHtml = env.CreateContextMenuItem(
+            "Exportar para HTML…", null, CoreWebView2ContextMenuItemKind.Command);
+        exportHtml.CustomItemSelected += (_, _) => ExportHtmlRequested?.Invoke();
+        e.MenuItems.Add(exportHtml);
+
+        var exportPdf = env.CreateContextMenuItem(
+            "Exportar para PDF…", null, CoreWebView2ContextMenuItemKind.Command);
+        exportPdf.CustomItemSelected += (_, _) => ExportPdfRequested?.Invoke();
+        e.MenuItems.Add(exportPdf);
     }
 
     private void OnNavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
