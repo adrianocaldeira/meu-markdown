@@ -6,6 +6,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.7.2] — 2026
+
 ### Corrigido
 - Drag-and-drop pra reordenar abas não funcionava: o `TabItem` consumia os eventos de mouse antes do nosso handler. Trocado por `PreviewMouseLeftButtonDown`/`PreviewMouseMove` (tunnel events) — agora o drag inicia corretamente.
 
@@ -175,7 +177,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.7.1...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.7.2...HEAD
+[1.7.2]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.2
 [1.7.1]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.1
 [1.7.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.0
 [1.6.3]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.6.3
