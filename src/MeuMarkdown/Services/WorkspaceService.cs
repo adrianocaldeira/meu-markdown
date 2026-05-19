@@ -1,10 +1,24 @@
 using System.IO;
+using System.Runtime.InteropServices;
 using MeuMarkdown.Models;
 
 namespace MeuMarkdown.Services;
 
+public enum FileTreeSortMode
+{
+    /// <summary>Natural sort por nome (entende números — 31 antes de 292). Como o Windows Explorer.</summary>
+    NameNatural,
+    /// <summary>Data de modificação descendente (mais recente primeiro).</summary>
+    DateModifiedDesc,
+}
+
 public class WorkspaceService : IDisposable
 {
+    [DllImport("Shlwapi.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
+    private static extern int StrCmpLogicalW(string a, string b);
+
+    public FileTreeSortMode SortMode { get; set; } = FileTreeSortMode.NameNatural;
+
     private static readonly HashSet<string> _hiddenDirs = new(StringComparer.OrdinalIgnoreCase)
     {
         ".git", ".vs", ".vscode", ".idea", "node_modules", "bin", "obj"
@@ -121,6 +135,33 @@ public class WorkspaceService : IDisposable
         }
     }
 
+    private void Sort(string[] paths)
+    {
+        switch (SortMode)
+        {
+            case FileTreeSortMode.DateModifiedDesc:
+                Array.Sort(paths, (a, b) =>
+                {
+                    try
+                    {
+                        return File.GetLastWriteTime(b).CompareTo(File.GetLastWriteTime(a));
+                    }
+                    catch
+                    {
+                        return StrCmpLogicalW(a, b);
+                    }
+                });
+                break;
+            case FileTreeSortMode.NameNatural:
+            default:
+                // StrCmpLogicalW é o mesmo comparador que o Windows Explorer usa:
+                // "pbi-31" vem antes de "pbi-292" (entende números embutidos).
+                Array.Sort(paths, (a, b) =>
+                    StrCmpLogicalW(Path.GetFileName(a), Path.GetFileName(b)));
+                break;
+        }
+    }
+
     private FileNode BuildNode(string path)
     {
         var name = Path.GetFileName(path);
@@ -142,8 +183,8 @@ public class WorkspaceService : IDisposable
                 return node;
             }
 
-            Array.Sort(dirs, StringComparer.OrdinalIgnoreCase);
-            Array.Sort(files, StringComparer.OrdinalIgnoreCase);
+            Sort(dirs);
+            Sort(files);
 
             foreach (var d in dirs)
             {

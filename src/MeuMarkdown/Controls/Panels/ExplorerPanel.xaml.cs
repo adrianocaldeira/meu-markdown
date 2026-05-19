@@ -17,6 +17,7 @@ public partial class ExplorerPanel : UserControl
     public event EventHandler? OpenFolderRequested;
     public event EventHandler? CloseWorkspaceRequested;
     public event EventHandler<bool>? ShowAllFilesChanged;
+    public event EventHandler<FileTreeSortMode>? SortModeChanged;
 
     public ExplorerPanel()
     {
@@ -33,7 +34,26 @@ public partial class ExplorerPanel : UserControl
         _workspace.TreeChanged += OnTreeChanged;
         RecentList.ItemsSource = _recent.Items;
         ShowAllFilesItem.IsChecked = showAllFiles;
+        ApplySortModeCheckmarks(workspace.SortMode);
         RefreshTree();
+    }
+
+    private void ApplySortModeCheckmarks(FileTreeSortMode mode)
+    {
+        SortByNameItem.IsChecked = mode == FileTreeSortMode.NameNatural;
+        SortByDateItem.IsChecked = mode == FileTreeSortMode.DateModifiedDesc;
+    }
+
+    private void OnSortByName(object sender, RoutedEventArgs e)
+    {
+        ApplySortModeCheckmarks(FileTreeSortMode.NameNatural);
+        SortModeChanged?.Invoke(this, FileTreeSortMode.NameNatural);
+    }
+
+    private void OnSortByDate(object sender, RoutedEventArgs e)
+    {
+        ApplySortModeCheckmarks(FileTreeSortMode.DateModifiedDesc);
+        SortModeChanged?.Invoke(this, FileTreeSortMode.DateModifiedDesc);
     }
 
     private void OnTreeChanged(object? sender, EventArgs e)

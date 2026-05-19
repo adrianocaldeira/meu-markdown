@@ -69,6 +69,14 @@
                             <MenuItem.Icon><controls:Icon Geometry="{StaticResource Icon.X}" Size="14" /></MenuItem.Icon>
                         </MenuItem>
                         <Separator />
+                        <MenuItem Header="Ordenar por">
+                            <MenuItem.Icon><controls:Icon Geometry="{StaticResource Icon.ArrowUpDown}" Size="14" /></MenuItem.Icon>
+                            <MenuItem Header="Nome" x:Name="SortByNameItem"
+                                      IsCheckable="True" Click="OnSortByName" />
+                            <MenuItem Header="Data de modificação" x:Name="SortByDateItem"
+                                      IsCheckable="True" Click="OnSortByDate" />
+                        </MenuItem>
+                        <Separator />
                         <MenuItem Header="Mostrar todos os arquivos" x:Name="ShowAllFilesItem"
                                   IsCheckable="True" Click="OnToggleShowAll">
                             <MenuItem.Icon><controls:Icon Geometry="{StaticResource Icon.Folders}" Size="14" /></MenuItem.Icon>

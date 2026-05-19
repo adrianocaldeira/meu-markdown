@@ -37,4 +37,6 @@ public class PreferencesInfo
     public bool ExplorerShowAllFiles { get; set; }
     public bool ViewMode { get; set; }
     public string? DismissedUpdateVersion { get; set; }
+    /// <summary>"name" (natural sort) | "date" (data modificação descendente). Default: "name".</summary>
+    public string? ExplorerSort { get; set; }
 }

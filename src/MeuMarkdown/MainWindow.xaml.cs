@@ -176,6 +176,9 @@ public partial class MainWindow : Window
         sidebarHost.OutlinePanel.HeadingSelected += OnOutlineHeadingSelected;
         activityBar.PanelSelected += OnActivityPanelSelected;
 
+        // Restaurar sort mode do Explorer antes de abrir o workspace (afeta o BuildNode).
+        _viewModel.WorkspaceService.SortMode = ParseSortMode(App.State.Preferences.ExplorerSort);
+
         // Restaurar workspace + recents persistidos
         var lastWs = App.State.LastWorkspace;
         if (!string.IsNullOrEmpty(lastWs) && System.IO.Directory.Exists(lastWs))
@@ -192,6 +195,7 @@ public partial class MainWindow : Window
         sidebarHost.ExplorerPanel.OpenFolderRequested += OnOpenFolderRequested;
         sidebarHost.ExplorerPanel.CloseWorkspaceRequested += OnCloseWorkspaceRequested;
         sidebarHost.ExplorerPanel.ShowAllFilesChanged += OnShowAllFilesChanged;
+        sidebarHost.ExplorerPanel.SortModeChanged += OnExplorerSortChanged;
 
         sidebarHost.SearchPanel.Bind(_viewModel.WorkspaceService, _viewModel.WorkspaceSearchService);
         sidebarHost.SearchPanel.MatchActivated += OnSearchMatchActivated;
@@ -1234,6 +1238,25 @@ public partial class MainWindow : Window
             sidebarHost.ExplorerPanel.Bind(_viewModel.WorkspaceService, _viewModel.RecentFilesService, showAll);
         }
     }
+
+    private void OnExplorerSortChanged(object? sender, FileTreeSortMode mode)
+    {
+        _viewModel.WorkspaceService.SortMode = mode;
+        App.State.Preferences.ExplorerSort = mode == FileTreeSortMode.DateModifiedDesc ? "date" : "name";
+        // Re-aplica a ordenação reconstruindo a árvore.
+        var path = _viewModel.WorkspaceService.RootPath;
+        if (!string.IsNullOrEmpty(path))
+        {
+            _viewModel.WorkspaceService.Open(path, App.State.Preferences.ExplorerShowAllFiles);
+            sidebarHost.ExplorerPanel.Bind(_viewModel.WorkspaceService, _viewModel.RecentFilesService,
+                App.State.Preferences.ExplorerShowAllFiles);
+        }
+    }
+
+    private static FileTreeSortMode ParseSortMode(string? value)
+        => string.Equals(value, "date", StringComparison.OrdinalIgnoreCase)
+            ? FileTreeSortMode.DateModifiedDesc
+            : FileTreeSortMode.NameNatural;
 
     private void OnWindowClosing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
