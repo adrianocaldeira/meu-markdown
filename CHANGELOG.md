@@ -6,6 +6,10 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Adicionado
+- Clique direito numa área vazia do preview (sem seleção/link/imagem) agora mostra **Exportar para HTML…** e **Exportar para PDF…** como atalho — antes o menu ficava vazio nesse cenário.
+- Verificação periódica de atualização: a cada 30 minutos, enquanto o app está aberto, o BG_CHECK roda de novo e mostra o toast se sair versão nova. Antes só verificava no startup — quem deixava o app aberto o dia todo nunca via novas versões até reabrir.
+
 ## [1.7.3] — 2026
 
 ### Mudado

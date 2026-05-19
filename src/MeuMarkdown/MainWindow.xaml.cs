@@ -128,6 +128,8 @@ public partial class MainWindow : Window
         preview.LinkClicked += OnPreviewLinkClicked;
         preview.ExternalLinkClicked += OnExternalLinkClicked;
         preview.PreviewScrolled += OnPreviewScrolled;
+        preview.ExportHtmlRequested += () => OnExportHtml(this, new RoutedEventArgs());
+        preview.ExportPdfRequested += () => OnExportPdf(this, new RoutedEventArgs());
         textEditor.TextArea.TextView.ScrollOffsetChanged += OnEditorScrollChanged;
 
         // Register format command bindings
@@ -289,6 +291,7 @@ public partial class MainWindow : Window
 
         // Verificação silenciosa de atualização (toast aparece ~10s depois se houver versão nova).
         CheckForUpdatesInBackgroundAsync();
+        StartPeriodicUpdateCheck();
     }
 
     private void LoadMarkdownSyntaxHighlighting()
@@ -580,15 +583,37 @@ public partial class MainWindow : Window
     // Quando o user clica "Atualizar agora" no toast/diálogo, marca que o flow do
     // auto-update está em curso pra evitar que o diálogo do fechar dispare de novo.
     private bool _updateFlowInProgress;
+    // Timer pra reverificar a cada 30min enquanto o app fica aberto (sem precisar fechar/abrir).
+    private DispatcherTimer? _periodicUpdateCheckTimer;
 
-    private async void CheckForUpdatesInBackgroundAsync()
+    private void StartPeriodicUpdateCheck()
+    {
+        _periodicUpdateCheckTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(30) };
+        _periodicUpdateCheckTimer.Tick += (_, _) =>
+        {
+            // Pula se o toast já está visível (user ainda não interagiu) ou se um
+            // auto-update já está em curso — evita ruído.
+            if (UpdateToastPopup.IsOpen || _updateFlowInProgress) return;
+            CheckForUpdatesInBackgroundAsync(initialDelay: false);
+        };
+        _periodicUpdateCheckTimer.Start();
+    }
+
+    private async void CheckForUpdatesInBackgroundAsync(bool initialDelay = true)
     {
         var logger = new UpdateLogger();
         try
         {
-            logger.Log("BG_CHECK scheduled (delay 10s)");
-            // Pequeno delay pra não atrapalhar o startup.
-            await Task.Delay(TimeSpan.FromSeconds(10));
+            if (initialDelay)
+            {
+                logger.Log("BG_CHECK scheduled (delay 10s)");
+                // Pequeno delay pra não atrapalhar o startup.
+                await Task.Delay(TimeSpan.FromSeconds(10));
+            }
+            else
+            {
+                logger.Log("BG_CHECK scheduled (periodic, no delay)");
+            }
 
             // Tenta até 3x: imediato, depois 30s e 90s se NetworkError (rede instável recupera).
             // Total ~2min de tentativas antes de desistir até o próximo startup.
