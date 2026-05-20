@@ -16,6 +16,7 @@ public class MarkdownService
     private readonly string _katexJs;
     private readonly string _katexCss;
     private readonly string _katexAutoRenderJs;
+    private readonly string _mermaidJs;
 
     public MarkdownService()
     {
@@ -33,6 +34,7 @@ public class MarkdownService
         _katexJs           = LoadEmbeddedResource("MeuMarkdown.Resources.katex.min.js");
         _katexCss          = LoadEmbeddedResource("MeuMarkdown.Resources.katex.min.css");
         _katexAutoRenderJs = LoadEmbeddedResource("MeuMarkdown.Resources.katex-auto-render.min.js");
+        _mermaidJs         = LoadEmbeddedResource("MeuMarkdown.Resources.mermaid.min.js");
     }
 
     public string ConvertToHtml(string markdown, string baseDirectory)
@@ -44,6 +46,7 @@ public class MarkdownService
             .Replace("{{KATEX_CSS}}", _katexCss)
             .Replace("{{KATEX_JS}}", _katexJs)
             .Replace("{{KATEX_AUTO_RENDER_JS}}", _katexAutoRenderJs)
+            .Replace("{{MERMAID_JS}}", _mermaidJs)
             .Replace("{{CONTENT}}", html);
     }
 

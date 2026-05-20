@@ -110,8 +110,34 @@
     <div id="content" class="markdown-body">{{CONTENT}}</div>
     <script>{{KATEX_JS}}</script>
     <script>{{KATEX_AUTO_RENDER_JS}}</script>
+    <script>{{MERMAID_JS}}</script>
+    <script>
+        if (window.mermaid) {
+            mermaid.initialize({
+                startOnLoad: false,
+                theme: 'default',
+                securityLevel: 'strict'
+            });
+        }
+    </script>
     <script>
         async function renderEnhancements() {
+            // Mermaid: substitui <pre><code class="language-mermaid"> por <div class="mermaid">
+            // antes do mermaid.run processar. Preserva o source original em data-source pra
+            // reaplicar tema sem perder o input.
+            document.querySelectorAll('pre code.language-mermaid').forEach(el => {
+                const div = document.createElement('div');
+                div.className = 'mermaid';
+                div.textContent = el.textContent;
+                div.setAttribute('data-source', el.textContent);
+                const pre = el.closest('pre');
+                if (pre) pre.replaceWith(div); else el.replaceWith(div);
+            });
+            if (window.mermaid) {
+                try { await mermaid.run({ querySelector: '.mermaid' }); }
+                catch (e) { /* Mermaid renderiza box de erro inline */ }
+            }
+
             // KaTeX auto-render: percorre o body procurando $..$ e $$..$$ e renderiza.
             if (window.renderMathInElement) {
                 renderMathInElement(document.body, {
@@ -128,8 +154,22 @@
             document.getElementById('content').innerHTML = html;
             await renderEnhancements();
         }
-        function setTheme(dark) {
+        async function setTheme(dark) {
             document.body.className = dark ? 'dark' : '';
+            if (window.mermaid) {
+                mermaid.initialize({
+                    startOnLoad: false,
+                    theme: dark ? 'dark' : 'default',
+                    securityLevel: 'strict'
+                });
+                // Re-renderiza diagramas existentes com a nova paleta.
+                document.querySelectorAll('.mermaid').forEach(el => {
+                    el.removeAttribute('data-processed');
+                    const original = el.getAttribute('data-source') ?? el.textContent;
+                    el.textContent = original;
+                });
+                try { await mermaid.run({ querySelector: '.mermaid' }); } catch (e) {}
+            }
         }
 
         let __suppressSync = false;
