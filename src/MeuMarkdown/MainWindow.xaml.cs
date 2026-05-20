@@ -224,6 +224,7 @@ public partial class MainWindow : Window
         SmartListBehavior.Attach(textEditor);
         AutoPairBehavior.Attach(textEditor);
         ImagePasteHandler.Attach(textEditor, () => _viewModel.SelectedTab);
+        WikiLinkCompletion.Attach(textEditor, () => _viewModel.WorkspaceService);
         _typewriterManager = new TypewriterScrollManager(textEditor);
         _viewModel.TypewriterMode = App.State.Preferences.TypewriterMode;
         _typewriterManager.Enabled = _viewModel.TypewriterMode;
