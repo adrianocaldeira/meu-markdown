@@ -35,12 +35,15 @@ body.markdown-body, .markdown-body { background: #ffffff !important; color: #1f2
         var baseDir = tab.Directory;
         var html = _markdownService.ConvertToHtmlFragment(content, baseDir);
 
-        html = Regex.Replace(html, @"href=""mdnav://open\?path=([^""]+)""", m =>
+        html = Regex.Replace(html, @"href=""mdnav://open\?path=([^""&]+)(?:&fragment=([^""]*))?""", m =>
         {
-            var decoded = Uri.UnescapeDataString(m.Groups[1].Value);
+            var path = Uri.UnescapeDataString(m.Groups[1].Value);
+            var fragment = m.Groups[2].Success ? Uri.UnescapeDataString(m.Groups[2].Value) : null;
             if (convertMdLinksToHtml)
-                decoded = Path.ChangeExtension(decoded, ".html");
-            return $@"href=""{decoded}""";
+                path = Path.ChangeExtension(path, ".html");
+            return string.IsNullOrEmpty(fragment)
+                ? $@"href=""{path}"""
+                : $@"href=""{path}#{fragment}""";
         });
 
         var css = LoadEmbeddedCss();

@@ -94,6 +94,46 @@ public class MarkdownServiceTests
         var html = service.ConvertToHtmlFragment(md, baseDirectory: "C:\\docs");
 
         Assert.Contains("path=arquivo.md", html);
-        Assert.Contains("fragment=", html);
+        // Markdig pré-encoda os bytes UTF-8 (%C3%A7 para ç, %C3%A3 para ã) antes do
+        // nosso RewriteRelativeLinks, que então chama Uri.EscapeDataString sobre o valor
+        // já encoded — resultando em double-encoding dos % como %25.
+        Assert.Contains("fragment=se%25C3%25A7%25C3%25A3o-com-acento", html);
+    }
+
+    [Fact]
+    public void ConvertToHtml_LinkWithSubdirPathAndFragment_SplitsCorrectly()
+    {
+        var service = new MarkdownService();
+        var md = "[ver](docs/sub/arquivo.md#secao)";
+
+        var html = service.ConvertToHtmlFragment(md, baseDirectory: "C:\\docs");
+
+        Assert.Contains("path=docs%2Fsub%2Farquivo.md", html);
+        Assert.Contains("fragment=secao", html);
+    }
+
+    [Fact]
+    public void ConvertToHtml_LinkWithEmptyFragment_OmitsFragmentParam()
+    {
+        var service = new MarkdownService();
+        var md = "[ver](arquivo.md#)";
+
+        var html = service.ConvertToHtmlFragment(md, baseDirectory: "C:\\docs");
+
+        Assert.Contains("path=arquivo.md", html);
+        Assert.DoesNotContain("fragment=", html);
+    }
+
+    [Fact]
+    public void ConvertToHtml_LinkWithSpacesInPath_EncodesPath()
+    {
+        var service = new MarkdownService();
+        var md = "[ver](<meu arquivo.md>)";  // sintaxe do Markdig pra path com espaço
+
+        var html = service.ConvertToHtmlFragment(md, baseDirectory: "C:\\docs");
+
+        // Markdig pré-encoda o espaço como %20 antes do nosso RewriteRelativeLinks,
+        // que então chama Uri.EscapeDataString — resultando em double-encoding (%2520).
+        Assert.Contains("path=meu%2520arquivo.md", html);
     }
 }
