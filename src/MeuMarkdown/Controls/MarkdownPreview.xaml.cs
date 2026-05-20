@@ -85,6 +85,13 @@ public partial class MarkdownPreview : UserControl
 
     public void SetFullHtml(string html)
     {
+        // Cada NavigateToString cria uma nova "página". Pre-aplicamos o tema dark
+        // no body class antes da navegação pra evitar flash de light->dark (que
+        // acontecia quando setTheme() era chamado só após NavigationCompleted).
+        if (_isDarkTheme)
+        {
+            html = html.Replace("<body>", "<body class=\"dark\">");
+        }
         if (_isInitialized)
             webView.NavigateToString(html);
         else

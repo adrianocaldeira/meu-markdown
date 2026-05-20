@@ -130,15 +130,17 @@
     </script>
     <script>
         async function renderEnhancements() {
-            // Mermaid: substitui <pre><code class="language-mermaid"> por <div class="mermaid">
-            // antes do mermaid.run processar. Preserva o source original em data-source pra
-            // reaplicar tema sem perder o input.
-            document.querySelectorAll('pre code.language-mermaid').forEach(el => {
+            // Mermaid: o Markdig com UseAdvancedExtensions já gera <pre class="mermaid">
+            // direto (sem child <code>). Também aceitamos <pre><code class="language-mermaid">
+            // caso essa heurística mude. Em ambos os casos, convertemos pra <div class="mermaid">
+            // que é o formato esperado pelo mermaid.run, e preservamos source em data-source.
+            document.querySelectorAll('pre.mermaid, pre code.language-mermaid').forEach(el => {
+                const source = el.textContent;
                 const div = document.createElement('div');
                 div.className = 'mermaid';
-                div.textContent = el.textContent;
-                div.setAttribute('data-source', el.textContent);
-                const pre = el.closest('pre');
+                div.textContent = source;
+                div.setAttribute('data-source', source);
+                const pre = el.tagName === 'PRE' ? el : el.closest('pre');
                 if (pre) pre.replaceWith(div); else el.replaceWith(div);
             });
             if (window.mermaid) {
@@ -146,14 +148,30 @@
                 catch (e) { /* Mermaid renderiza box de erro inline */ }
             }
 
-            // KaTeX auto-render: percorre o body procurando $..$ e $$..$$ e renderiza.
-            if (window.renderMathInElement) {
-                renderMathInElement(document.body, {
-                    delimiters: [
-                        { left: '$$', right: '$$', display: true },
-                        { left: '$',  right: '$',  display: false }
-                    ],
-                    throwOnError: false
+            // KaTeX: Markdig.UseMathematics emite <span class="math">\(expr\)</span> pra inline
+            // e <div class="math">\[expr\]</div> pra bloco. Os delimitadores podem ser \(..\),
+            // \[..\], $..$ ou $$..$$ dependendo da versão do Markdig. Strip todos e renderiza.
+            if (window.katex) {
+                document.querySelectorAll('.math').forEach(el => {
+                    if (el.dataset.katexRendered) return;
+                    let expr = el.textContent.trim();
+                    let isBlock = el.tagName.toLowerCase() === 'div';
+
+                    if (expr.startsWith('$$') && expr.endsWith('$$')) {
+                        expr = expr.slice(2, -2); isBlock = true;
+                    } else if (expr.startsWith('\\[') && expr.endsWith('\\]')) {
+                        expr = expr.slice(2, -2); isBlock = true;
+                    } else if (expr.startsWith('\\(') && expr.endsWith('\\)')) {
+                        expr = expr.slice(2, -2);
+                    } else if (expr.startsWith('$') && expr.endsWith('$')) {
+                        expr = expr.slice(1, -1);
+                    }
+                    expr = expr.trim();
+
+                    try {
+                        katex.render(expr, el, { displayMode: isBlock, throwOnError: false });
+                        el.dataset.katexRendered = '1';
+                    } catch (e) { /* katex renderiza erro inline */ }
                 });
             }
         }
@@ -198,6 +216,15 @@
                 clearTimeout(__syncTimeout);
                 __syncTimeout = setTimeout(() => { __suppressSync = false; }, 100);
             }
+        }
+
+        // Após o load inicial (HTML estático via NavigateToString), Mermaid/KaTeX
+        // ainda não foram processados — o updateContent só roda em updates incrementais.
+        // Aqui disparamos a renderização inicial.
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => { renderEnhancements().catch(() => {}); });
+        } else {
+            renderEnhancements().catch(() => {});
         }
 
         window.addEventListener('scroll', () => {

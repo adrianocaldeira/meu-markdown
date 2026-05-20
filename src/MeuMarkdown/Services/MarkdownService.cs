@@ -186,9 +186,10 @@ public class MarkdownService
         // Reescreve hrefs relativos terminando em .md (com fragment opcional) para
         // o scheme mdnav://. Path e fragment ficam em query params distintos para
         // que o handler de clique consiga separá-los sem ambiguidade.
+        // Pula hrefs que já estão no formato mdnav:// (emitidos pelo WikiLinkHtmlRenderer).
         return System.Text.RegularExpressions.Regex.Replace(
             html,
-            @"href=""(?!https?://)(?!mailto:)(?!#)([^""#]*\.md)(?:#([^""]*))?""",
+            @"href=""(?!https?://)(?!mailto:)(?!#)(?!mdnav://)([^""#]*\.md)(?:#([^""]*))?""",
             match =>
             {
                 var path = match.Groups[1].Value;
