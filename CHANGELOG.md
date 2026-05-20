@@ -6,6 +6,20 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Adicionado
+- **Operações de arquivo no Explorer**:
+  - Novo arquivo `.md` (`Ctrl+N`) e nova pasta (`Ctrl+Shift+N`) — abre dialog
+    com nome sugerido pré-preenchido; Enter cria + abre em aba (arquivo).
+  - Copiar/Recortar/Colar (`Ctrl+C/X/V`) usando Windows clipboard — compatível
+    com Windows Explorer (copia em um, cola em outro).
+  - Drag-and-drop entre diretórios — `Ctrl+drag` para copiar (move por padrão).
+  - `Del` exclui o item selecionado (reusa confirmação existente).
+
+### Corrigido
+- Abas órfãs ao trocar workspace: arquivos do workspace anterior agora fecham
+  automaticamente quando o novo workspace não os contém. Abas com mudanças não
+  salvas pedem confirmação antes de fechar.
+
 ## [1.8.0] — 2026
 
 ### Adicionado

@@ -45,6 +45,7 @@ Existem ótimos editores Markdown. A maioria é Electron pesado, depende de nuve
 | 🌗 **Tema claro/escuro** com paleta cuidada | 📦 **Single-file `.exe`** (~165 MB self-contained, sem instalação obrigatória) | 🇧🇷 **100% em português** |
 | ⌨️ **Atalhos de formatação** (negrito, link, headings, etc.) | 🧘 **Zen mode** (F11) e Typewriter mode | 📤 **Exportação para HTML** |
 | 🔗 **Wiki-links `[[Arquivo]]`** com autocomplete | 📊 **Diagramas Mermaid** e fórmulas **KaTeX** no preview | 📋 **Paste de imagem** direto pra `./assets/` |
+| 🗂️ **Operações de arquivo no Explorer** — novo arquivo/pasta, copy/paste, drag-and-drop | | |
 
 ## 📥 Instalação
 
@@ -147,7 +148,7 @@ Arquitetura **MVVM** simples e enxuta — detalhes na [Wiki/Arquitetura](https:/
 
 ## 🗺️ Roadmap
 
-### ✅ Já entregue (v1.8.0)
+### ✅ Já entregue (v1.9.0)
 - Editor + preview live com syntax highlighting
 - Múltiplas abas com menu de contexto (fechar variantes, fixar aba) e drag-and-drop pra reordenar
 - Navegação entre `.md` linkados com histórico **e suporte a heading anchor (`#secao`)**
@@ -162,6 +163,7 @@ Arquitetura **MVVM** simples e enxuta — detalhes na [Wiki/Arquitetura](https:/
 - **Wiki-links `[[Arquivo]]`** com autocomplete + resolução por nome no workspace
 - **Diagramas Mermaid** e **fórmulas KaTeX** no preview
 - **Paste de imagem do clipboard** direto pro `./assets/`
+- **Operações de arquivo no Explorer** (novo, copy/cut/paste, drag-and-drop) com atalhos
 
 ### 🚧 Em estudo
 - Snippets / templates de documento
