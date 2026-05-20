@@ -4,6 +4,7 @@ using Xunit;
 
 namespace MeuMarkdown.Tests.Services;
 
+
 public class WorkspaceServiceTests : IDisposable
 {
     private readonly string _tempDir;
@@ -91,5 +92,113 @@ public class WorkspaceServiceTests : IDisposable
 
         svc.Close();
         Assert.Null(svc.Root);
+    }
+
+    // ── ResolveWikiLink tests ──────────────────────────────────────────────
+
+    [Fact]
+    public void ResolveWikiLink_SimpleName_FindsByFilename()
+    {
+        var tmp = CreateSubWorkspace(("Foo.md", ""), ("Bar.md", ""));
+        var ws = new WorkspaceService();
+        ws.Open(tmp, showAllFiles: false);
+
+        var result = ws.ResolveWikiLink("Foo", currentFileDir: tmp);
+
+        Assert.NotNull(result);
+        Assert.EndsWith("Foo.md", result!.AbsolutePath);
+    }
+
+    [Fact]
+    public void ResolveWikiLink_CaseInsensitive()
+    {
+        var tmp = CreateSubWorkspace(("Foo.md", ""));
+        var ws = new WorkspaceService();
+        ws.Open(tmp, showAllFiles: false);
+
+        var result = ws.ResolveWikiLink("foo", currentFileDir: tmp);
+
+        Assert.NotNull(result);
+    }
+
+    [Fact]
+    public void ResolveWikiLink_NotFound_ReturnsNull()
+    {
+        var tmp = CreateSubWorkspace(("Foo.md", ""));
+        var ws = new WorkspaceService();
+        ws.Open(tmp, showAllFiles: false);
+
+        var result = ws.ResolveWikiLink("Inexistente", currentFileDir: tmp);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void ResolveWikiLink_PathWithSlash_ResolvesRelativeToCurrent()
+    {
+        var tmp = CreateSubWorkspace(("Sub/Bar.md", ""));
+        var ws = new WorkspaceService();
+        ws.Open(tmp, showAllFiles: false);
+
+        var result = ws.ResolveWikiLink("Sub/Bar", currentFileDir: tmp);
+
+        Assert.NotNull(result);
+        Assert.EndsWith("Bar.md", result!.AbsolutePath);
+    }
+
+    [Fact]
+    public void ResolveWikiLink_PathWithSlashAndMdExtension_Works()
+    {
+        var tmp = CreateSubWorkspace(("Sub/Bar.md", ""));
+        var ws = new WorkspaceService();
+        ws.Open(tmp, showAllFiles: false);
+
+        var result = ws.ResolveWikiLink("Sub/Bar.md", currentFileDir: tmp);
+
+        Assert.NotNull(result);
+    }
+
+    [Fact]
+    public void ResolveWikiLink_MultipleCandidates_PrefersClosestByLca()
+    {
+        var tmp = CreateSubWorkspace(
+            ("area-a/sub/current.md", ""),
+            ("area-a/Foo.md", ""),
+            ("area-b/Foo.md", ""));
+        var ws = new WorkspaceService();
+        ws.Open(tmp, showAllFiles: false);
+
+        var result = ws.ResolveWikiLink("Foo",
+            currentFileDir: Path.Combine(tmp, "area-a", "sub"));
+
+        Assert.NotNull(result);
+        Assert.Contains("area-a", result!.AbsolutePath);
+        Assert.DoesNotContain("area-b", result.AbsolutePath);
+    }
+
+    [Fact]
+    public void ResolveWikiLink_NoWorkspaceOpen_ReturnsNull()
+    {
+        var ws = new WorkspaceService();
+
+        var result = ws.ResolveWikiLink("Foo", currentFileDir: null);
+
+        Assert.Null(result);
+    }
+
+    /// <summary>
+    /// Cria um sub-diretório dentro do _tempDir com os arquivos especificados.
+    /// </summary>
+    private string CreateSubWorkspace(params (string relPath, string content)[] files)
+    {
+        var dir = Path.Combine(_tempDir, "ws-" + Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(dir);
+        foreach (var (rel, content) in files)
+        {
+            var full = Path.Combine(dir, rel.Replace('/', Path.DirectorySeparatorChar));
+            Directory.CreateDirectory(Path.GetDirectoryName(full)!);
+            File.WriteAllText(full, content);
+        }
+        return dir;
     }
 }

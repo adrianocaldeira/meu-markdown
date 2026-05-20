@@ -1,5 +1,6 @@
 using System.IO;
 using System.Runtime.InteropServices;
+using MeuMarkdown.Extensions.WikiLinks;
 using MeuMarkdown.Models;
 
 namespace MeuMarkdown.Services;
@@ -32,6 +33,9 @@ public class WorkspaceService : IDisposable
     private FileSystemWatcher? _watcher;
     private System.Timers.Timer? _debounceTimer;
     private bool _showAllFiles;
+
+    private Dictionary<string, List<string>>? _wikiLinkIndex;
+    private readonly object _wikiLinkLock = new();
 
     public FileNode? Root { get; private set; }
     public string? RootPath { get; private set; }
@@ -88,6 +92,7 @@ public class WorkspaceService : IDisposable
         }
         Root = null;
         RootPath = null;
+        lock (_wikiLinkLock) { _wikiLinkIndex = null; }
     }
 
     public void Refresh()
@@ -237,6 +242,7 @@ public class WorkspaceService : IDisposable
             newRoot.IsExpanded = true;
             RestoreState(newRoot, expandedPaths, selectedPath);
             Root = newRoot;
+            lock (_wikiLinkLock) { _wikiLinkIndex = null; }
 
             TreeChanged?.Invoke(this, EventArgs.Empty);
         }
@@ -259,6 +265,85 @@ public class WorkspaceService : IDisposable
         if (selected != null && string.Equals(node.FullPath, selected, StringComparison.OrdinalIgnoreCase))
             node.IsSelected = true;
         foreach (var c in node.Children) RestoreState(c, expanded, selected);
+    }
+
+    /// <summary>
+    /// Resolve um wiki-link target → path absoluto. Sintaxe:
+    /// - Nome simples ("Foo"): lookup case-insensitive no índice do workspace.
+    /// - Path relativo ("Sub/Foo" ou "Sub/Foo.md"): resolve relativo ao currentFileDir.
+    /// Para múltiplos candidatos com mesmo nome, escolhe o de menor distância LCA
+    /// ao currentFileDir; empate é resolvido alfabeticamente.
+    /// </summary>
+    public WikiLinkResolution? ResolveWikiLink(string target, string? currentFileDir)
+    {
+        if (string.IsNullOrWhiteSpace(target)) return null;
+
+        if (target.Contains('/') || target.Contains('\\'))
+        {
+            if (string.IsNullOrEmpty(currentFileDir)) return null;
+            var relPath = target;
+            if (!relPath.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
+                relPath += ".md";
+            var fullPath = Path.GetFullPath(Path.Combine(currentFileDir, relPath));
+            return File.Exists(fullPath)
+                ? new WikiLinkResolution(fullPath, Path.GetFileNameWithoutExtension(fullPath))
+                : null;
+        }
+
+        if (RootPath == null) return null;
+
+        var index = GetOrBuildWikiLinkIndex();
+        var key = target.ToLowerInvariant();
+        if (!index.TryGetValue(key, out var candidates) || candidates.Count == 0)
+            return null;
+
+        if (candidates.Count == 1)
+            return new WikiLinkResolution(candidates[0], target);
+
+        var ranked = candidates
+            .Select(p => new { Path = p, Dist = LcaDistance(p, currentFileDir) })
+            .OrderBy(x => x.Dist)
+            .ThenBy(x => x.Path, StringComparer.OrdinalIgnoreCase)
+            .First();
+        return new WikiLinkResolution(ranked.Path, target);
+    }
+
+    private Dictionary<string, List<string>> GetOrBuildWikiLinkIndex()
+    {
+        lock (_wikiLinkLock)
+        {
+            if (_wikiLinkIndex != null) return _wikiLinkIndex;
+            var idx = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var path in EnumerateMarkdownFiles())
+            {
+                var name = Path.GetFileNameWithoutExtension(path).ToLowerInvariant();
+                if (!idx.TryGetValue(name, out var list))
+                {
+                    list = new List<string>();
+                    idx[name] = list;
+                }
+                list.Add(path);
+            }
+            _wikiLinkIndex = idx;
+            return idx;
+        }
+    }
+
+    private static int LcaDistance(string candidatePath, string? currentDir)
+    {
+        if (string.IsNullOrEmpty(currentDir)) return int.MaxValue / 2;
+        var candidateDir = Path.GetDirectoryName(candidatePath) ?? "";
+        if (string.Equals(candidateDir, currentDir, StringComparison.OrdinalIgnoreCase)) return 0;
+
+        var a = candidateDir.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries);
+        var b = currentDir.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries);
+
+        int common = 0;
+        var minLen = Math.Min(a.Length, b.Length);
+        while (common < minLen && string.Equals(a[common], b[common], StringComparison.OrdinalIgnoreCase))
+            common++;
+
+        return (a.Length - common) + (b.Length - common);
     }
 
     public void Dispose() => Close();
