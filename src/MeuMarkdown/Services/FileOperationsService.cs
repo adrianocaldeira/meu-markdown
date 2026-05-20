@@ -33,4 +33,40 @@ public class FileOperationsService
     }
 
     private static bool Exists(string path) => File.Exists(path) || Directory.Exists(path);
+
+    public string CreateNewFile(string directory, string baseName, string extension)
+    {
+        if (!Directory.Exists(directory))
+            throw new FileOperationException($"Diretório não existe: {directory}");
+
+        var name = GenerateUniqueName(directory, baseName, extension);
+        var fullPath = Path.Combine(directory, name);
+        try
+        {
+            File.WriteAllText(fullPath, string.Empty);
+            return fullPath;
+        }
+        catch (Exception ex)
+        {
+            throw new FileOperationException($"Erro ao criar arquivo '{name}': {ex.Message}", ex);
+        }
+    }
+
+    public string CreateNewFolder(string directory, string baseName)
+    {
+        if (!Directory.Exists(directory))
+            throw new FileOperationException($"Diretório não existe: {directory}");
+
+        var name = GenerateUniqueName(directory, baseName, null);
+        var fullPath = Path.Combine(directory, name);
+        try
+        {
+            Directory.CreateDirectory(fullPath);
+            return fullPath;
+        }
+        catch (Exception ex)
+        {
+            throw new FileOperationException($"Erro ao criar pasta '{name}': {ex.Message}", ex);
+        }
+    }
 }

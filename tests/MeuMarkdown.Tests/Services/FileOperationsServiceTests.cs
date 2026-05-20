@@ -65,4 +65,45 @@ public class FileOperationsServiceTests : IDisposable
         var name = FileOperationsService.GenerateUniqueName(_tmpDir, "foo", "md");
         Assert.Equal("foo.md", name);
     }
+
+    [Fact]
+    public void CreateNewFile_NewFile_CreatesEmptyFile()
+    {
+        var svc = new FileOperationsService();
+        var path = svc.CreateNewFile(_tmpDir, "novo", ".md");
+
+        Assert.True(File.Exists(path));
+        Assert.EndsWith("novo.md", path);
+        Assert.Equal(string.Empty, File.ReadAllText(path));
+    }
+
+    [Fact]
+    public void CreateNewFile_AlreadyExists_AppendsSuffix()
+    {
+        File.WriteAllText(Path.Combine(_tmpDir, "novo.md"), "");
+        var svc = new FileOperationsService();
+        var path = svc.CreateNewFile(_tmpDir, "novo", ".md");
+
+        Assert.EndsWith("novo (2).md", path);
+    }
+
+    [Fact]
+    public void CreateNewFolder_NewFolder_CreatesDirectory()
+    {
+        var svc = new FileOperationsService();
+        var path = svc.CreateNewFolder(_tmpDir, "minha-pasta");
+
+        Assert.True(Directory.Exists(path));
+        Assert.EndsWith("minha-pasta", path);
+    }
+
+    [Fact]
+    public void CreateNewFolder_AlreadyExists_AppendsSuffix()
+    {
+        Directory.CreateDirectory(Path.Combine(_tmpDir, "minha-pasta"));
+        var svc = new FileOperationsService();
+        var path = svc.CreateNewFolder(_tmpDir, "minha-pasta");
+
+        Assert.EndsWith("minha-pasta (2)", path);
+    }
 }
