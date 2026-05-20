@@ -475,10 +475,10 @@ public partial class MainWindow : Window
         sidebarHost.ExplorerPanel.RevealFile(_viewModel.SelectedTab.FilePath);
     }
 
-    private void OnPreviewLinkClicked(string relativePath)
+    private void OnPreviewLinkClicked(string relativePath, string? fragment)
     {
         if (_viewModel.SelectedTab == null) return;
-        _viewModel.Navigation.NavigateTo(relativePath, _viewModel.SelectedTab.Directory);
+        _viewModel.Navigation.NavigateTo(relativePath, _viewModel.SelectedTab.Directory, fragment);
     }
 
     private void OnExternalLinkClicked(string url)

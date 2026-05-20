@@ -12,7 +12,7 @@ public partial class MarkdownPreview : UserControl
     private string? _pendingHtml;
     private bool _isDarkTheme;
 
-    public event Action<string>? LinkClicked;
+    public event Action<string, string?>? LinkClicked;
     public event Action<string>? ExternalLinkClicked;
     public event Action<int>? PreviewScrolled;
     public event Action? ExportHtmlRequested;
@@ -260,11 +260,16 @@ public partial class MarkdownPreview : UserControl
         {
             e.Cancel = true;
             var queryString = new Uri(uri).Query;
-            var path = HttpUtility.ParseQueryString(queryString)["path"];
+            var qs = HttpUtility.ParseQueryString(queryString);
+            var path = qs["path"];
+            var fragment = qs["fragment"];
             if (!string.IsNullOrEmpty(path))
             {
                 var decodedPath = Uri.UnescapeDataString(path);
-                LinkClicked?.Invoke(decodedPath);
+                var decodedFragment = string.IsNullOrEmpty(fragment)
+                    ? null
+                    : Uri.UnescapeDataString(fragment);
+                LinkClicked?.Invoke(decodedPath, decodedFragment);
             }
             return;
         }
