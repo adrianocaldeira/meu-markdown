@@ -145,6 +145,12 @@ public partial class MarkdownPreview : UserControl
             webView.CoreWebView2.Navigate("file:///" + sourceHtmlPath.Replace("\\", "/"));
             await tcs.Task;
 
+            // Aguarda Mermaid/KaTeX renderizarem antes de gerar o PDF — caso contrário
+            // o snapshot pega diagramas/fórmulas ainda como source bruto.
+            await webView.CoreWebView2.ExecuteScriptAsync(
+                "(async () => { if (typeof renderEnhancements === 'function') { await renderEnhancements(); } return 'done'; })()"
+            );
+
             var printSettings = webView.CoreWebView2.Environment.CreatePrintSettings();
             printSettings.Orientation = orientation == "Landscape"
                 ? Microsoft.Web.WebView2.Core.CoreWebView2PrintOrientation.Landscape
