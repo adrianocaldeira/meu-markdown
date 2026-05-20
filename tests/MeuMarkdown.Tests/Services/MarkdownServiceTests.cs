@@ -136,4 +136,26 @@ public class MarkdownServiceTests
         // que então chama Uri.EscapeDataString — resultando em double-encoding (%2520).
         Assert.Contains("path=meu%2520arquivo.md", html);
     }
+
+    [Fact]
+    public void ConvertToHtml_InlineMath_GeneratesMathSpan()
+    {
+        var service = new MarkdownService();
+        var md = "A fórmula $E=mc^2$ é famosa.";
+
+        var html = service.ConvertToHtmlFragment(md, baseDirectory: "C:\\docs");
+
+        Assert.Contains("math", html);
+    }
+
+    [Fact]
+    public void ConvertToHtml_BlockMath_GeneratesMathDiv()
+    {
+        var service = new MarkdownService();
+        var md = "$$\n\\int_0^\\infty e^{-x} dx\n$$";
+
+        var html = service.ConvertToHtmlFragment(md, baseDirectory: "C:\\docs");
+
+        Assert.Contains("math", html);
+    }
 }

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>{{CSS}}</style>
+    <style>{{KATEX_CSS}}</style>
     <style>
         :root {
             --bg: #ffffff;
@@ -107,9 +108,25 @@
 </head>
 <body>
     <div id="content" class="markdown-body">{{CONTENT}}</div>
+    <script>{{KATEX_JS}}</script>
+    <script>{{KATEX_AUTO_RENDER_JS}}</script>
     <script>
-        function updateContent(html) {
+        async function renderEnhancements() {
+            // KaTeX auto-render: percorre o body procurando $..$ e $$..$$ e renderiza.
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$',  right: '$',  display: false }
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        async function updateContent(html) {
             document.getElementById('content').innerHTML = html;
+            await renderEnhancements();
         }
         function setTheme(dark) {
             document.body.className = dark ? 'dark' : '';

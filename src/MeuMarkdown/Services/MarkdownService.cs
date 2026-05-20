@@ -13,6 +13,9 @@ public class MarkdownService
     private readonly MarkdownPipeline _pipeline;
     private readonly string _htmlTemplate;
     private readonly string _css;
+    private readonly string _katexJs;
+    private readonly string _katexCss;
+    private readonly string _katexAutoRenderJs;
 
     public MarkdownService()
     {
@@ -21,11 +24,15 @@ public class MarkdownService
             .UseAutoIdentifiers()
             .UseTaskLists()
             .UseAutoLinks()
+            .UseMathematics()
             .DisableHtml()  // security: bloqueia raw HTML/script no source markdown
             .Build();
 
-        _htmlTemplate = LoadEmbeddedResource("MeuMarkdown.Resources.preview-template.html");
-        _css = LoadEmbeddedResource("MeuMarkdown.Resources.github-markdown.css");
+        _htmlTemplate      = LoadEmbeddedResource("MeuMarkdown.Resources.preview-template.html");
+        _css               = LoadEmbeddedResource("MeuMarkdown.Resources.github-markdown.css");
+        _katexJs           = LoadEmbeddedResource("MeuMarkdown.Resources.katex.min.js");
+        _katexCss          = LoadEmbeddedResource("MeuMarkdown.Resources.katex.min.css");
+        _katexAutoRenderJs = LoadEmbeddedResource("MeuMarkdown.Resources.katex-auto-render.min.js");
     }
 
     public string ConvertToHtml(string markdown, string baseDirectory)
@@ -34,6 +41,9 @@ public class MarkdownService
         html = RewriteRelativeLinks(html, baseDirectory);
         return _htmlTemplate
             .Replace("{{CSS}}", _css)
+            .Replace("{{KATEX_CSS}}", _katexCss)
+            .Replace("{{KATEX_JS}}", _katexJs)
+            .Replace("{{KATEX_AUTO_RENDER_JS}}", _katexAutoRenderJs)
             .Replace("{{CONTENT}}", html);
     }
 

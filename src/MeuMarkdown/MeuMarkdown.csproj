@@ -27,6 +27,9 @@
     <EmbeddedResource Include="Resources\preview-template.html" />
     <EmbeddedResource Include="Resources\github-markdown.css" />
     <EmbeddedResource Include="Resources\markdown-syntax.xshd" />
+    <EmbeddedResource Include="Resources\katex.min.js" />
+    <EmbeddedResource Include="Resources\katex.min.css" />
+    <EmbeddedResource Include="Resources\katex-auto-render.min.js" />
   </ItemGroup>
 
   <ItemGroup>
