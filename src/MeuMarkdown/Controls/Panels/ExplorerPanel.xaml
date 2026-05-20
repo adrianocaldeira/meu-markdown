@@ -110,7 +110,12 @@
                   Foreground="{DynamicResource Brush.Fg.Secondary}"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                   MouseDoubleClick="OnTreeDoubleClick"
-                  PreviewMouseRightButtonDown="OnTreePreviewRightButtonDown">
+                  PreviewMouseRightButtonDown="OnTreePreviewRightButtonDown"
+                  PreviewMouseLeftButtonDown="OnTreePreviewLeftButtonDown"
+                  PreviewMouseMove="OnTreePreviewMouseMove"
+                  AllowDrop="True"
+                  DragOver="OnTreeDragOver"
+                  Drop="OnTreeDrop">
             <TreeView.ItemContainerStyle>
                 <Style TargetType="TreeViewItem">
                     <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />

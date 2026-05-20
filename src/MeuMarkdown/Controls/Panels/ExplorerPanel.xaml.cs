@@ -15,6 +15,9 @@ public partial class ExplorerPanel : UserControl
     private RecentFilesService? _recent;
     private readonly FileOperationsService _fileOps = new();
 
+    private System.Windows.Point _dragStartPoint;
+    private FileNode? _dragSourceNode;
+
     public static readonly RoutedUICommand NewFileCommand = new("Novo arquivo", "NewFile", typeof(ExplorerPanel));
     public static readonly RoutedUICommand NewFolderCommand = new("Nova pasta", "NewFolder", typeof(ExplorerPanel));
     public static readonly RoutedUICommand CopyCommand = new("Copiar", "CopyEx", typeof(ExplorerPanel));
@@ -221,6 +224,92 @@ public partial class ExplorerPanel : UserControl
         {
             item.IsSelected = true;
         }
+    }
+
+    private void OnTreePreviewLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _dragStartPoint = e.GetPosition(null);
+        _dragSourceNode = FindFileNode(e.OriginalSource);
+    }
+
+    private void OnTreePreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed) return;
+        if (_dragSourceNode == null) return;
+
+        var diff = _dragStartPoint - e.GetPosition(null);
+        if (Math.Abs(diff.X) < SystemParameters.MinimumHorizontalDragDistance &&
+            Math.Abs(diff.Y) < SystemParameters.MinimumVerticalDragDistance) return;
+
+        try
+        {
+            var data = new DataObject(DataFormats.FileDrop, new[] { _dragSourceNode.FullPath });
+            var effect = (Keyboard.Modifiers & ModifierKeys.Control) != 0
+                ? DragDropEffects.Copy
+                : DragDropEffects.Move;
+            DragDrop.DoDragDrop(FileTree, data, effect);
+        }
+        finally
+        {
+            _dragSourceNode = null;
+        }
+    }
+
+    private void OnTreeDragOver(object sender, DragEventArgs e)
+    {
+        e.Effects = DragDropEffects.None;
+        e.Handled = true;
+
+        if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
+
+        var target = FindFileNode(e.OriginalSource);
+        if (target?.IsDirectory != true) return;
+
+        e.Effects = (e.KeyStates & DragDropKeyStates.ControlKey) != 0
+            ? DragDropEffects.Copy
+            : DragDropEffects.Move;
+    }
+
+    private void OnTreeDrop(object sender, DragEventArgs e)
+    {
+        e.Handled = true;
+
+        var target = FindFileNode(e.OriginalSource);
+        if (target?.IsDirectory != true) return;
+
+        if (e.Data.GetData(DataFormats.FileDrop) is not string[] sources || sources.Length == 0) return;
+        var sourcePath = sources[0];
+
+        // Cancela drops degenerados
+        if (string.Equals(System.IO.Path.GetDirectoryName(sourcePath), target.FullPath, StringComparison.OrdinalIgnoreCase))
+            return; // arquivo já está dentro da pasta destino
+        if (string.Equals(sourcePath, target.FullPath, StringComparison.OrdinalIgnoreCase))
+            return; // drop em si mesmo
+
+        var isCopy = (e.KeyStates & DragDropKeyStates.ControlKey) != 0;
+
+        try
+        {
+            string? result = isCopy
+                ? _fileOps.CopyFile(sourcePath, target.FullPath, AskOverwrite)
+                : _fileOps.MoveFile(sourcePath, target.FullPath, AskOverwrite);
+
+            if (result != null) _workspace?.Refresh();
+        }
+        catch (FileOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private static FileNode? FindFileNode(object originalSource)
+    {
+        var dep = originalSource as System.Windows.DependencyObject;
+        while (dep != null && dep is not TreeViewItem)
+        {
+            dep = System.Windows.Media.VisualTreeHelper.GetParent(dep);
+        }
+        return (dep as TreeViewItem)?.DataContext as FileNode;
     }
 
     private void OnRecentDoubleClick(object sender, MouseButtonEventArgs e)
