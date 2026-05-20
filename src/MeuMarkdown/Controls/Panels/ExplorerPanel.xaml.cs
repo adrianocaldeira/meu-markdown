@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using MeuMarkdown.Controls;
 using MeuMarkdown.Models;
 using MeuMarkdown.Services;
 
@@ -12,6 +13,14 @@ public partial class ExplorerPanel : UserControl
 {
     private WorkspaceService? _workspace;
     private RecentFilesService? _recent;
+    private readonly FileOperationsService _fileOps = new();
+
+    public static readonly RoutedUICommand NewFileCommand = new("Novo arquivo", "NewFile", typeof(ExplorerPanel));
+    public static readonly RoutedUICommand NewFolderCommand = new("Nova pasta", "NewFolder", typeof(ExplorerPanel));
+    public static readonly RoutedUICommand CopyCommand = new("Copiar", "CopyEx", typeof(ExplorerPanel));
+    public static readonly RoutedUICommand CutCommand = new("Recortar", "CutEx", typeof(ExplorerPanel));
+    public static readonly RoutedUICommand PasteCommand = new("Colar", "PasteEx", typeof(ExplorerPanel));
+    public static readonly RoutedUICommand DeleteCommand = new("Excluir", "DeleteEx", typeof(ExplorerPanel));
 
     public event EventHandler<string>? FileActivated;
     public event EventHandler? OpenFolderRequested;
@@ -22,6 +31,12 @@ public partial class ExplorerPanel : UserControl
     public ExplorerPanel()
     {
         InitializeComponent();
+        CommandBindings.Add(new CommandBinding(NewFileCommand, OnNewFile));
+        CommandBindings.Add(new CommandBinding(NewFolderCommand, OnNewFolder));
+        CommandBindings.Add(new CommandBinding(CopyCommand, OnCopy));
+        CommandBindings.Add(new CommandBinding(CutCommand, OnCut));
+        CommandBindings.Add(new CommandBinding(PasteCommand, OnPaste));
+        CommandBindings.Add(new CommandBinding(DeleteCommand, OnDelete));
     }
 
     public void Bind(WorkspaceService workspace, RecentFilesService recent, bool showAllFiles)
@@ -219,6 +234,83 @@ public partial class ExplorerPanel : UserControl
         if (FileTree.SelectedItem is FileNode node && !node.IsDirectory)
             FileActivated?.Invoke(this, node.FullPath);
     }
+
+    /// <summary>
+    /// Diretório alvo de operações de criar/colar:
+    /// - Item selecionado é pasta → essa pasta
+    /// - Item selecionado é arquivo → diretório do arquivo
+    /// - Sem seleção → root do workspace
+    /// </summary>
+    private string? GetTargetDirectory()
+    {
+        if (FileTree.SelectedItem is FileNode node)
+        {
+            return node.IsDirectory ? node.FullPath : System.IO.Path.GetDirectoryName(node.FullPath);
+        }
+        return _workspace?.RootPath;
+    }
+
+    private void OnNewFile(object sender, RoutedEventArgs e)
+    {
+        var targetDir = GetTargetDirectory();
+        if (targetDir == null) return;
+
+        var suggested = FileOperationsService.GenerateUniqueName(targetDir, "novo-arquivo", ".md");
+        var owner = Window.GetWindow(this);
+        if (owner == null) return;
+
+        var name = InputDialog.Show(owner, "Novo arquivo",
+            $"Nome do novo arquivo em '{System.IO.Path.GetFileName(targetDir)}':", suggested);
+        if (string.IsNullOrWhiteSpace(name)) return;
+
+        if (!name.EndsWith(".md", StringComparison.OrdinalIgnoreCase) &&
+            !name.EndsWith(".markdown", StringComparison.OrdinalIgnoreCase))
+        {
+            name += ".md";
+        }
+
+        try
+        {
+            var baseName = System.IO.Path.GetFileNameWithoutExtension(name);
+            var ext = System.IO.Path.GetExtension(name);
+            var newPath = _fileOps.CreateNewFile(targetDir, baseName, ext);
+            _workspace?.Refresh();
+            FileActivated?.Invoke(this, newPath);
+        }
+        catch (FileOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void OnNewFolder(object sender, RoutedEventArgs e)
+    {
+        var targetDir = GetTargetDirectory();
+        if (targetDir == null) return;
+
+        var suggested = FileOperationsService.GenerateUniqueName(targetDir, "nova-pasta", null);
+        var owner = Window.GetWindow(this);
+        if (owner == null) return;
+
+        var name = InputDialog.Show(owner, "Nova pasta",
+            $"Nome da nova pasta em '{System.IO.Path.GetFileName(targetDir)}':", suggested);
+        if (string.IsNullOrWhiteSpace(name)) return;
+
+        try
+        {
+            _fileOps.CreateNewFolder(targetDir, name);
+            _workspace?.Refresh();
+        }
+        catch (FileOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    // Stubs — serão implementados na Fase 4
+    private void OnCopy(object sender, RoutedEventArgs e) { /* impl Fase 4 */ }
+    private void OnCut(object sender, RoutedEventArgs e) { /* impl Fase 4 */ }
+    private void OnPaste(object sender, RoutedEventArgs e) { /* impl Fase 4 */ }
 
     private void OnRename(object sender, RoutedEventArgs e)
     {
