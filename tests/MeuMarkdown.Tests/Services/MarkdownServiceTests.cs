@@ -58,4 +58,42 @@ public class MarkdownServiceTests
         Assert.Equal("olá-mundo", headings[0].AnchorId);
         Assert.Equal("subtítulo-com-acentuação", headings[1].AnchorId);
     }
+
+    [Fact]
+    public void ConvertToHtml_LinkWithoutFragment_EmitsPathOnly()
+    {
+        var service = new MarkdownService();
+        var md = "[ver](arquivo.md)";
+
+        var html = service.ConvertToHtmlFragment(md, baseDirectory: "C:\\docs");
+
+        Assert.Contains("mdnav://open?path=arquivo.md", html);
+        Assert.DoesNotContain("fragment=", html);
+    }
+
+    [Fact]
+    public void ConvertToHtml_LinkWithFragment_EmitsPathAndFragmentSeparately()
+    {
+        var service = new MarkdownService();
+        var md = "[ver](arquivo.md#secao)";
+
+        var html = service.ConvertToHtmlFragment(md, baseDirectory: "C:\\docs");
+
+        Assert.Contains("path=arquivo.md", html);
+        Assert.Contains("fragment=secao", html);
+        Assert.DoesNotContain("path=arquivo.md%23", html);
+        Assert.DoesNotContain("path=arquivo.md#", html);
+    }
+
+    [Fact]
+    public void ConvertToHtml_LinkWithFragmentContainingSpecialChars_EncodesCorrectly()
+    {
+        var service = new MarkdownService();
+        var md = "[ver](arquivo.md#seção-com-acento)";
+
+        var html = service.ConvertToHtmlFragment(md, baseDirectory: "C:\\docs");
+
+        Assert.Contains("path=arquivo.md", html);
+        Assert.Contains("fragment=", html);
+    }
 }

@@ -113,16 +113,21 @@ public class MarkdownService
 
     private static string RewriteRelativeLinks(string html, string baseDirectory)
     {
-        // Rewrite relative .md links to use custom scheme
-        // Pattern: href="something.md" or href="path/to/file.md"
+        // Reescreve hrefs relativos terminando em .md (com fragment opcional) para
+        // o scheme mdnav://. Path e fragment ficam em query params distintos para
+        // que o handler de clique consiga separá-los sem ambiguidade.
         return System.Text.RegularExpressions.Regex.Replace(
             html,
-            @"href=""(?!https?://)(?!mailto:)(?!#)([^""]*\.md(?:#[^""]*)?)""",
+            @"href=""(?!https?://)(?!mailto:)(?!#)([^""#]*\.md)(?:#([^""]*))?""",
             match =>
             {
-                var relativePath = match.Groups[1].Value;
-                var encodedPath = Uri.EscapeDataString(relativePath);
-                return $@"href=""mdnav://open?path={encodedPath}""";
+                var path = match.Groups[1].Value;
+                var fragment = match.Groups[2].Success ? match.Groups[2].Value : null;
+                var encodedPath = Uri.EscapeDataString(path);
+                if (string.IsNullOrEmpty(fragment))
+                    return $@"href=""mdnav://open?path={encodedPath}""";
+                var encodedFragment = Uri.EscapeDataString(fragment);
+                return $@"href=""mdnav://open?path={encodedPath}&fragment={encodedFragment}""";
             });
     }
 
