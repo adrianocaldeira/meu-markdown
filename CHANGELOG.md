@@ -6,6 +6,25 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Adicionado
+- **Wiki-links `[[Arquivo]]`** com resolução por nome no workspace inteiro,
+  suporte a alias (`[[Arquivo|Texto]]`), anchor de heading (`[[Arquivo#secao]]`)
+  e autocomplete no editor ao digitar `[[`. Múltiplos arquivos com o mesmo nome
+  são resolvidos por menor distância de diretório ao arquivo atual.
+- **Diagramas Mermaid** no preview: blocos fenced ```` ```mermaid ```` agora
+  renderizam flowcharts, sequence, class diagrams, etc. Tema dark suportado.
+- **Fórmulas KaTeX** no preview: `$inline$` e `$$bloco$$` viram fórmulas
+  matemáticas renderizadas. Funciona também no export HTML e PDF.
+- **Paste de imagem do clipboard** no editor: `Ctrl+V` sobre uma imagem
+  copiada salva como `./assets/clipboard-YYYYMMDD-HHmmss.png` e insere
+  `![alt](...)` no markdown. (O recurso já existia em código, agora documentado.)
+
+### Corrigido
+- Links Markdown comuns com fragment (`[texto](arquivo.md#heading)`) agora navegam
+  E scrollam até o heading. Antes, o `#heading` era codificado dentro do path do
+  scheme `mdnav://` e o `File.Exists` falhava silenciosamente. Path e fragment
+  agora vão em query params distintos.
+
 ## [1.7.7] — 2026
 
 ### Adicionado

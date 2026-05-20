@@ -35,16 +35,20 @@ body.markdown-body, .markdown-body { background: #ffffff !important; color: #1f2
         var baseDir = tab.Directory;
         var html = _markdownService.ConvertToHtmlFragment(content, baseDir);
 
-        html = Regex.Replace(html, @"href=""mdnav://open\?path=([^""]+)""", m =>
+        html = Regex.Replace(html, @"href=""mdnav://open\?path=([^""&]+)(?:&fragment=([^""]*))?""", m =>
         {
-            var decoded = Uri.UnescapeDataString(m.Groups[1].Value);
+            var path = Uri.UnescapeDataString(m.Groups[1].Value);
+            var fragment = m.Groups[2].Success ? Uri.UnescapeDataString(m.Groups[2].Value) : null;
             if (convertMdLinksToHtml)
-                decoded = Path.ChangeExtension(decoded, ".html");
-            return $@"href=""{decoded}""";
+                path = Path.ChangeExtension(path, ".html");
+            return string.IsNullOrEmpty(fragment)
+                ? $@"href=""{path}"""
+                : $@"href=""{path}#{fragment}""";
         });
 
         var css = LoadEmbeddedCss();
         var bodyClass = darkTheme ? "dark" : "";
+        var (katexJs, katexCss, katexAutoRenderJs, mermaidJs) = _markdownService.GetEnhancementResources();
 
         var fullHtml = $@"<!DOCTYPE html>
 <html lang=""pt-BR"">
@@ -53,6 +57,7 @@ body.markdown-body, .markdown-body { background: #ffffff !important; color: #1f2
 <meta name=""color-scheme"" content=""{(darkTheme ? "dark" : "light")} only"">
 <title>{System.Web.HttpUtility.HtmlEncode(tab.FileName)}</title>
 <style>
+{katexCss}
 {css}
 {(darkTheme ? "" : LightModeForceCss)}
 </style>
@@ -61,6 +66,39 @@ body.markdown-body, .markdown-body { background: #ffffff !important; color: #1f2
 <div class=""markdown-body"">
 {html}
 </div>
+<script>{katexJs}</script>
+<script>{katexAutoRenderJs}</script>
+<script>{mermaidJs}</script>
+<script>
+async function renderEnhancements() {{
+    // Mermaid: <pre><code class=""language-mermaid""> → <div class=""mermaid"">
+    document.querySelectorAll('pre code.language-mermaid').forEach(el => {{
+        const div = document.createElement('div');
+        div.className = 'mermaid';
+        div.textContent = el.textContent;
+        const pre = el.closest('pre');
+        if (pre) pre.replaceWith(div); else el.replaceWith(div);
+    }});
+    if (window.mermaid) {{
+        mermaid.initialize({{ startOnLoad: false, theme: {(darkTheme ? "'dark'" : "'default'")}, securityLevel: 'strict' }});
+        try {{ await mermaid.run({{ querySelector: '.mermaid' }}); }} catch (e) {{}}
+    }}
+    if (window.renderMathInElement) {{
+        renderMathInElement(document.body, {{
+            delimiters: [
+                {{ left: '$$', right: '$$', display: true }},
+                {{ left: '$',  right: '$',  display: false }}
+            ],
+            throwOnError: false
+        }});
+    }}
+}}
+if (document.readyState === 'loading') {{
+    document.addEventListener('DOMContentLoaded', () => {{ renderEnhancements(); }});
+}} else {{
+    renderEnhancements();
+}}
+</script>
 </body>
 </html>";
 

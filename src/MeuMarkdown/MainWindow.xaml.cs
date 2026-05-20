@@ -132,6 +132,15 @@ public partial class MainWindow : Window
         preview.ExportPdfRequested += () => OnExportPdf(this, new RoutedEventArgs());
         textEditor.TextArea.TextView.ScrollOffsetChanged += OnEditorScrollChanged;
 
+        // Extrai Mermaid/KaTeX pra um dir local e registra como virtual host "mm.local"
+        // no WebView2. Necessário porque NavigateToString tem cap de ~2MB e os scripts
+        // inline ultrapassam o limite.
+        var assetsDir = System.IO.Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "MeuMarkdown", "webview-assets");
+        _viewModel.MarkdownService.ExtractEnhancementAssetsTo(assetsDir);
+        preview.RegisterEnhancementAssetsHost(assetsDir);
+
         // Register format command bindings
         CommandBindings.Add(new CommandBinding(FormatBoldCommand, (_, _) => WrapSelection("**", "**")));
         CommandBindings.Add(new CommandBinding(FormatItalicCommand, (_, _) => WrapSelection("*", "*")));
@@ -224,6 +233,7 @@ public partial class MainWindow : Window
         SmartListBehavior.Attach(textEditor);
         AutoPairBehavior.Attach(textEditor);
         ImagePasteHandler.Attach(textEditor, () => _viewModel.SelectedTab);
+        WikiLinkCompletion.Attach(textEditor, () => _viewModel.WorkspaceService);
         _typewriterManager = new TypewriterScrollManager(textEditor);
         _viewModel.TypewriterMode = App.State.Preferences.TypewriterMode;
         _typewriterManager.Enabled = _viewModel.TypewriterMode;
@@ -416,6 +426,7 @@ public partial class MainWindow : Window
             var words = System.Text.RegularExpressions.Regex.Matches(text, @"\b\w+\b").Count;
             _viewModel.SelectedTab.UpdateMetrics(words, text.Length);
         }
+        TryConsumePendingScrollFragment();
     }
 
     private void UpdatePreview()
@@ -473,12 +484,17 @@ public partial class MainWindow : Window
 
         // Reveal o arquivo ativo na árvore do Explorer (no-op se fora do workspace).
         sidebarHost.ExplorerPanel.RevealFile(_viewModel.SelectedTab.FilePath);
+
+        // Se há um fragment pendente e os Headings já estão populados (aba já aberta antes),
+        // consomemos aqui. Caso contrário (aba nova), o OnDebounceTimerTick vai consumir
+        // após extrair os headings do conteúdo carregado.
+        TryConsumePendingScrollFragment();
     }
 
-    private void OnPreviewLinkClicked(string relativePath)
+    private void OnPreviewLinkClicked(string relativePath, string? fragment)
     {
         if (_viewModel.SelectedTab == null) return;
-        _viewModel.Navigation.NavigateTo(relativePath, _viewModel.SelectedTab.Directory);
+        _viewModel.Navigation.NavigateTo(relativePath, _viewModel.SelectedTab.Directory, fragment);
     }
 
     private void OnExternalLinkClicked(string url)
@@ -1200,6 +1216,28 @@ public partial class MainWindow : Window
         // não chega no preview. Disparamos o scroll do preview explicitamente também.
         preview.ScrollToLine(line);
         if (!_isViewMode) textEditor.Focus();
+    }
+
+    private void TryConsumePendingScrollFragment()
+    {
+        var fragment = _viewModel.PendingScrollFragment;
+        if (string.IsNullOrEmpty(fragment)) return;
+
+        var tab = _viewModel.SelectedTab;
+        if (tab == null) return;
+
+        var heading = tab.Headings.FirstOrDefault(h =>
+            string.Equals(h.AnchorId, fragment, StringComparison.OrdinalIgnoreCase));
+        if (heading == null) return;
+
+        // Consome o fragment antes de despachar para evitar chamadas duplicadas.
+        _viewModel.PendingScrollFragment = null;
+
+        // Defer ao próximo idle para garantir que editor e preview já estão renderizados.
+        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, () =>
+        {
+            OnOutlineHeadingSelected(this, heading);
+        });
     }
 
     private void OnExplorerFileActivated(object? sender, string filePath)

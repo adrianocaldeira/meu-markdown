@@ -44,6 +44,7 @@ Existem ótimos editores Markdown. A maioria é Electron pesado, depende de nuve
 | 🗂️ **Workspace** estilo VS Code (Explorer + Outline) | 🔍 **Busca no workspace inteiro** com regex e case sensitive | ⚡ **Quick Switcher** (`Ctrl+P`) com fuzzy match |
 | 🌗 **Tema claro/escuro** com paleta cuidada | 📦 **Single-file `.exe`** (~165 MB self-contained, sem instalação obrigatória) | 🇧🇷 **100% em português** |
 | ⌨️ **Atalhos de formatação** (negrito, link, headings, etc.) | 🧘 **Zen mode** (F11) e Typewriter mode | 📤 **Exportação para HTML** |
+| 🔗 **Wiki-links `[[Arquivo]]`** com autocomplete | 📊 **Diagramas Mermaid** e fórmulas **KaTeX** no preview | 📋 **Paste de imagem** direto pra `./assets/` |
 
 ## 📥 Instalação
 
@@ -74,7 +75,9 @@ dotnet run --project src/MeuMarkdown/MeuMarkdown.csproj
 3. **Edite à esquerda, veja o preview à direita** — atualiza em ~300 ms.
 4. **Pule entre arquivos** com `Ctrl+P` (Quick Switcher fuzzy).
 5. **Clique em links `.md`** no preview — abre em nova aba automaticamente.
-6. **Exporte como HTML** pelo menu Arquivo → Exportar.
+6. **Use wiki-links** `[[NomeArquivo]]` pra linkar entre `.md` por nome — digite `[[` e o autocomplete sugere arquivos do workspace.
+7. **Cole imagens do clipboard** — `Ctrl+V` sobre uma imagem (Print Screen, recorte) salva em `./assets/` e insere o link Markdown automaticamente.
+8. **Exporte como HTML ou PDF** pelo menu Arquivo → Exportar.
 
 ## ⌨️ Atalhos
 
@@ -144,10 +147,10 @@ Arquitetura **MVVM** simples e enxuta — detalhes na [Wiki/Arquitetura](https:/
 
 ## 🗺️ Roadmap
 
-### ✅ Já entregue (v1.7.0)
+### ✅ Já entregue (v1.8.0)
 - Editor + preview live com syntax highlighting
 - Múltiplas abas com menu de contexto (fechar variantes, fixar aba) e drag-and-drop pra reordenar
-- Navegação entre `.md` linkados com histórico
+- Navegação entre `.md` linkados com histórico **e suporte a heading anchor (`#secao`)**
 - Workspace (Explorer + Outline + Busca no workspace)
 - Quick Switcher fuzzy
 - Tema claro/escuro
@@ -156,12 +159,14 @@ Arquitetura **MVVM** simples e enxuta — detalhes na [Wiki/Arquitetura](https:/
 - Zen mode / Typewriter mode
 - Auto-update com verificação silenciosa em background (toast no startup + diálogo no fechar)
 - Menu de contexto no preview (copiar texto/link/imagem)
+- **Wiki-links `[[Arquivo]]`** com autocomplete + resolução por nome no workspace
+- **Diagramas Mermaid** e **fórmulas KaTeX** no preview
+- **Paste de imagem do clipboard** direto pro `./assets/`
 
 ### 🚧 Em estudo
 - Snippets / templates de documento
-- Export para PDF nativo
-- Suporte a Mermaid e diagramas
 - Plugin/extension model
+- Backlinks panel (arquivos que linkam pro atual)
 
 ### 💭 Ideias
 - Sync opcional via Git (push pra repo do usuário)
@@ -183,4 +188,4 @@ Reportar vulnerabilidade: ver [SECURITY.md](SECURITY.md).
 
 ## 🙏 Agradecimentos
 
-Ombros de gigantes: [AvalonEdit](https://github.com/icsharpcode/AvalonEdit), [Markdig](https://github.com/xoofx/markdig), [CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet), [Lucide Icons](https://lucide.dev/), [WebView2](https://learn.microsoft.com/microsoft-edge/webview2/), [Inno Setup](https://jrsoftware.org/isinfo.php).
+Ombros de gigantes: [AvalonEdit](https://github.com/icsharpcode/AvalonEdit), [Markdig](https://github.com/xoofx/markdig), [CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet), [Lucide Icons](https://lucide.dev/), [WebView2](https://learn.microsoft.com/microsoft-edge/webview2/), [Inno Setup](https://jrsoftware.org/isinfo.php), [Mermaid](https://mermaid.js.org/) (MIT), [KaTeX](https://katex.org/) (MIT).

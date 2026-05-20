@@ -11,8 +11,9 @@ public partial class MarkdownPreview : UserControl
     private bool _isInitialized;
     private string? _pendingHtml;
     private bool _isDarkTheme;
+    private string? _pendingEnhancementDir;
 
-    public event Action<string>? LinkClicked;
+    public event Action<string, string?>? LinkClicked;
     public event Action<string>? ExternalLinkClicked;
     public event Action<int>? PreviewScrolled;
     public event Action? ExportHtmlRequested;
@@ -36,6 +37,17 @@ public partial class MarkdownPreview : UserControl
             await webView.EnsureCoreWebView2Async(env);
             webView.CoreWebView2.NavigationStarting += OnNavigationStarting;
             webView.CoreWebView2.Settings.IsScriptEnabled = true;
+
+            // Virtual host pra servir Mermaid/KaTeX (scripts grandes contornam o
+            // cap de ~2MB do NavigateToString). O diretório vem do MainWindow,
+            // que extrai os assets via MarkdownService.ExtractEnhancementAssetsTo.
+            if (!string.IsNullOrEmpty(_pendingEnhancementDir))
+            {
+                webView.CoreWebView2.SetVirtualHostNameToFolderMapping(
+                    "mm.local", _pendingEnhancementDir,
+                    CoreWebView2HostResourceAccessKind.Allow);
+                _pendingEnhancementDir = null;
+            }
             // Habilitamos o context menu pra ter "Copiar" quando há texto selecionado.
             // O handler ContextMenuRequested filtra pra deixar SÓ os itens de cópia
             // (sem print, reload, saveAs, etc).
@@ -73,6 +85,13 @@ public partial class MarkdownPreview : UserControl
 
     public void SetFullHtml(string html)
     {
+        // Cada NavigateToString cria uma nova "página". Pre-aplicamos o tema dark
+        // no body class antes da navegação pra evitar flash de light->dark (que
+        // acontecia quando setTheme() era chamado só após NavigationCompleted).
+        if (_isDarkTheme)
+        {
+            html = html.Replace("<body>", "<body class=\"dark\">");
+        }
         if (_isInitialized)
             webView.NavigateToString(html);
         else
@@ -103,6 +122,25 @@ public partial class MarkdownPreview : UserControl
         webView.CoreWebView2.SetVirtualHostNameToFolderMapping(
             "local.assets", directory,
             CoreWebView2HostResourceAccessKind.Allow);
+    }
+
+    /// <summary>
+    /// Registra o diretório com Mermaid/KaTeX como virtual host "mm.local".
+    /// Pode ser chamado antes ou depois do WebView2 inicializar.
+    /// </summary>
+    public void RegisterEnhancementAssetsHost(string directory)
+    {
+        if (string.IsNullOrEmpty(directory)) return;
+        if (_isInitialized)
+        {
+            webView.CoreWebView2.SetVirtualHostNameToFolderMapping(
+                "mm.local", directory,
+                CoreWebView2HostResourceAccessKind.Allow);
+        }
+        else
+        {
+            _pendingEnhancementDir = directory;
+        }
     }
 
     private void OnWebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
@@ -144,6 +182,12 @@ public partial class MarkdownPreview : UserControl
             webView.CoreWebView2.NavigationCompleted += OnNavCompleted;
             webView.CoreWebView2.Navigate("file:///" + sourceHtmlPath.Replace("\\", "/"));
             await tcs.Task;
+
+            // Aguarda Mermaid/KaTeX renderizarem antes de gerar o PDF — caso contrário
+            // o snapshot pega diagramas/fórmulas ainda como source bruto.
+            await webView.CoreWebView2.ExecuteScriptAsync(
+                "(async () => { if (typeof renderEnhancements === 'function') { await renderEnhancements(); } return 'done'; })()"
+            );
 
             var printSettings = webView.CoreWebView2.Environment.CreatePrintSettings();
             printSettings.Orientation = orientation == "Landscape"
@@ -251,6 +295,12 @@ public partial class MarkdownPreview : UserControl
             uri.StartsWith("http://local.assets/", StringComparison.OrdinalIgnoreCase))
             return;
 
+        // Virtual host pra Mermaid/KaTeX (scripts servidos pelo virtual host
+        // pra contornar o cap de ~2MB do NavigateToString)
+        if (uri.StartsWith("https://mm.local/", StringComparison.OrdinalIgnoreCase) ||
+            uri.StartsWith("http://mm.local/", StringComparison.OrdinalIgnoreCase))
+            return;
+
         // file:// usado internamente pelo Export PDF (temp HTML)
         if (uri.StartsWith("file:///", StringComparison.OrdinalIgnoreCase) && !e.IsUserInitiated)
             return;
@@ -260,11 +310,16 @@ public partial class MarkdownPreview : UserControl
         {
             e.Cancel = true;
             var queryString = new Uri(uri).Query;
-            var path = HttpUtility.ParseQueryString(queryString)["path"];
+            var qs = HttpUtility.ParseQueryString(queryString);
+            var path = qs["path"];
+            var fragment = qs["fragment"];
             if (!string.IsNullOrEmpty(path))
             {
                 var decodedPath = Uri.UnescapeDataString(path);
-                LinkClicked?.Invoke(decodedPath);
+                var decodedFragment = string.IsNullOrEmpty(fragment)
+                    ? null
+                    : Uri.UnescapeDataString(fragment);
+                LinkClicked?.Invoke(decodedPath, decodedFragment);
             }
             return;
         }

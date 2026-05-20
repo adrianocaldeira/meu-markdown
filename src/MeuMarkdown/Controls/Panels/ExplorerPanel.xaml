@@ -108,7 +108,8 @@
         <TreeView Grid.Row="2" x:Name="FileTree" BorderThickness="0" Background="Transparent"
                   Foreground="{DynamicResource Brush.Fg.Secondary}"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                  MouseDoubleClick="OnTreeDoubleClick">
+                  MouseDoubleClick="OnTreeDoubleClick"
+                  PreviewMouseRightButtonDown="OnTreePreviewRightButtonDown">
             <TreeView.ItemContainerStyle>
                 <Style TargetType="TreeViewItem">
                     <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />

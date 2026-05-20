@@ -4,36 +4,106 @@ using Markdig;
 using Markdig.Renderers;
 using Markdig.Renderers.Html;
 using Markdig.Syntax;
+using MeuMarkdown.Extensions.WikiLinks;
 using MeuMarkdown.Models;
 
 namespace MeuMarkdown.Services;
 
 public class MarkdownService
 {
-    private readonly MarkdownPipeline _pipeline;
+    private MarkdownPipeline _pipeline;
     private readonly string _htmlTemplate;
     private readonly string _css;
+    private readonly string _katexJs;
+    private readonly string _katexCss;
+    private readonly string _katexAutoRenderJs;
+    private readonly string _mermaidJs;
+
+    private Func<string, string?, WikiLinkResolution?>? _wikiResolver;
+    private Func<string?>? _currentFileDir;
 
     public MarkdownService()
     {
-        _pipeline = new MarkdownPipelineBuilder()
+        _htmlTemplate      = LoadEmbeddedResource("MeuMarkdown.Resources.preview-template.html");
+        _css               = LoadEmbeddedResource("MeuMarkdown.Resources.github-markdown.css");
+        _katexJs           = LoadEmbeddedResource("MeuMarkdown.Resources.katex.min.js");
+        _katexCss          = LoadEmbeddedResource("MeuMarkdown.Resources.katex.min.css");
+        _katexAutoRenderJs = LoadEmbeddedResource("MeuMarkdown.Resources.katex-auto-render.min.js");
+        _mermaidJs         = LoadEmbeddedResource("MeuMarkdown.Resources.mermaid.min.js");
+        _pipeline = BuildPipeline();
+    }
+
+    /// <summary>
+    /// Recursos KaTeX + Mermaid embutidos. Usado pelo ExportService pra incluir
+    /// os mesmos scripts no HTML exportado, garantindo que fórmulas e diagramas
+    /// renderizem no arquivo standalone.
+    /// </summary>
+    public (string KatexJs, string KatexCss, string KatexAutoRenderJs, string MermaidJs) GetEnhancementResources()
+        => (_katexJs, _katexCss, _katexAutoRenderJs, _mermaidJs);
+
+    /// <summary>
+    /// Extrai Mermaid e KaTeX (JS + auto-render) pra um diretório, pra serem servidos
+    /// via virtual host mapping pelo WebView2 (contornando o cap de ~2MB do NavigateToString).
+    /// Idempotente: só reescreve se o conteúdo diferir do já em disco.
+    /// </summary>
+    public void ExtractEnhancementAssetsTo(string directory)
+    {
+        Directory.CreateDirectory(directory);
+        WriteIfDifferent(Path.Combine(directory, "mermaid.min.js"), _mermaidJs);
+        WriteIfDifferent(Path.Combine(directory, "katex.min.js"), _katexJs);
+        WriteIfDifferent(Path.Combine(directory, "katex-auto-render.min.js"), _katexAutoRenderJs);
+    }
+
+    private static void WriteIfDifferent(string path, string content)
+    {
+        if (File.Exists(path))
+        {
+            var existing = File.ReadAllText(path);
+            if (existing == content) return;
+        }
+        File.WriteAllText(path, content);
+    }
+
+    /// <summary>
+    /// Configura o resolver de wiki-links. Reconstrói o pipeline com a extensão ativa.
+    /// Sem chamar este método, wiki-links são renderizados como broken.
+    /// </summary>
+    public void ConfigureWikiLinkResolver(
+        Func<string, string?, WikiLinkResolution?> resolver,
+        Func<string?> currentFileDir)
+    {
+        _wikiResolver = resolver;
+        _currentFileDir = currentFileDir;
+        _pipeline = BuildPipeline();
+    }
+
+    private MarkdownPipeline BuildPipeline()
+    {
+        var builder = new MarkdownPipelineBuilder()
             .UseAdvancedExtensions()
             .UseAutoIdentifiers()
             .UseTaskLists()
             .UseAutoLinks()
-            .DisableHtml()  // security: bloqueia raw HTML/script no source markdown
-            .Build();
+            .UseMathematics()
+            .DisableHtml();
 
-        _htmlTemplate = LoadEmbeddedResource("MeuMarkdown.Resources.preview-template.html");
-        _css = LoadEmbeddedResource("MeuMarkdown.Resources.github-markdown.css");
+        builder.Extensions.Add(new WikiLinkExtension(
+            _wikiResolver,
+            _currentFileDir ?? (() => null)));
+
+        return builder.Build();
     }
 
     public string ConvertToHtml(string markdown, string baseDirectory)
     {
         var html = ConvertWithDataLine(markdown);
         html = RewriteRelativeLinks(html, baseDirectory);
+        // Mermaid + KaTeX são carregados via virtual host mapping "mm.local"
+        // (registrado no MarkdownPreview) porque NavigateToString tem cap de ~2MB,
+        // e os scripts inline ultrapassam esse limite. CSS continua inline porque cabe.
         return _htmlTemplate
             .Replace("{{CSS}}", _css)
+            .Replace("{{KATEX_CSS}}", _katexCss)
             .Replace("{{CONTENT}}", html);
     }
 
@@ -113,16 +183,22 @@ public class MarkdownService
 
     private static string RewriteRelativeLinks(string html, string baseDirectory)
     {
-        // Rewrite relative .md links to use custom scheme
-        // Pattern: href="something.md" or href="path/to/file.md"
+        // Reescreve hrefs relativos terminando em .md (com fragment opcional) para
+        // o scheme mdnav://. Path e fragment ficam em query params distintos para
+        // que o handler de clique consiga separá-los sem ambiguidade.
+        // Pula hrefs que já estão no formato mdnav:// (emitidos pelo WikiLinkHtmlRenderer).
         return System.Text.RegularExpressions.Regex.Replace(
             html,
-            @"href=""(?!https?://)(?!mailto:)(?!#)([^""]*\.md(?:#[^""]*)?)""",
+            @"href=""(?!https?://)(?!mailto:)(?!#)(?!mdnav://)([^""#]*\.md)(?:#([^""]*))?""",
             match =>
             {
-                var relativePath = match.Groups[1].Value;
-                var encodedPath = Uri.EscapeDataString(relativePath);
-                return $@"href=""mdnav://open?path={encodedPath}""";
+                var path = match.Groups[1].Value;
+                var fragment = match.Groups[2].Success ? match.Groups[2].Value : null;
+                var encodedPath = Uri.EscapeDataString(path);
+                if (string.IsNullOrEmpty(fragment))
+                    return $@"href=""mdnav://open?path={encodedPath}""";
+                var encodedFragment = Uri.EscapeDataString(fragment);
+                return $@"href=""mdnav://open?path={encodedPath}&fragment={encodedFragment}""";
             });
     }
 

@@ -192,6 +192,22 @@ public partial class ExplorerPanel : UserControl
             FileActivated?.Invoke(this, node.FullPath);
     }
 
+    // WPF TreeView não muda SelectedItem em right-click — os handlers do ContextMenu
+    // dependem de SelectedItem refletir o item sob o cursor. Selecionamos manualmente
+    // o TreeViewItem que está sob o mouse no momento do right-click.
+    private void OnTreePreviewRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        var src = e.OriginalSource as DependencyObject;
+        while (src != null && src is not TreeViewItem)
+        {
+            src = System.Windows.Media.VisualTreeHelper.GetParent(src);
+        }
+        if (src is TreeViewItem item)
+        {
+            item.IsSelected = true;
+        }
+    }
+
     private void OnRecentDoubleClick(object sender, MouseButtonEventArgs e)
     {
         if (RecentList.SelectedItem is string path)

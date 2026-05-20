@@ -48,6 +48,9 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _typewriterMode;
 
+    [ObservableProperty]
+    private string? _pendingScrollFragment;
+
     public NavigationService Navigation => _navigationService;
 
     public MarkdownService MarkdownService => _markdownService;
@@ -57,6 +60,10 @@ public partial class MainViewModel : ObservableObject
         _navigationService = new NavigationService(_fileService);
         _navigationService.NavigationRequested += OnNavigationRequested;
         _workspaceSearchService = new WorkspaceSearchService(new EditorSearchService());
+
+        _markdownService.ConfigureWikiLinkResolver(
+            resolver: (target, currentDir) => _workspaceService.ResolveWikiLink(target, currentDir),
+            currentFileDir: () => SelectedTab?.Directory);
     }
 
     [RelayCommand]
@@ -245,8 +252,9 @@ public partial class MainViewModel : ObservableObject
         return _markdownService.ConvertToHtmlFragment(content, baseDirectory);
     }
 
-    private void OnNavigationRequested(string filePath)
+    private void OnNavigationRequested(string filePath, string? fragment)
     {
         OpenFileByPath(filePath);
+        PendingScrollFragment = fragment;
     }
 }
