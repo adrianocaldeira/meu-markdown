@@ -257,4 +257,44 @@ public partial class MainViewModel : ObservableObject
         OpenFileByPath(filePath);
         PendingScrollFragment = fragment;
     }
+
+    /// <summary>
+    /// Fecha todas as abas cujo arquivo não está dentro do newWorkspaceRoot.
+    /// Abas dirty pedem confirmação via TryCloseTab; se user cancela aquele save,
+    /// o lote para, mas as outras abas já processadas continuam fechadas.
+    /// </summary>
+    public void CloseTabsOutsideWorkspace(string? newWorkspaceRoot)
+    {
+        if (string.IsNullOrEmpty(newWorkspaceRoot)) return;
+
+        var tabsToClose = Tabs
+            .Where(t => !IsUnderRoot(t.FilePath, newWorkspaceRoot))
+            .ToList();
+
+        foreach (var tab in tabsToClose)
+        {
+            if (!TryCloseTab(tab))
+            {
+                // User cancelou na prompt de save — para o lote.
+                break;
+            }
+        }
+    }
+
+    private static bool IsUnderRoot(string filePath, string root)
+    {
+        if (string.IsNullOrEmpty(filePath) || string.IsNullOrEmpty(root)) return false;
+        try
+        {
+            var normalizedFile = Path.GetFullPath(filePath);
+            var normalizedRoot = Path.GetFullPath(root)
+                .TrimEnd(Path.DirectorySeparatorChar)
+                + Path.DirectorySeparatorChar;
+            return normalizedFile.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }

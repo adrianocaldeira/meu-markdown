@@ -1253,6 +1253,7 @@ public partial class MainWindow : Window
         };
         if (dlg.ShowDialog() == true)
         {
+            _viewModel.CloseTabsOutsideWorkspace(dlg.FolderName);
             _viewModel.WorkspaceService.Open(dlg.FolderName, App.State.Preferences.ExplorerShowAllFiles);
             sidebarHost.ExplorerPanel.Bind(_viewModel.WorkspaceService, _viewModel.RecentFilesService,
                 App.State.Preferences.ExplorerShowAllFiles);
