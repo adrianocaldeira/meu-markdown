@@ -34,6 +34,14 @@ public class MarkdownService
     }
 
     /// <summary>
+    /// Recursos KaTeX + Mermaid embutidos. Usado pelo ExportService pra incluir
+    /// os mesmos scripts no HTML exportado, garantindo que fórmulas e diagramas
+    /// renderizem no arquivo standalone.
+    /// </summary>
+    public (string KatexJs, string KatexCss, string KatexAutoRenderJs, string MermaidJs) GetEnhancementResources()
+        => (_katexJs, _katexCss, _katexAutoRenderJs, _mermaidJs);
+
+    /// <summary>
     /// Configura o resolver de wiki-links. Reconstrói o pipeline com a extensão ativa.
     /// Sem chamar este método, wiki-links são renderizados como broken.
     /// </summary>
