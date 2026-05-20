@@ -307,10 +307,106 @@ public partial class ExplorerPanel : UserControl
         }
     }
 
-    // Stubs — serão implementados na Fase 4
-    private void OnCopy(object sender, RoutedEventArgs e) { /* impl Fase 4 */ }
-    private void OnCut(object sender, RoutedEventArgs e) { /* impl Fase 4 */ }
-    private void OnPaste(object sender, RoutedEventArgs e) { /* impl Fase 4 */ }
+    private const string CutFlagFormat = "Preferred DropEffect";
+
+    private void OnCopy(object sender, RoutedEventArgs e)
+    {
+        if (FileTree.SelectedItem is not FileNode node) return;
+        SetClipboardForFile(node.FullPath, cut: false);
+    }
+
+    private void OnCut(object sender, RoutedEventArgs e)
+    {
+        if (FileTree.SelectedItem is not FileNode node) return;
+        SetClipboardForFile(node.FullPath, cut: true);
+    }
+
+    private static void SetClipboardForFile(string path, bool cut)
+    {
+        try
+        {
+            var data = new DataObject();
+            data.SetData(DataFormats.FileDrop, new[] { path });
+            data.SetData(DataFormats.Text, path);
+            if (cut)
+            {
+                // DROPEFFECT_MOVE = 2 — compatível com Windows Explorer.
+                var flag = new byte[] { 2, 0, 0, 0 };
+                data.SetData(CutFlagFormat, new MemoryStream(flag));
+            }
+            Clipboard.SetDataObject(data, copy: true);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Erro ao acessar clipboard:\n{ex.Message}",
+                "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void OnPaste(object sender, RoutedEventArgs e)
+    {
+        var targetDir = GetTargetDirectory();
+        if (targetDir == null) return;
+
+        try
+        {
+            var data = Clipboard.GetDataObject();
+            if (data?.GetDataPresent(DataFormats.FileDrop) != true) return;
+
+            var paths = (string[])data.GetData(DataFormats.FileDrop);
+            if (paths == null || paths.Length == 0) return;
+            var sourcePath = paths[0]; // YAGNI: 1 item por vez
+
+            if (!File.Exists(sourcePath))
+            {
+                MessageBox.Show("Arquivo do clipboard não existe mais.", "Erro",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // Detectar Cut vs Copy pela flag.
+            bool isCut = false;
+            if (data.GetDataPresent(CutFlagFormat) &&
+                data.GetData(CutFlagFormat) is MemoryStream ms)
+            {
+                var bytes = ms.ToArray();
+                isCut = bytes.Length > 0 && bytes[0] == 2;
+            }
+
+            string? result = isCut
+                ? _fileOps.MoveFile(sourcePath, targetDir, AskOverwrite)
+                : _fileOps.CopyFile(sourcePath, targetDir, AskOverwrite);
+
+            if (result != null)
+            {
+                _workspace?.Refresh();
+                if (isCut)
+                {
+                    // Clipboard fica vazio após Cut (comportamento Windows Explorer).
+                    Clipboard.Clear();
+                }
+            }
+        }
+        catch (FileOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Erro inesperado ao colar:\n{ex.Message}",
+                "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private bool AskOverwrite(string existingPath)
+    {
+        var name = Path.GetFileName(existingPath);
+        var result = MessageBox.Show(
+            $"'{name}' já existe no destino.\n\nSobrescrever?",
+            "Confirmar sobrescrita",
+            MessageBoxButton.YesNo, MessageBoxImage.Warning);
+        return result == MessageBoxResult.Yes;
+    }
 
     private void OnRename(object sender, RoutedEventArgs e)
     {
