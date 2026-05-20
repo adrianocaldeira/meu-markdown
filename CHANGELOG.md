@@ -6,6 +6,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.8.0] — 2026
+
 ### Adicionado
 - **Wiki-links `[[Arquivo]]`** com resolução por nome no workspace inteiro,
   suporte a alias (`[[Arquivo|Texto]]`), anchor de heading (`[[Arquivo#secao]]`)
@@ -24,6 +26,13 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
   E scrollam até o heading. Antes, o `#heading` era codificado dentro do path do
   scheme `mdnav://` e o `File.Exists` falhava silenciosamente. Path e fragment
   agora vão em query params distintos.
+- Menu de contexto do Explorer (clique direito num arquivo/pasta) agora reflete
+  o item sob o cursor. Antes, apenas "Renomear" funcionava — os outros itens
+  ("Excluir", "Revelar no Explorer", "Copiar caminho") falhavam silenciosamente
+  porque o WPF TreeView não muda `SelectedItem` no right-click.
+- Dark mode persiste corretamente ao trocar entre abas. Antes, o preview piscava
+  para light/dark a cada troca porque o tema era aplicado via JS após
+  `NavigationCompleted` em vez de pré-aplicado no HTML.
 
 ## [1.7.7] — 2026
 
@@ -230,7 +239,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.7.7...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.8.0
 [1.7.7]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.7
 [1.7.6]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.6
 [1.7.5]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.5
