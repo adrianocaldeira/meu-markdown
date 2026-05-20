@@ -42,6 +42,29 @@ public class MarkdownService
         => (_katexJs, _katexCss, _katexAutoRenderJs, _mermaidJs);
 
     /// <summary>
+    /// Extrai Mermaid e KaTeX (JS + auto-render) pra um diretório, pra serem servidos
+    /// via virtual host mapping pelo WebView2 (contornando o cap de ~2MB do NavigateToString).
+    /// Idempotente: só reescreve se o conteúdo diferir do já em disco.
+    /// </summary>
+    public void ExtractEnhancementAssetsTo(string directory)
+    {
+        Directory.CreateDirectory(directory);
+        WriteIfDifferent(Path.Combine(directory, "mermaid.min.js"), _mermaidJs);
+        WriteIfDifferent(Path.Combine(directory, "katex.min.js"), _katexJs);
+        WriteIfDifferent(Path.Combine(directory, "katex-auto-render.min.js"), _katexAutoRenderJs);
+    }
+
+    private static void WriteIfDifferent(string path, string content)
+    {
+        if (File.Exists(path))
+        {
+            var existing = File.ReadAllText(path);
+            if (existing == content) return;
+        }
+        File.WriteAllText(path, content);
+    }
+
+    /// <summary>
     /// Configura o resolver de wiki-links. Reconstrói o pipeline com a extensão ativa.
     /// Sem chamar este método, wiki-links são renderizados como broken.
     /// </summary>
@@ -75,12 +98,12 @@ public class MarkdownService
     {
         var html = ConvertWithDataLine(markdown);
         html = RewriteRelativeLinks(html, baseDirectory);
+        // Mermaid + KaTeX são carregados via virtual host mapping "mm.local"
+        // (registrado no MarkdownPreview) porque NavigateToString tem cap de ~2MB,
+        // e os scripts inline ultrapassam esse limite. CSS continua inline porque cabe.
         return _htmlTemplate
             .Replace("{{CSS}}", _css)
             .Replace("{{KATEX_CSS}}", _katexCss)
-            .Replace("{{KATEX_JS}}", _katexJs)
-            .Replace("{{KATEX_AUTO_RENDER_JS}}", _katexAutoRenderJs)
-            .Replace("{{MERMAID_JS}}", _mermaidJs)
             .Replace("{{CONTENT}}", html);
     }
 

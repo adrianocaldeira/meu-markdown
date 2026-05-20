@@ -132,6 +132,15 @@ public partial class MainWindow : Window
         preview.ExportPdfRequested += () => OnExportPdf(this, new RoutedEventArgs());
         textEditor.TextArea.TextView.ScrollOffsetChanged += OnEditorScrollChanged;
 
+        // Extrai Mermaid/KaTeX pra um dir local e registra como virtual host "mm.local"
+        // no WebView2. Necessário porque NavigateToString tem cap de ~2MB e os scripts
+        // inline ultrapassam o limite.
+        var assetsDir = System.IO.Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "MeuMarkdown", "webview-assets");
+        _viewModel.MarkdownService.ExtractEnhancementAssetsTo(assetsDir);
+        preview.RegisterEnhancementAssetsHost(assetsDir);
+
         // Register format command bindings
         CommandBindings.Add(new CommandBinding(FormatBoldCommand, (_, _) => WrapSelection("**", "**")));
         CommandBindings.Add(new CommandBinding(FormatItalicCommand, (_, _) => WrapSelection("*", "*")));
