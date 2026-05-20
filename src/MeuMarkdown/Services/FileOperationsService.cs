@@ -69,4 +69,80 @@ public class FileOperationsService
             throw new FileOperationException($"Erro ao criar pasta '{name}': {ex.Message}", ex);
         }
     }
+
+    /// <summary>
+    /// Copia source para destDirectory. Se nome já existe no destino:
+    /// - Se sourceDirectory == destDirectory: gera nome único automaticamente (sem callback).
+    /// - Senão: invoca onConflict; true → sobrescreve; false ou null → retorna null.
+    /// </summary>
+    public string? CopyFile(string sourcePath, string destDirectory, Func<string, bool>? onConflict)
+    {
+        if (!File.Exists(sourcePath))
+            throw new FileOperationException($"Arquivo origem não existe: {sourcePath}");
+        if (!Directory.Exists(destDirectory))
+            throw new FileOperationException($"Diretório destino não existe: {destDirectory}");
+
+        var sourceDir = Path.GetDirectoryName(sourcePath) ?? "";
+        var fileName = Path.GetFileName(sourcePath);
+        var destPath = Path.Combine(destDirectory, fileName);
+
+        if (string.Equals(sourceDir, destDirectory, StringComparison.OrdinalIgnoreCase))
+        {
+            var baseName = Path.GetFileNameWithoutExtension(fileName);
+            var ext = Path.GetExtension(fileName);
+            var uniqueName = GenerateUniqueName(destDirectory, baseName, ext);
+            destPath = Path.Combine(destDirectory, uniqueName);
+        }
+        else if (File.Exists(destPath) || Directory.Exists(destPath))
+        {
+            if (onConflict == null || !onConflict(destPath))
+                return null;
+        }
+
+        try
+        {
+            File.Copy(sourcePath, destPath, overwrite: true);
+            return destPath;
+        }
+        catch (Exception ex)
+        {
+            throw new FileOperationException($"Erro ao copiar '{fileName}': {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Move source para destDirectory. Move no mesmo dir é no-op (retorna sourcePath).
+    /// </summary>
+    public string? MoveFile(string sourcePath, string destDirectory, Func<string, bool>? onConflict)
+    {
+        if (!File.Exists(sourcePath))
+            throw new FileOperationException($"Arquivo origem não existe: {sourcePath}");
+        if (!Directory.Exists(destDirectory))
+            throw new FileOperationException($"Diretório destino não existe: {destDirectory}");
+
+        var sourceDir = Path.GetDirectoryName(sourcePath) ?? "";
+        if (string.Equals(sourceDir, destDirectory, StringComparison.OrdinalIgnoreCase))
+            return sourcePath;
+
+        var fileName = Path.GetFileName(sourcePath);
+        var destPath = Path.Combine(destDirectory, fileName);
+
+        if (File.Exists(destPath) || Directory.Exists(destPath))
+        {
+            if (onConflict == null || !onConflict(destPath))
+                return null;
+            if (File.Exists(destPath)) File.Delete(destPath);
+            else Directory.Delete(destPath, recursive: true);
+        }
+
+        try
+        {
+            File.Move(sourcePath, destPath);
+            return destPath;
+        }
+        catch (Exception ex)
+        {
+            throw new FileOperationException($"Erro ao mover '{fileName}': {ex.Message}", ex);
+        }
+    }
 }

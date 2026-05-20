@@ -106,4 +106,100 @@ public class FileOperationsServiceTests : IDisposable
 
         Assert.EndsWith("minha-pasta (2)", path);
     }
+
+    [Fact]
+    public void CopyFile_NoConflict_CopiesToDest()
+    {
+        var src = Path.Combine(_tmpDir, "src.md");
+        File.WriteAllText(src, "conteúdo");
+        var destDir = Path.Combine(_tmpDir, "sub");
+        Directory.CreateDirectory(destDir);
+
+        var svc = new FileOperationsService();
+        var result = svc.CopyFile(src, destDir, onConflict: null);
+
+        Assert.NotNull(result);
+        Assert.Equal(Path.Combine(destDir, "src.md"), result);
+        Assert.True(File.Exists(src), "Original deve continuar existindo");
+        Assert.Equal("conteúdo", File.ReadAllText(result));
+    }
+
+    [Fact]
+    public void CopyFile_SameDir_AutoIncrementsName()
+    {
+        var src = Path.Combine(_tmpDir, "foo.md");
+        File.WriteAllText(src, "x");
+
+        var svc = new FileOperationsService();
+        var result = svc.CopyFile(src, _tmpDir, onConflict: null);
+
+        Assert.EndsWith("foo (2).md", result);
+        Assert.True(File.Exists(src));
+        Assert.True(File.Exists(result));
+    }
+
+    [Fact]
+    public void CopyFile_DestExistsAndCallbackReturnsFalse_ReturnsNull()
+    {
+        var src = Path.Combine(_tmpDir, "foo.md");
+        File.WriteAllText(src, "src");
+        var destDir = Path.Combine(_tmpDir, "sub");
+        Directory.CreateDirectory(destDir);
+        File.WriteAllText(Path.Combine(destDir, "foo.md"), "dest-existing");
+
+        var svc = new FileOperationsService();
+        var result = svc.CopyFile(src, destDir, onConflict: _ => false);
+
+        Assert.Null(result);
+        Assert.Equal("dest-existing", File.ReadAllText(Path.Combine(destDir, "foo.md")));
+    }
+
+    [Fact]
+    public void CopyFile_DestExistsAndCallbackReturnsTrue_Overwrites()
+    {
+        var src = Path.Combine(_tmpDir, "foo.md");
+        File.WriteAllText(src, "new-content");
+        var destDir = Path.Combine(_tmpDir, "sub");
+        Directory.CreateDirectory(destDir);
+        File.WriteAllText(Path.Combine(destDir, "foo.md"), "old-content");
+
+        var svc = new FileOperationsService();
+        var result = svc.CopyFile(src, destDir, onConflict: _ => true);
+
+        Assert.NotNull(result);
+        Assert.Equal("new-content", File.ReadAllText(result));
+    }
+
+    [Fact]
+    public void MoveFile_NoConflict_MovesToDest()
+    {
+        var src = Path.Combine(_tmpDir, "src.md");
+        File.WriteAllText(src, "x");
+        var destDir = Path.Combine(_tmpDir, "sub");
+        Directory.CreateDirectory(destDir);
+
+        var svc = new FileOperationsService();
+        var result = svc.MoveFile(src, destDir, onConflict: null);
+
+        Assert.NotNull(result);
+        Assert.False(File.Exists(src), "Original NÃO deve existir após move");
+        Assert.True(File.Exists(result));
+    }
+
+    [Fact]
+    public void MoveFile_DestExistsAndCallbackReturnsTrue_Overwrites()
+    {
+        var src = Path.Combine(_tmpDir, "foo.md");
+        File.WriteAllText(src, "new");
+        var destDir = Path.Combine(_tmpDir, "sub");
+        Directory.CreateDirectory(destDir);
+        File.WriteAllText(Path.Combine(destDir, "foo.md"), "old");
+
+        var svc = new FileOperationsService();
+        var result = svc.MoveFile(src, destDir, onConflict: _ => true);
+
+        Assert.NotNull(result);
+        Assert.False(File.Exists(src));
+        Assert.Equal("new", File.ReadAllText(result));
+    }
 }
