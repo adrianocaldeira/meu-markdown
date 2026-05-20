@@ -4,13 +4,14 @@ using Markdig;
 using Markdig.Renderers;
 using Markdig.Renderers.Html;
 using Markdig.Syntax;
+using MeuMarkdown.Extensions.WikiLinks;
 using MeuMarkdown.Models;
 
 namespace MeuMarkdown.Services;
 
 public class MarkdownService
 {
-    private readonly MarkdownPipeline _pipeline;
+    private MarkdownPipeline _pipeline;
     private readonly string _htmlTemplate;
     private readonly string _css;
     private readonly string _katexJs;
@@ -18,23 +19,48 @@ public class MarkdownService
     private readonly string _katexAutoRenderJs;
     private readonly string _mermaidJs;
 
+    private Func<string, string?, WikiLinkResolution?>? _wikiResolver;
+    private Func<string?>? _currentFileDir;
+
     public MarkdownService()
     {
-        _pipeline = new MarkdownPipelineBuilder()
-            .UseAdvancedExtensions()
-            .UseAutoIdentifiers()
-            .UseTaskLists()
-            .UseAutoLinks()
-            .UseMathematics()
-            .DisableHtml()  // security: bloqueia raw HTML/script no source markdown
-            .Build();
-
         _htmlTemplate      = LoadEmbeddedResource("MeuMarkdown.Resources.preview-template.html");
         _css               = LoadEmbeddedResource("MeuMarkdown.Resources.github-markdown.css");
         _katexJs           = LoadEmbeddedResource("MeuMarkdown.Resources.katex.min.js");
         _katexCss          = LoadEmbeddedResource("MeuMarkdown.Resources.katex.min.css");
         _katexAutoRenderJs = LoadEmbeddedResource("MeuMarkdown.Resources.katex-auto-render.min.js");
         _mermaidJs         = LoadEmbeddedResource("MeuMarkdown.Resources.mermaid.min.js");
+        _pipeline = BuildPipeline();
+    }
+
+    /// <summary>
+    /// Configura o resolver de wiki-links. Reconstrói o pipeline com a extensão ativa.
+    /// Sem chamar este método, wiki-links são renderizados como broken.
+    /// </summary>
+    public void ConfigureWikiLinkResolver(
+        Func<string, string?, WikiLinkResolution?> resolver,
+        Func<string?> currentFileDir)
+    {
+        _wikiResolver = resolver;
+        _currentFileDir = currentFileDir;
+        _pipeline = BuildPipeline();
+    }
+
+    private MarkdownPipeline BuildPipeline()
+    {
+        var builder = new MarkdownPipelineBuilder()
+            .UseAdvancedExtensions()
+            .UseAutoIdentifiers()
+            .UseTaskLists()
+            .UseAutoLinks()
+            .UseMathematics()
+            .DisableHtml();
+
+        builder.Extensions.Add(new WikiLinkExtension(
+            _wikiResolver,
+            _currentFileDir ?? (() => null)));
+
+        return builder.Build();
     }
 
     public string ConvertToHtml(string markdown, string baseDirectory)

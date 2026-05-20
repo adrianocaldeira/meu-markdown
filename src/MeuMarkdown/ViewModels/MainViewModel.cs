@@ -60,6 +60,10 @@ public partial class MainViewModel : ObservableObject
         _navigationService = new NavigationService(_fileService);
         _navigationService.NavigationRequested += OnNavigationRequested;
         _workspaceSearchService = new WorkspaceSearchService(new EditorSearchService());
+
+        _markdownService.ConfigureWikiLinkResolver(
+            resolver: (target, currentDir) => _workspaceService.ResolveWikiLink(target, currentDir),
+            currentFileDir: () => SelectedTab?.Directory);
     }
 
     [RelayCommand]
