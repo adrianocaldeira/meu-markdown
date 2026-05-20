@@ -416,6 +416,7 @@ public partial class MainWindow : Window
             var words = System.Text.RegularExpressions.Regex.Matches(text, @"\b\w+\b").Count;
             _viewModel.SelectedTab.UpdateMetrics(words, text.Length);
         }
+        TryConsumePendingScrollFragment();
     }
 
     private void UpdatePreview()
@@ -473,6 +474,11 @@ public partial class MainWindow : Window
 
         // Reveal o arquivo ativo na árvore do Explorer (no-op se fora do workspace).
         sidebarHost.ExplorerPanel.RevealFile(_viewModel.SelectedTab.FilePath);
+
+        // Se há um fragment pendente e os Headings já estão populados (aba já aberta antes),
+        // consomemos aqui. Caso contrário (aba nova), o OnDebounceTimerTick vai consumir
+        // após extrair os headings do conteúdo carregado.
+        TryConsumePendingScrollFragment();
     }
 
     private void OnPreviewLinkClicked(string relativePath, string? fragment)
@@ -1200,6 +1206,28 @@ public partial class MainWindow : Window
         // não chega no preview. Disparamos o scroll do preview explicitamente também.
         preview.ScrollToLine(line);
         if (!_isViewMode) textEditor.Focus();
+    }
+
+    private void TryConsumePendingScrollFragment()
+    {
+        var fragment = _viewModel.PendingScrollFragment;
+        if (string.IsNullOrEmpty(fragment)) return;
+
+        var tab = _viewModel.SelectedTab;
+        if (tab == null) return;
+
+        var heading = tab.Headings.FirstOrDefault(h =>
+            string.Equals(h.AnchorId, fragment, StringComparison.OrdinalIgnoreCase));
+        if (heading == null) return;
+
+        // Consome o fragment antes de despachar para evitar chamadas duplicadas.
+        _viewModel.PendingScrollFragment = null;
+
+        // Defer ao próximo idle para garantir que editor e preview já estão renderizados.
+        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, () =>
+        {
+            OnOutlineHeadingSelected(this, heading);
+        });
     }
 
     private void OnExplorerFileActivated(object? sender, string filePath)
