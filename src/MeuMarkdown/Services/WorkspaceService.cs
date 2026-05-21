@@ -95,13 +95,36 @@ public class WorkspaceService : IDisposable
         lock (_wikiLinkLock) { _wikiLinkIndex = null; }
     }
 
+    /// <summary>
+    /// Rebuilda a árvore preservando estado de expansão e seleção das pastas.
+    /// (Open() faz Close()+BuildNode() do zero — perde estado. Esta versão snapshot
+    /// + restore espelha o que o OnDebounceTimerElapsed faz, garantindo que operações
+    /// de criar/copiar/colar/excluir não colapsem o TreeView.)
+    /// </summary>
     public void Refresh()
     {
         if (RootPath == null) return;
-        var path = RootPath;
-        var show = _showAllFiles;
-        Open(path, show);
-        TreeChanged?.Invoke(this, EventArgs.Empty);
+
+        try
+        {
+            // Snapshot do estado atual
+            var expandedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            string? selectedPath = null;
+            if (Root != null) CollectState(Root, expandedPaths, ref selectedPath);
+
+            // Rebuild
+            var newRoot = BuildNode(RootPath);
+            newRoot.IsExpanded = true;
+            RestoreState(newRoot, expandedPaths, selectedPath);
+            Root = newRoot;
+
+            lock (_wikiLinkLock) { _wikiLinkIndex = null; }
+            TreeChanged?.Invoke(this, EventArgs.Empty);
+        }
+        catch
+        {
+            // Diretório pode ter sido deletado mid-rebuild
+        }
     }
 
     public IEnumerable<string> EnumerateMarkdownFiles()

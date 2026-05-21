@@ -11,10 +11,22 @@ public partial class InputDialog : Window
     {
         InitializeComponent();
         Title = title;
+        TitleText.Text = title;
         PromptText.Text = prompt;
         InputBox.Text = defaultValue;
         InputBox.SelectAll();
         InputBox.Focus();
+    }
+
+    private void OnHeaderDrag(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton == MouseButton.Left) DragMove();
+    }
+
+    private void OnCloseClick(object sender, RoutedEventArgs e)
+    {
+        DialogResult = false;
+        Close();
     }
 
     private void OnOk(object sender, RoutedEventArgs e)

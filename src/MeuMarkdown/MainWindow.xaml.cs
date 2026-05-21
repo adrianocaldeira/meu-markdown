@@ -201,6 +201,7 @@ public partial class MainWindow : Window
             _viewModel.RecentFilesService,
             App.State.Preferences.ExplorerShowAllFiles);
         sidebarHost.ExplorerPanel.FileActivated += OnExplorerFileActivated;
+        sidebarHost.ExplorerPanel.FilePreview += OnExplorerFilePreview;
         sidebarHost.ExplorerPanel.OpenFolderRequested += OnOpenFolderRequested;
         sidebarHost.ExplorerPanel.CloseWorkspaceRequested += OnCloseWorkspaceRequested;
         sidebarHost.ExplorerPanel.ShowAllFilesChanged += OnShowAllFilesChanged;
@@ -348,6 +349,17 @@ public partial class MainWindow : Window
     private void ToggleViewMode()
     {
         _isViewMode = !_isViewMode;
+        ApplyViewMode();
+    }
+
+    /// <summary>
+    /// Força o modo de visualização para o valor especificado.
+    /// Usado pelos handlers do Explorer (single click = visualização, double = edit+preview).
+    /// </summary>
+    public void SetViewMode(bool viewMode)
+    {
+        if (_isViewMode == viewMode) return;
+        _isViewMode = viewMode;
         ApplyViewMode();
     }
 
@@ -1242,7 +1254,16 @@ public partial class MainWindow : Window
 
     private void OnExplorerFileActivated(object? sender, string filePath)
     {
+        // Double-click no Explorer → modo edit+preview (split).
         _viewModel.OpenFileByPath(filePath);
+        SetViewMode(false);
+    }
+
+    private void OnExplorerFilePreview(object? sender, string filePath)
+    {
+        // Single-click no Explorer → modo visualização (apenas preview).
+        _viewModel.OpenFileByPath(filePath);
+        SetViewMode(true);
     }
 
     private void OnOpenFolderRequested(object? sender, EventArgs e)

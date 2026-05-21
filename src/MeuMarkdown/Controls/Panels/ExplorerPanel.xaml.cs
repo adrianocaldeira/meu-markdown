@@ -26,6 +26,8 @@ public partial class ExplorerPanel : UserControl
     public static readonly RoutedUICommand DeleteCommand = new("Excluir", "DeleteEx", typeof(ExplorerPanel));
 
     public event EventHandler<string>? FileActivated;
+    /// <summary>Disparado em single-click sobre arquivo — pra abrir em modo visualização apenas.</summary>
+    public event EventHandler<string>? FilePreview;
     public event EventHandler? OpenFolderRequested;
     public event EventHandler? CloseWorkspaceRequested;
     public event EventHandler<bool>? ShowAllFilesChanged;
@@ -204,8 +206,60 @@ public partial class ExplorerPanel : UserControl
     private void OnToggleShowAll(object sender, RoutedEventArgs e)
         => ShowAllFilesChanged?.Invoke(this, ShowAllFilesItem.IsChecked);
 
+    // Single-click vs double-click — usamos timer (~250ms) pra distinguir:
+    // - MouseLeftButtonUp arma o timer (single click pendente)
+    // - MouseDoubleClick cancela o timer + dispara FileActivated (edit)
+    // - Timer firing sem cancel → dispara FilePreview (preview only)
+    private System.Windows.Threading.DispatcherTimer? _singleClickTimer;
+    private FileNode? _pendingClickNode;
+    // No WPF, a ordem de eventos pra double click é:
+    //   Up(1) → DoubleClick → Up(2)
+    // O Up(2) chamaria o handler de single-click e rearmaria o timer (que dispararia
+    // ~250ms depois trocando o modo de volta pra preview). Esta flag é setada no
+    // DoubleClick e consumida no Up(2) pra ignorar esse segundo Up.
+    private bool _suppressNextLeftUp;
+
+    private void OnTreeMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (_suppressNextLeftUp)
+        {
+            _suppressNextLeftUp = false;
+            return;
+        }
+        if (FileTree.SelectedItem is not FileNode node) return;
+        if (node.IsDirectory) return; // pasta single-click só expande/seleciona
+
+        _pendingClickNode = node;
+        if (_singleClickTimer == null)
+        {
+            _singleClickTimer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(250)
+            };
+            _singleClickTimer.Tick += OnSingleClickTimerTick;
+        }
+        _singleClickTimer.Stop();
+        _singleClickTimer.Start();
+    }
+
+    private void OnSingleClickTimerTick(object? sender, EventArgs e)
+    {
+        _singleClickTimer?.Stop();
+        var node = _pendingClickNode;
+        _pendingClickNode = null;
+        if (node == null) return;
+        FilePreview?.Invoke(this, node.FullPath);
+    }
+
     private void OnTreeDoubleClick(object sender, MouseButtonEventArgs e)
     {
+        // Cancela single-click pendente — o user fez double-click, queremos modo edit.
+        _singleClickTimer?.Stop();
+        _pendingClickNode = null;
+        // Suprime o próximo MouseLeftButtonUp (que viria do segundo click do double)
+        // pra não rearmar o timer e voltar pra preview.
+        _suppressNextLeftUp = true;
+
         if (FileTree.SelectedItem is FileNode node && !node.IsDirectory)
             FileActivated?.Invoke(this, node.FullPath);
     }
@@ -298,7 +352,7 @@ public partial class ExplorerPanel : UserControl
         }
         catch (FileOperationException ex)
         {
-            MessageBox.Show(ex.Message, "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageDialog.Error(Window.GetWindow(this), "Erro", ex.Message);
         }
     }
 
@@ -368,7 +422,7 @@ public partial class ExplorerPanel : UserControl
         }
         catch (FileOperationException ex)
         {
-            MessageBox.Show(ex.Message, "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageDialog.Error(owner, "Erro", ex.Message);
         }
     }
 
@@ -392,7 +446,7 @@ public partial class ExplorerPanel : UserControl
         }
         catch (FileOperationException ex)
         {
-            MessageBox.Show(ex.Message, "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageDialog.Error(owner, "Erro", ex.Message);
         }
     }
 
@@ -427,8 +481,8 @@ public partial class ExplorerPanel : UserControl
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Erro ao acessar clipboard:\n{ex.Message}",
-                "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageDialog.Error(Application.Current?.MainWindow,
+                "Erro", $"Erro ao acessar clipboard:\n{ex.Message}");
         }
     }
 
@@ -446,10 +500,13 @@ public partial class ExplorerPanel : UserControl
             if (paths == null || paths.Length == 0) return;
             var sourcePath = paths[0]; // YAGNI: 1 item por vez
 
-            if (!File.Exists(sourcePath))
+            // Suporta tanto arquivos quanto pastas.
+            bool sourceIsFile = File.Exists(sourcePath);
+            bool sourceIsDir = Directory.Exists(sourcePath);
+            if (!sourceIsFile && !sourceIsDir)
             {
-                MessageBox.Show("Arquivo do clipboard não existe mais.", "Erro",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageDialog.Info(Window.GetWindow(this), "Erro",
+                    "Arquivo/pasta do clipboard não existe mais.");
                 return;
             }
 
@@ -462,6 +519,15 @@ public partial class ExplorerPanel : UserControl
                 isCut = bytes.Length > 0 && bytes[0] == 2;
             }
 
+            // _fileOps.CopyFile/MoveFile lidam apenas com arquivos por enquanto.
+            // Pasta no clipboard: avisar e abortar (YAGNI até v2).
+            if (sourceIsDir)
+            {
+                MessageDialog.Info(Window.GetWindow(this), "Não suportado",
+                    "Copiar/colar pastas ainda não é suportado (apenas arquivos).\n\nVocê pode arrastar a pasta no Explorer do Windows.");
+                return;
+            }
+
             string? result = isCut
                 ? _fileOps.MoveFile(sourcePath, targetDir, AskOverwrite)
                 : _fileOps.CopyFile(sourcePath, targetDir, AskOverwrite);
@@ -469,61 +535,36 @@ public partial class ExplorerPanel : UserControl
             if (result != null)
             {
                 _workspace?.Refresh();
-                if (isCut)
-                {
-                    // Clipboard fica vazio após Cut (comportamento Windows Explorer).
-                    Clipboard.Clear();
-                }
+                if (isCut) Clipboard.Clear();
             }
         }
         catch (FileOperationException ex)
         {
-            MessageBox.Show(ex.Message, "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageDialog.Error(Window.GetWindow(this), "Erro", ex.Message);
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Erro inesperado ao colar:\n{ex.Message}",
-                "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageDialog.Error(Window.GetWindow(this), "Erro",
+                $"Erro inesperado ao colar:\n{ex.Message}");
         }
     }
 
     private bool AskOverwrite(string existingPath)
     {
         var name = Path.GetFileName(existingPath);
-        var result = MessageBox.Show(
-            $"'{name}' já existe no destino.\n\nSobrescrever?",
-            "Confirmar sobrescrita",
-            MessageBoxButton.YesNo, MessageBoxImage.Warning);
-        return result == MessageBoxResult.Yes;
+        return MessageDialog.Confirm(Window.GetWindow(this), "Confirmar sobrescrita",
+            $"'{name}' já existe no destino.\n\nSobrescrever?", MessageDialogKind.Warning);
     }
 
     private void OnRename(object sender, RoutedEventArgs e)
     {
         if (FileTree.SelectedItem is not FileNode node) return;
-        var dlg = new Window
-        {
-            Title = "Renomear",
-            Width = 360, Height = 130, ResizeMode = ResizeMode.NoResize,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            Owner = Window.GetWindow(this)
-        };
-        var grid = new Grid { Margin = new Thickness(12) };
-        grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        var tb = new TextBox { Text = node.Name, FontSize = 13, Margin = new Thickness(0, 0, 0, 12) };
-        var ok = new Button { Content = "OK", Width = 80, IsDefault = true, HorizontalAlignment = HorizontalAlignment.Right };
-        Grid.SetRow(tb, 0);
-        Grid.SetRow(ok, 1);
-        grid.Children.Add(tb);
-        grid.Children.Add(ok);
-        dlg.Content = grid;
-        ok.Click += (_, _) => dlg.DialogResult = true;
-        tb.Focus();
-        tb.SelectAll();
-        if (dlg.ShowDialog() != true) return;
+        var owner = Window.GetWindow(this);
+        if (owner == null) return;
 
-        var newName = tb.Text.Trim();
-        if (string.IsNullOrEmpty(newName) || newName == node.Name) return;
+        var newName = InputDialog.Show(owner, "Renomear", $"Novo nome para '{node.Name}':", node.Name);
+        if (string.IsNullOrWhiteSpace(newName) || newName == node.Name) return;
+
         var newPath = Path.Combine(Path.GetDirectoryName(node.FullPath) ?? "", newName);
         try
         {
@@ -532,25 +573,39 @@ public partial class ExplorerPanel : UserControl
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Erro ao renomear:\n{ex.Message}", "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageDialog.Error(owner, "Erro", $"Erro ao renomear:\n{ex.Message}");
         }
     }
 
     private void OnDelete(object sender, RoutedEventArgs e)
     {
         if (FileTree.SelectedItem is not FileNode node) return;
-        var result = MessageBox.Show(
-            $"Excluir '{node.Name}' permanentemente?\n\n(Nota: v1 não suporta lixeira)",
-            "Confirmar exclusão", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-        if (result != MessageBoxResult.Yes) return;
+        var owner = Window.GetWindow(this);
+        var confirmed = MessageDialog.Confirm(owner, "Confirmar exclusão",
+            $"Mover '{node.Name}' para a Lixeira?", MessageDialogKind.Warning);
+        if (!confirmed) return;
         try
         {
-            if (node.IsDirectory) Directory.Delete(node.FullPath, recursive: true);
-            else File.Delete(node.FullPath);
+            // Manda pra Lixeira do Windows (em vez de File.Delete que é permanente).
+            // Usa Microsoft.VisualBasic.FileIO — built-in no BCL, sem NuGet.
+            if (node.IsDirectory)
+            {
+                Microsoft.VisualBasic.FileIO.FileSystem.DeleteDirectory(
+                    node.FullPath,
+                    Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs,
+                    Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
+            }
+            else
+            {
+                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(
+                    node.FullPath,
+                    Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs,
+                    Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
+            }
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Erro ao excluir:\n{ex.Message}", "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageDialog.Error(owner, "Erro", $"Erro ao excluir:\n{ex.Message}");
         }
     }
 

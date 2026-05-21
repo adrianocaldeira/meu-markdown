@@ -110,6 +110,7 @@
                   Foreground="{DynamicResource Brush.Fg.Secondary}"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                   MouseDoubleClick="OnTreeDoubleClick"
+                  MouseLeftButtonUp="OnTreeMouseLeftButtonUp"
                   PreviewMouseRightButtonDown="OnTreePreviewRightButtonDown"
                   PreviewMouseLeftButtonDown="OnTreePreviewLeftButtonDown"
                   PreviewMouseMove="OnTreePreviewMouseMove"
@@ -208,7 +209,7 @@
                     <MenuItem Header="Novo arquivo" Click="OnNewFile" InputGestureText="Ctrl+N" />
                     <MenuItem Header="Nova pasta" Click="OnNewFolder" InputGestureText="Ctrl+Shift+N" />
                     <Separator />
-                    <MenuItem Header="Abrir em nova aba" Click="OnOpenInNewTab" />
+                    <MenuItem Header="Abrir" Click="OnOpenInNewTab" />
                     <MenuItem Header="Renomear (F2)" Click="OnRename" />
                     <MenuItem Header="Excluir" Click="OnDelete" InputGestureText="Del" />
                     <Separator />
