@@ -61,6 +61,7 @@ public partial class MainWindow : Window
     private WindowState _savedWindowState;
     private WindowStyle _savedWindowStyle;
     private TypewriterScrollManager? _typewriterManager;
+    private readonly Services.MermaidTemplateService _mermaidTemplateService = new();
 
     public MainWindow()
     {
@@ -1131,6 +1132,47 @@ public partial class MainWindow : Window
     {
         textEditor.Document.Insert(textEditor.CaretOffset, text);
         textEditor.CaretOffset += text.Length;
+        textEditor.Focus();
+    }
+
+    private void OnInsertMermaidTemplate(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem mi) return;
+        if (mi.Tag is not string typeName) return;
+        if (!Enum.TryParse<Models.Mermaid.MermaidDiagramType>(typeName, out var type)) return;
+
+        var template = _mermaidTemplateService.GetTemplate(type);
+        InsertMermaidBlock(template);
+    }
+
+    private void OnOpenMermaidBuilder(object sender, RoutedEventArgs e)
+    {
+        // Implementado na Task 17.
+        MessageDialog.Info(this, "Em breve", "O construtor visual chega na Task 17 deste plano.");
+    }
+
+    private void InsertMermaidBlock(string mermaidCode)
+    {
+        if (textEditor == null) return;
+        var content = textEditor.Document.Text ?? "";
+        var caret = textEditor.CaretOffset;
+
+        var (text, newOffset) = Services.MarkdownInsertionService
+            .BuildMermaidInsertion(content, caret, mermaidCode);
+
+        var selection = textEditor.TextArea.Selection;
+        if (!selection.IsEmpty)
+        {
+            var startOffset = textEditor.SelectionStart;
+            var length = textEditor.SelectionLength;
+            textEditor.Document.Replace(startOffset, length, text);
+            textEditor.CaretOffset = startOffset + text.Length;
+        }
+        else
+        {
+            textEditor.Document.Insert(caret, text);
+            textEditor.CaretOffset = newOffset;
+        }
         textEditor.Focus();
     }
 

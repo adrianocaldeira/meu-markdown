@@ -262,6 +262,20 @@
                         </MenuItem.Icon>
                     </MenuItem>
                 </MenuItem>
+                <MenuItem Header="_Inserir">
+                    <MenuItem Header="_Mermaid">
+                        <MenuItem Header="Fluxograma (template)" Click="OnInsertMermaidTemplate" Tag="Flowchart" />
+                        <MenuItem Header="Sequência (template)" Click="OnInsertMermaidTemplate" Tag="Sequence" />
+                        <MenuItem Header="Classe (template)" Click="OnInsertMermaidTemplate" Tag="Class" />
+                        <MenuItem Header="ER (template)" Click="OnInsertMermaidTemplate" Tag="Er" />
+                        <MenuItem Header="Estado (template)" Click="OnInsertMermaidTemplate" Tag="State" />
+                        <MenuItem Header="Gantt (template)" Click="OnInsertMermaidTemplate" Tag="Gantt" />
+                        <MenuItem Header="Mindmap (template)" Click="OnInsertMermaidTemplate" Tag="Mindmap" />
+                        <MenuItem Header="Pie (template)" Click="OnInsertMermaidTemplate" Tag="Pie" />
+                        <Separator />
+                        <MenuItem Header="Construtor visual…" Click="OnOpenMermaidBuilder" />
+                    </MenuItem>
+                </MenuItem>
                 <MenuItem Header="_Exibir">
                     <MenuItem Header="Modo _Visualização" x:Name="viewModeMenuItem" IsCheckable="True"
                               Click="OnToggleViewMode" InputGestureText="F5">
