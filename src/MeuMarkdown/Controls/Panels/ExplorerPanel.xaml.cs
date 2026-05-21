@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using MeuMarkdown.Controls;
 using MeuMarkdown.Models;
 using MeuMarkdown.Services;
 
@@ -12,6 +13,17 @@ public partial class ExplorerPanel : UserControl
 {
     private WorkspaceService? _workspace;
     private RecentFilesService? _recent;
+    private readonly FileOperationsService _fileOps = new();
+
+    private System.Windows.Point _dragStartPoint;
+    private FileNode? _dragSourceNode;
+
+    public static readonly RoutedUICommand NewFileCommand = new("Novo arquivo", "NewFile", typeof(ExplorerPanel));
+    public static readonly RoutedUICommand NewFolderCommand = new("Nova pasta", "NewFolder", typeof(ExplorerPanel));
+    public static readonly RoutedUICommand CopyCommand = new("Copiar", "CopyEx", typeof(ExplorerPanel));
+    public static readonly RoutedUICommand CutCommand = new("Recortar", "CutEx", typeof(ExplorerPanel));
+    public static readonly RoutedUICommand PasteCommand = new("Colar", "PasteEx", typeof(ExplorerPanel));
+    public static readonly RoutedUICommand DeleteCommand = new("Excluir", "DeleteEx", typeof(ExplorerPanel));
 
     public event EventHandler<string>? FileActivated;
     public event EventHandler? OpenFolderRequested;
@@ -22,6 +34,12 @@ public partial class ExplorerPanel : UserControl
     public ExplorerPanel()
     {
         InitializeComponent();
+        CommandBindings.Add(new CommandBinding(NewFileCommand, OnNewFile));
+        CommandBindings.Add(new CommandBinding(NewFolderCommand, OnNewFolder));
+        CommandBindings.Add(new CommandBinding(CopyCommand, OnCopy));
+        CommandBindings.Add(new CommandBinding(CutCommand, OnCut));
+        CommandBindings.Add(new CommandBinding(PasteCommand, OnPaste));
+        CommandBindings.Add(new CommandBinding(DeleteCommand, OnDelete));
     }
 
     public void Bind(WorkspaceService workspace, RecentFilesService recent, bool showAllFiles)
@@ -208,6 +226,92 @@ public partial class ExplorerPanel : UserControl
         }
     }
 
+    private void OnTreePreviewLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _dragStartPoint = e.GetPosition(null);
+        _dragSourceNode = FindFileNode(e.OriginalSource);
+    }
+
+    private void OnTreePreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed) return;
+        if (_dragSourceNode == null) return;
+
+        var diff = _dragStartPoint - e.GetPosition(null);
+        if (Math.Abs(diff.X) < SystemParameters.MinimumHorizontalDragDistance &&
+            Math.Abs(diff.Y) < SystemParameters.MinimumVerticalDragDistance) return;
+
+        try
+        {
+            var data = new DataObject(DataFormats.FileDrop, new[] { _dragSourceNode.FullPath });
+            var effect = (Keyboard.Modifiers & ModifierKeys.Control) != 0
+                ? DragDropEffects.Copy
+                : DragDropEffects.Move;
+            DragDrop.DoDragDrop(FileTree, data, effect);
+        }
+        finally
+        {
+            _dragSourceNode = null;
+        }
+    }
+
+    private void OnTreeDragOver(object sender, DragEventArgs e)
+    {
+        e.Effects = DragDropEffects.None;
+        e.Handled = true;
+
+        if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
+
+        var target = FindFileNode(e.OriginalSource);
+        if (target?.IsDirectory != true) return;
+
+        e.Effects = (e.KeyStates & DragDropKeyStates.ControlKey) != 0
+            ? DragDropEffects.Copy
+            : DragDropEffects.Move;
+    }
+
+    private void OnTreeDrop(object sender, DragEventArgs e)
+    {
+        e.Handled = true;
+
+        var target = FindFileNode(e.OriginalSource);
+        if (target?.IsDirectory != true) return;
+
+        if (e.Data.GetData(DataFormats.FileDrop) is not string[] sources || sources.Length == 0) return;
+        var sourcePath = sources[0];
+
+        // Cancela drops degenerados
+        if (string.Equals(System.IO.Path.GetDirectoryName(sourcePath), target.FullPath, StringComparison.OrdinalIgnoreCase))
+            return; // arquivo já está dentro da pasta destino
+        if (string.Equals(sourcePath, target.FullPath, StringComparison.OrdinalIgnoreCase))
+            return; // drop em si mesmo
+
+        var isCopy = (e.KeyStates & DragDropKeyStates.ControlKey) != 0;
+
+        try
+        {
+            string? result = isCopy
+                ? _fileOps.CopyFile(sourcePath, target.FullPath, AskOverwrite)
+                : _fileOps.MoveFile(sourcePath, target.FullPath, AskOverwrite);
+
+            if (result != null) _workspace?.Refresh();
+        }
+        catch (FileOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private static FileNode? FindFileNode(object originalSource)
+    {
+        var dep = originalSource as System.Windows.DependencyObject;
+        while (dep != null && dep is not TreeViewItem)
+        {
+            dep = System.Windows.Media.VisualTreeHelper.GetParent(dep);
+        }
+        return (dep as TreeViewItem)?.DataContext as FileNode;
+    }
+
     private void OnRecentDoubleClick(object sender, MouseButtonEventArgs e)
     {
         if (RecentList.SelectedItem is string path)
@@ -218,6 +322,179 @@ public partial class ExplorerPanel : UserControl
     {
         if (FileTree.SelectedItem is FileNode node && !node.IsDirectory)
             FileActivated?.Invoke(this, node.FullPath);
+    }
+
+    /// <summary>
+    /// Diretório alvo de operações de criar/colar:
+    /// - Item selecionado é pasta → essa pasta
+    /// - Item selecionado é arquivo → diretório do arquivo
+    /// - Sem seleção → root do workspace
+    /// </summary>
+    private string? GetTargetDirectory()
+    {
+        if (FileTree.SelectedItem is FileNode node)
+        {
+            return node.IsDirectory ? node.FullPath : System.IO.Path.GetDirectoryName(node.FullPath);
+        }
+        return _workspace?.RootPath;
+    }
+
+    private void OnNewFile(object sender, RoutedEventArgs e)
+    {
+        var targetDir = GetTargetDirectory();
+        if (targetDir == null) return;
+
+        var suggested = FileOperationsService.GenerateUniqueName(targetDir, "novo-arquivo", ".md");
+        var owner = Window.GetWindow(this);
+        if (owner == null) return;
+
+        var name = InputDialog.Show(owner, "Novo arquivo",
+            $"Nome do novo arquivo em '{System.IO.Path.GetFileName(targetDir)}':", suggested);
+        if (string.IsNullOrWhiteSpace(name)) return;
+
+        if (!name.EndsWith(".md", StringComparison.OrdinalIgnoreCase) &&
+            !name.EndsWith(".markdown", StringComparison.OrdinalIgnoreCase))
+        {
+            name += ".md";
+        }
+
+        try
+        {
+            var baseName = System.IO.Path.GetFileNameWithoutExtension(name);
+            var ext = System.IO.Path.GetExtension(name);
+            var newPath = _fileOps.CreateNewFile(targetDir, baseName, ext);
+            _workspace?.Refresh();
+            FileActivated?.Invoke(this, newPath);
+        }
+        catch (FileOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void OnNewFolder(object sender, RoutedEventArgs e)
+    {
+        var targetDir = GetTargetDirectory();
+        if (targetDir == null) return;
+
+        var suggested = FileOperationsService.GenerateUniqueName(targetDir, "nova-pasta", null);
+        var owner = Window.GetWindow(this);
+        if (owner == null) return;
+
+        var name = InputDialog.Show(owner, "Nova pasta",
+            $"Nome da nova pasta em '{System.IO.Path.GetFileName(targetDir)}':", suggested);
+        if (string.IsNullOrWhiteSpace(name)) return;
+
+        try
+        {
+            _fileOps.CreateNewFolder(targetDir, name);
+            _workspace?.Refresh();
+        }
+        catch (FileOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private const string CutFlagFormat = "Preferred DropEffect";
+
+    private void OnCopy(object sender, RoutedEventArgs e)
+    {
+        if (FileTree.SelectedItem is not FileNode node) return;
+        SetClipboardForFile(node.FullPath, cut: false);
+    }
+
+    private void OnCut(object sender, RoutedEventArgs e)
+    {
+        if (FileTree.SelectedItem is not FileNode node) return;
+        SetClipboardForFile(node.FullPath, cut: true);
+    }
+
+    private static void SetClipboardForFile(string path, bool cut)
+    {
+        try
+        {
+            var data = new DataObject();
+            data.SetData(DataFormats.FileDrop, new[] { path });
+            data.SetData(DataFormats.Text, path);
+            if (cut)
+            {
+                // DROPEFFECT_MOVE = 2 — compatível com Windows Explorer.
+                var flag = new byte[] { 2, 0, 0, 0 };
+                data.SetData(CutFlagFormat, new MemoryStream(flag));
+            }
+            Clipboard.SetDataObject(data, copy: true);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Erro ao acessar clipboard:\n{ex.Message}",
+                "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void OnPaste(object sender, RoutedEventArgs e)
+    {
+        var targetDir = GetTargetDirectory();
+        if (targetDir == null) return;
+
+        try
+        {
+            var data = Clipboard.GetDataObject();
+            if (data?.GetDataPresent(DataFormats.FileDrop) != true) return;
+
+            var paths = (string[])data.GetData(DataFormats.FileDrop);
+            if (paths == null || paths.Length == 0) return;
+            var sourcePath = paths[0]; // YAGNI: 1 item por vez
+
+            if (!File.Exists(sourcePath))
+            {
+                MessageBox.Show("Arquivo do clipboard não existe mais.", "Erro",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // Detectar Cut vs Copy pela flag.
+            bool isCut = false;
+            if (data.GetDataPresent(CutFlagFormat) &&
+                data.GetData(CutFlagFormat) is MemoryStream ms)
+            {
+                var bytes = ms.ToArray();
+                isCut = bytes.Length > 0 && bytes[0] == 2;
+            }
+
+            string? result = isCut
+                ? _fileOps.MoveFile(sourcePath, targetDir, AskOverwrite)
+                : _fileOps.CopyFile(sourcePath, targetDir, AskOverwrite);
+
+            if (result != null)
+            {
+                _workspace?.Refresh();
+                if (isCut)
+                {
+                    // Clipboard fica vazio após Cut (comportamento Windows Explorer).
+                    Clipboard.Clear();
+                }
+            }
+        }
+        catch (FileOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Erro inesperado ao colar:\n{ex.Message}",
+                "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private bool AskOverwrite(string existingPath)
+    {
+        var name = Path.GetFileName(existingPath);
+        var result = MessageBox.Show(
+            $"'{name}' já existe no destino.\n\nSobrescrever?",
+            "Confirmar sobrescrita",
+            MessageBoxButton.YesNo, MessageBoxImage.Warning);
+        return result == MessageBoxResult.Yes;
     }
 
     private void OnRename(object sender, RoutedEventArgs e)

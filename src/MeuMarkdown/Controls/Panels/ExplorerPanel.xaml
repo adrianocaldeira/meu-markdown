@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:MeuMarkdown.Controls"
              xmlns:models="clr-namespace:MeuMarkdown.Models"
+             xmlns:local="clr-namespace:MeuMarkdown.Controls.Panels"
              Background="Transparent">
     <UserControl.Resources>
         <!-- Chevron do expand/collapse — Path rotacionado, sem chrome do ToggleButton default. -->
@@ -109,7 +110,12 @@
                   Foreground="{DynamicResource Brush.Fg.Secondary}"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                   MouseDoubleClick="OnTreeDoubleClick"
-                  PreviewMouseRightButtonDown="OnTreePreviewRightButtonDown">
+                  PreviewMouseRightButtonDown="OnTreePreviewRightButtonDown"
+                  PreviewMouseLeftButtonDown="OnTreePreviewLeftButtonDown"
+                  PreviewMouseMove="OnTreePreviewMouseMove"
+                  AllowDrop="True"
+                  DragOver="OnTreeDragOver"
+                  Drop="OnTreeDrop">
             <TreeView.ItemContainerStyle>
                 <Style TargetType="TreeViewItem">
                     <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
@@ -189,11 +195,26 @@
                     </HierarchicalDataTemplate.Triggers>
                 </HierarchicalDataTemplate>
             </TreeView.Resources>
+            <TreeView.InputBindings>
+                <KeyBinding Modifiers="Ctrl" Key="N" Command="{x:Static local:ExplorerPanel.NewFileCommand}" />
+                <KeyBinding Modifiers="Ctrl+Shift" Key="N" Command="{x:Static local:ExplorerPanel.NewFolderCommand}" />
+                <KeyBinding Modifiers="Ctrl" Key="C" Command="{x:Static local:ExplorerPanel.CopyCommand}" />
+                <KeyBinding Modifiers="Ctrl" Key="X" Command="{x:Static local:ExplorerPanel.CutCommand}" />
+                <KeyBinding Modifiers="Ctrl" Key="V" Command="{x:Static local:ExplorerPanel.PasteCommand}" />
+                <KeyBinding Key="Delete" Command="{x:Static local:ExplorerPanel.DeleteCommand}" />
+            </TreeView.InputBindings>
             <TreeView.ContextMenu>
                 <ContextMenu>
+                    <MenuItem Header="Novo arquivo" Click="OnNewFile" InputGestureText="Ctrl+N" />
+                    <MenuItem Header="Nova pasta" Click="OnNewFolder" InputGestureText="Ctrl+Shift+N" />
+                    <Separator />
                     <MenuItem Header="Abrir em nova aba" Click="OnOpenInNewTab" />
                     <MenuItem Header="Renomear (F2)" Click="OnRename" />
-                    <MenuItem Header="Excluir" Click="OnDelete" />
+                    <MenuItem Header="Excluir" Click="OnDelete" InputGestureText="Del" />
+                    <Separator />
+                    <MenuItem Header="Copiar" Click="OnCopy" InputGestureText="Ctrl+C" />
+                    <MenuItem Header="Recortar" Click="OnCut" InputGestureText="Ctrl+X" />
+                    <MenuItem Header="Colar" Click="OnPaste" InputGestureText="Ctrl+V" />
                     <Separator />
                     <MenuItem Header="Revelar no Explorer" Click="OnRevealInExplorer" />
                     <MenuItem Header="Copiar caminho" Click="OnCopyPath" />
