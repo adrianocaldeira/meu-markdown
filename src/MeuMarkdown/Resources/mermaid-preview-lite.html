@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <title>Mermaid Preview</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 16px;
+            background: #ffffff;
+            color: #1f2328;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 13px;
+        }
+        body.dark {
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        #diagram { max-width: 100%; }
+        #diagram svg { max-width: 100%; height: auto; }
+        #error {
+            color: #c0392b;
+            font-family: 'Cascadia Mono', 'Consolas', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div id="diagram" class="mermaid"></div>
+    <div id="error"></div>
+    <script src="https://mm.local/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose' });
+
+        window.setBuilderTheme = function (dark) {
+            document.body.classList.toggle('dark', !!dark);
+            mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'default', securityLevel: 'loose' });
+        };
+
+        let renderSeq = 0;
+        window.render = async function (code) {
+            const target = document.getElementById('diagram');
+            const errBox = document.getElementById('error');
+            errBox.textContent = '';
+
+            const seq = ++renderSeq;
+            try {
+                const result = await mermaid.render('m' + seq, code);
+                if (seq !== renderSeq) return;
+                target.textContent = '';
+                target.insertAdjacentHTML('afterbegin', result.svg);
+            } catch (err) {
+                if (seq !== renderSeq) return;
+                target.textContent = '';
+                const msg = (err && err.message) ? err.message : String(err);
+                errBox.textContent = msg;
+                if (window.chrome && window.chrome.webview) {
+                    window.chrome.webview.postMessage({ type: 'mermaidError', message: msg });
+                }
+            }
+        };
+    </script>
+</body>
+</html>

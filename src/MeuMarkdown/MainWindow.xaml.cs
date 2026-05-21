@@ -61,6 +61,8 @@ public partial class MainWindow : Window
     private WindowState _savedWindowState;
     private WindowStyle _savedWindowStyle;
     private TypewriterScrollManager? _typewriterManager;
+    private readonly Services.MermaidTemplateService _mermaidTemplateService = new();
+    private string _assetsDir = "";
 
     public MainWindow()
     {
@@ -135,11 +137,11 @@ public partial class MainWindow : Window
         // Extrai Mermaid/KaTeX pra um dir local e registra como virtual host "mm.local"
         // no WebView2. Necessário porque NavigateToString tem cap de ~2MB e os scripts
         // inline ultrapassam o limite.
-        var assetsDir = System.IO.Path.Combine(
+        _assetsDir = System.IO.Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "MeuMarkdown", "webview-assets");
-        _viewModel.MarkdownService.ExtractEnhancementAssetsTo(assetsDir);
-        preview.RegisterEnhancementAssetsHost(assetsDir);
+        _viewModel.MarkdownService.ExtractEnhancementAssetsTo(_assetsDir);
+        preview.RegisterEnhancementAssetsHost(_assetsDir);
 
         // Register format command bindings
         CommandBindings.Add(new CommandBinding(FormatBoldCommand, (_, _) => WrapSelection("**", "**")));
@@ -1131,6 +1133,63 @@ public partial class MainWindow : Window
     {
         textEditor.Document.Insert(textEditor.CaretOffset, text);
         textEditor.CaretOffset += text.Length;
+        textEditor.Focus();
+    }
+
+    private void OnMermaidToolbarClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button btn) return;
+        if (btn.ContextMenu == null) return;
+        btn.ContextMenu.PlacementTarget = btn;
+        btn.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+        btn.ContextMenu.IsOpen = true;
+    }
+
+    private void OnInsertMermaidTemplate(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem mi) return;
+        if (mi.Tag is not string typeName) return;
+        if (!Enum.TryParse<Models.Mermaid.MermaidDiagramType>(typeName, out var type)) return;
+
+        var template = _mermaidTemplateService.GetTemplate(type);
+        InsertMermaidBlock(template);
+    }
+
+    private void OnOpenMermaidBuilder(object sender, RoutedEventArgs e)
+    {
+        var win = new Views.MermaidBuilderWindow(_assetsDir, _isDarkTheme)
+        {
+            Owner = this,
+        };
+        var ok = win.ShowDialog();
+        if (ok == true && !string.IsNullOrWhiteSpace(win.ResultMermaidCode))
+        {
+            InsertMermaidBlock(win.ResultMermaidCode);
+        }
+    }
+
+    private void InsertMermaidBlock(string mermaidCode)
+    {
+        if (textEditor == null) return;
+        var content = textEditor.Document.Text ?? "";
+        var caret = textEditor.CaretOffset;
+
+        var (text, newOffset) = Services.MarkdownInsertionService
+            .BuildMermaidInsertion(content, caret, mermaidCode);
+
+        var selection = textEditor.TextArea.Selection;
+        if (!selection.IsEmpty)
+        {
+            var startOffset = textEditor.SelectionStart;
+            var length = textEditor.SelectionLength;
+            textEditor.Document.Replace(startOffset, length, text);
+            textEditor.CaretOffset = startOffset + text.Length;
+        }
+        else
+        {
+            textEditor.Document.Insert(caret, text);
+            textEditor.CaretOffset = newOffset;
+        }
         textEditor.Focus();
     }
 

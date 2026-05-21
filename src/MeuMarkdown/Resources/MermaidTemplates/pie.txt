@@ -1,0 +1,5 @@
+pie title Distribuição
+    %% Substitua labels e valores
+    "Categoria A" : 40
+    "Categoria B" : 35
+    "Categoria C" : 25

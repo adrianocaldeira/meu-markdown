@@ -1,0 +1,4 @@
+graph TD
+    %% Troque os labels e adicione mais nós conforme precisar
+    A[Início] --> B[Processo]
+    B --> C[Fim]

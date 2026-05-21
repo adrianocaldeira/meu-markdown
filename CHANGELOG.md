@@ -6,6 +6,22 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.10.0] — 2026-05-21
+
+### Adicionado
+- **Botão Mermaid na toolbar** (ícone de árvore, ao lado de Tabela) com
+  dropdown contendo o **Construtor visual** e **8 templates** prontos
+  (Fluxograma, Sequência, Classe, ER, Estado, Gantt, Mindmap, Pie). Cada
+  template insere um bloco ```` ```mermaid ```` comentado em português no
+  documento ativo, com posicionamento de cursor consistente e respeitando
+  seleção/contexto da linha atual.
+- **Construtor visual de Mermaid**: janela com formulário e preview ao vivo
+  (WebView2) para montar Fluxograma e Sequência sem escrever sintaxe.
+  Suporta adicionar/remover/reordenar nós e atores, escolher formato de nó
+  e tipo de seta, troca de tipo com confirmação, e exibir/copiar o código
+  Mermaid gerado. Chrome custom seguindo a estética flat dos demais dialogs
+  do app, com tema escuro acompanhando o tema principal.
+
 ## [1.9.0] — 2026
 
 ### Adicionado

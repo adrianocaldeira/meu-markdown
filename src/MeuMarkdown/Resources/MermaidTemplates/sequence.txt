@@ -1,0 +1,4 @@
+sequenceDiagram
+    %% Atores e mensagens — troque os nomes e textos
+    Alice->>Bob: Olá Bob
+    Bob-->>Alice: Olá Alice

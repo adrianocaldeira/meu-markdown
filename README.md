@@ -44,7 +44,7 @@ Existem ótimos editores Markdown. A maioria é Electron pesado, depende de nuve
 | 🗂️ **Workspace** estilo VS Code (Explorer + Outline) | 🔍 **Busca no workspace inteiro** com regex e case sensitive | ⚡ **Quick Switcher** (`Ctrl+P`) com fuzzy match |
 | 🌗 **Tema claro/escuro** com paleta cuidada | 📦 **Single-file `.exe`** (~165 MB self-contained, sem instalação obrigatória) | 🇧🇷 **100% em português** |
 | ⌨️ **Atalhos de formatação** (negrito, link, headings, etc.) | 🧘 **Zen mode** (F11) e Typewriter mode | 📤 **Exportação para HTML** |
-| 🔗 **Wiki-links `[[Arquivo]]`** com autocomplete | 📊 **Diagramas Mermaid** e fórmulas **KaTeX** no preview | 📋 **Paste de imagem** direto pra `./assets/` |
+| 🔗 **Wiki-links `[[Arquivo]]`** com autocomplete | 📊 **Diagramas Mermaid** com 8 templates de inserção rápida + **construtor visual** | 📋 **Paste de imagem** direto pra `./assets/` |
 | 🗂️ **Operações de arquivo no Explorer** — novo arquivo/pasta, copy/paste, drag-and-drop | | |
 
 ## 📥 Instalação

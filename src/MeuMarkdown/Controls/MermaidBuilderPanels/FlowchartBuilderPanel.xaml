@@ -1,0 +1,138 @@
+<UserControl x:Class="MeuMarkdown.Controls.MermaidBuilderPanels.FlowchartBuilderPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:mm="clr-namespace:MeuMarkdown.Models.Mermaid"
+             Background="{DynamicResource Brush.Bg.Surface}"
+             Foreground="{DynamicResource Brush.Fg.Primary}">
+    <UserControl.Resources>
+        <ObjectDataProvider x:Key="ShapesEnum" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="mm:FlowNodeShape" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+        <ObjectDataProvider x:Key="ArrowsEnum" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="mm:FlowArrowType" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <Style TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Fg.Primary}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Padding" Value="6,0,0,0" />
+            <Setter Property="MinHeight" Value="22" />
+        </Style>
+    </UserControl.Resources>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="14">
+
+            <TextBlock Text="Direção" Style="{StaticResource MermaidBuilderLabel}" />
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                <RadioButton Content="TD" GroupName="dir" IsChecked="{Binding Flowchart.Direction, Converter={StaticResource EnumToBool}, ConverterParameter=TD}" Margin="0,0,12,0" />
+                <RadioButton Content="LR" GroupName="dir" IsChecked="{Binding Flowchart.Direction, Converter={StaticResource EnumToBool}, ConverterParameter=LR}" Margin="0,0,12,0" />
+                <RadioButton Content="BT" GroupName="dir" IsChecked="{Binding Flowchart.Direction, Converter={StaticResource EnumToBool}, ConverterParameter=BT}" Margin="0,0,12,0" />
+                <RadioButton Content="RL" GroupName="dir" IsChecked="{Binding Flowchart.Direction, Converter={StaticResource EnumToBool}, ConverterParameter=RL}" />
+            </StackPanel>
+
+            <TextBlock Text="Nós" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Fg.Primary}" Margin="0,0,0,6" />
+            <ListBox x:Name="NodesList"
+                     ItemsSource="{Binding Flowchart.Nodes}"
+                     Height="100"
+                     Background="{DynamicResource Brush.Bg.Elevated}"
+                     BorderBrush="{DynamicResource Brush.Border.Stronger}"
+                     BorderThickness="1"
+                     Foreground="{DynamicResource Brush.Fg.Primary}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock>
+                            <Run Text="{Binding Id}" FontWeight="SemiBold" />
+                            <Run Text=" — " />
+                            <Run Text="{Binding Label}" />
+                        </TextBlock>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                <Button Content="+ Adicionar" Click="OnAddNode" Style="{StaticResource MermaidBuilderButton}" Margin="0,0,6,0" />
+                <Button Content="Remover" Click="OnRemoveNode" Style="{StaticResource MermaidBuilderButton}" Margin="0,0,6,0" />
+                <Button Content="↑" Click="OnMoveNodeUp" Style="{StaticResource MermaidBuilderButton}" Width="32" Margin="0,0,6,0" />
+                <Button Content="↓" Click="OnMoveNodeDown" Style="{StaticResource MermaidBuilderButton}" Width="32" />
+            </StackPanel>
+
+            <StackPanel x:Name="NodeEditor" Margin="0,12,0,18">
+                <TextBlock Text="ID" Style="{StaticResource MermaidBuilderLabel}" />
+                <TextBox Text="{Binding ElementName=NodesList, Path=SelectedItem.Id, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource MermaidBuilderTextBox}"
+                         IsEnabled="{Binding ElementName=NodesList, Path=SelectedItem, Converter={StaticResource NullToFalseConverter}}"
+                         Margin="0,0,0,8" />
+                <TextBlock Text="Label" Style="{StaticResource MermaidBuilderLabel}" />
+                <TextBox Text="{Binding ElementName=NodesList, Path=SelectedItem.Label, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource MermaidBuilderTextBox}"
+                         IsEnabled="{Binding ElementName=NodesList, Path=SelectedItem, Converter={StaticResource NullToFalseConverter}}"
+                         Margin="0,0,0,8" />
+                <TextBlock Text="Formato" Style="{StaticResource MermaidBuilderLabel}" />
+                <ComboBox Style="{StaticResource MermaidBuilderComboBox}"
+                          ItemsSource="{Binding Source={StaticResource ShapesEnum}}"
+                          SelectedItem="{Binding ElementName=NodesList, Path=SelectedItem.Shape, UpdateSourceTrigger=PropertyChanged}"
+                          IsEnabled="{Binding ElementName=NodesList, Path=SelectedItem, Converter={StaticResource NullToFalseConverter}}" />
+            </StackPanel>
+
+            <TextBlock Text="Arestas" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Fg.Primary}" Margin="0,0,0,6" />
+            <ListBox x:Name="EdgesList"
+                     ItemsSource="{Binding Flowchart.Edges}"
+                     Height="90"
+                     Background="{DynamicResource Brush.Bg.Elevated}"
+                     BorderBrush="{DynamicResource Brush.Border.Stronger}"
+                     BorderThickness="1"
+                     Foreground="{DynamicResource Brush.Fg.Primary}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock>
+                            <Run Text="{Binding FromId}" />
+                            <Run Text=" → " />
+                            <Run Text="{Binding ToId}" />
+                            <Run Text=" " />
+                            <Run Text="{Binding Label}" FontStyle="Italic" Foreground="{DynamicResource Brush.Fg.Secondary}" />
+                        </TextBlock>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                <Button Content="+ Adicionar" Click="OnAddEdge" Style="{StaticResource MermaidBuilderButton}" Margin="0,0,6,0" />
+                <Button Content="Remover" Click="OnRemoveEdge" Style="{StaticResource MermaidBuilderButton}" />
+            </StackPanel>
+
+            <StackPanel x:Name="EdgeEditor" Margin="0,12,0,0">
+                <TextBlock Text="De" Style="{StaticResource MermaidBuilderLabel}" />
+                <ComboBox Style="{StaticResource MermaidBuilderComboBox}"
+                          ItemsSource="{Binding Flowchart.Nodes}"
+                          DisplayMemberPath="Id"
+                          SelectedValuePath="Id"
+                          SelectedValue="{Binding ElementName=EdgesList, Path=SelectedItem.FromId, UpdateSourceTrigger=PropertyChanged}"
+                          IsEnabled="{Binding ElementName=EdgesList, Path=SelectedItem, Converter={StaticResource NullToFalseConverter}}"
+                          Margin="0,0,0,8" />
+                <TextBlock Text="Para" Style="{StaticResource MermaidBuilderLabel}" />
+                <ComboBox Style="{StaticResource MermaidBuilderComboBox}"
+                          ItemsSource="{Binding Flowchart.Nodes}"
+                          DisplayMemberPath="Id"
+                          SelectedValuePath="Id"
+                          SelectedValue="{Binding ElementName=EdgesList, Path=SelectedItem.ToId, UpdateSourceTrigger=PropertyChanged}"
+                          IsEnabled="{Binding ElementName=EdgesList, Path=SelectedItem, Converter={StaticResource NullToFalseConverter}}"
+                          Margin="0,0,0,8" />
+                <TextBlock Text="Tipo" Style="{StaticResource MermaidBuilderLabel}" />
+                <ComboBox Style="{StaticResource MermaidBuilderComboBox}"
+                          ItemsSource="{Binding Source={StaticResource ArrowsEnum}}"
+                          SelectedItem="{Binding ElementName=EdgesList, Path=SelectedItem.Arrow, UpdateSourceTrigger=PropertyChanged}"
+                          IsEnabled="{Binding ElementName=EdgesList, Path=SelectedItem, Converter={StaticResource NullToFalseConverter}}"
+                          Margin="0,0,0,8" />
+                <TextBlock Text="Label (apenas para Sólida c/ label)" Style="{StaticResource MermaidBuilderLabel}" />
+                <TextBox Text="{Binding ElementName=EdgesList, Path=SelectedItem.Label, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource MermaidBuilderTextBox}"
+                         IsEnabled="{Binding ElementName=EdgesList, Path=SelectedItem, Converter={StaticResource NullToFalseConverter}}" />
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

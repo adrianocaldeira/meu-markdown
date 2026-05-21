@@ -1,0 +1,7 @@
+gantt
+    title Cronograma
+    dateFormat YYYY-MM-DD
+    %% Adicione mais seções e tarefas conforme precisar
+    section Planejamento
+    Levantar requisitos :a1, 2026-06-01, 5d
+    Desenhar solução    :a2, after a1, 3d

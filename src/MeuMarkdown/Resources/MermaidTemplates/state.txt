@@ -1,0 +1,5 @@
+stateDiagram-v2
+    %% Estados e transições
+    [*] --> Ativo
+    Ativo --> Inativo : desativar
+    Inativo --> [*]
