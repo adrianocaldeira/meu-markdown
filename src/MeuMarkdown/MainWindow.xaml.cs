@@ -62,6 +62,7 @@ public partial class MainWindow : Window
     private WindowStyle _savedWindowStyle;
     private TypewriterScrollManager? _typewriterManager;
     private readonly Services.MermaidTemplateService _mermaidTemplateService = new();
+    private string _assetsDir = "";
 
     public MainWindow()
     {
@@ -136,11 +137,11 @@ public partial class MainWindow : Window
         // Extrai Mermaid/KaTeX pra um dir local e registra como virtual host "mm.local"
         // no WebView2. Necessário porque NavigateToString tem cap de ~2MB e os scripts
         // inline ultrapassam o limite.
-        var assetsDir = System.IO.Path.Combine(
+        _assetsDir = System.IO.Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "MeuMarkdown", "webview-assets");
-        _viewModel.MarkdownService.ExtractEnhancementAssetsTo(assetsDir);
-        preview.RegisterEnhancementAssetsHost(assetsDir);
+        _viewModel.MarkdownService.ExtractEnhancementAssetsTo(_assetsDir);
+        preview.RegisterEnhancementAssetsHost(_assetsDir);
 
         // Register format command bindings
         CommandBindings.Add(new CommandBinding(FormatBoldCommand, (_, _) => WrapSelection("**", "**")));
@@ -1147,8 +1148,15 @@ public partial class MainWindow : Window
 
     private void OnOpenMermaidBuilder(object sender, RoutedEventArgs e)
     {
-        // Implementado na Task 17.
-        MessageDialog.Info(this, "Em breve", "O construtor visual chega na Task 17 deste plano.");
+        var win = new Views.MermaidBuilderWindow(_assetsDir, _isDarkTheme)
+        {
+            Owner = this,
+        };
+        var ok = win.ShowDialog();
+        if (ok == true && !string.IsNullOrWhiteSpace(win.ResultMermaidCode))
+        {
+            InsertMermaidBlock(win.ResultMermaidCode);
+        }
     }
 
     private void InsertMermaidBlock(string mermaidCode)
