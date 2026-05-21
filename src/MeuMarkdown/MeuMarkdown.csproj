@@ -31,6 +31,7 @@
     <EmbeddedResource Include="Resources\katex.min.css" />
     <EmbeddedResource Include="Resources\katex-auto-render.min.js" />
     <EmbeddedResource Include="Resources\mermaid.min.js" />
+    <EmbeddedResource Include="Resources\mermaid-preview-lite.html" />
     <EmbeddedResource Include="Resources\MermaidTemplates\flowchart-td.txt" />
     <EmbeddedResource Include="Resources\MermaidTemplates\sequence.txt" />
     <EmbeddedResource Include="Resources\MermaidTemplates\class.txt" />
