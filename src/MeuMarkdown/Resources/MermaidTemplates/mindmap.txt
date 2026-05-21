@@ -1,0 +1,7 @@
+mindmap
+    %% Raiz e filhos — indentação define hierarquia
+    root((Ideia central))
+        Subtema A
+            Detalhe 1
+        Subtema B
+        Subtema C

@@ -1,0 +1,7 @@
+erDiagram
+    %% Entidades e relações — || (um) o{ (muitos)
+    CLIENTE ||--o{ PEDIDO : faz
+    PEDIDO {
+      int id
+      string descricao
+    }

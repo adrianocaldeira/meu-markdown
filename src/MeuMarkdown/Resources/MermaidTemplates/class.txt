@@ -1,0 +1,9 @@
+classDiagram
+    %% Defina classes, campos, métodos e relações
+    class Animal {
+      +String nome
+      +int idade
+      +emitirSom() void
+    }
+    class Cachorro
+    Animal <|-- Cachorro

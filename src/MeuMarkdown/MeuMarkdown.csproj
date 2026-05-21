@@ -31,6 +31,14 @@
     <EmbeddedResource Include="Resources\katex.min.css" />
     <EmbeddedResource Include="Resources\katex-auto-render.min.js" />
     <EmbeddedResource Include="Resources\mermaid.min.js" />
+    <EmbeddedResource Include="Resources\MermaidTemplates\flowchart-td.txt" />
+    <EmbeddedResource Include="Resources\MermaidTemplates\sequence.txt" />
+    <EmbeddedResource Include="Resources\MermaidTemplates\class.txt" />
+    <EmbeddedResource Include="Resources\MermaidTemplates\er.txt" />
+    <EmbeddedResource Include="Resources\MermaidTemplates\state.txt" />
+    <EmbeddedResource Include="Resources\MermaidTemplates\gantt.txt" />
+    <EmbeddedResource Include="Resources\MermaidTemplates\mindmap.txt" />
+    <EmbeddedResource Include="Resources\MermaidTemplates\pie.txt" />
   </ItemGroup>
 
   <ItemGroup>
