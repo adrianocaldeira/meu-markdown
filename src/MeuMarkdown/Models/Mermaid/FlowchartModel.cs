@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Text;
+using System.Text.RegularExpressions;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace MeuMarkdown.Models.Mermaid;
@@ -11,27 +12,63 @@ public partial class FlowchartModel : ObservableObject
     public ObservableCollection<FlowNode> Nodes { get; } = new();
     public ObservableCollection<FlowEdge> Edges { get; } = new();
 
+    private static readonly Regex ValidIdRegex = new(@"^[A-Za-z_][A-Za-z0-9_]*$", RegexOptions.Compiled);
+
     public string ToMermaid()
     {
         var sb = new StringBuilder();
         sb.Append("graph ").Append(Direction.ToString()).AppendLine();
 
+        var emittedIds = new HashSet<string>(StringComparer.Ordinal);
+        var idMap = new Dictionary<FlowNode, string>();
+
         foreach (var node in Nodes)
-            sb.Append("    ").Append(EmitNode(node)).AppendLine();
+        {
+            var id = ResolveId(node, emittedIds);
+            if (id == null) continue; // duplicado
+            idMap[node] = id;
+            emittedIds.Add(id);
+            sb.Append("    ").Append(EmitNode(id, node)).AppendLine();
+        }
+
+        // IDs de nós válidos pra checar arestas órfãs.
+        var validIds = new HashSet<string>(idMap.Values, StringComparer.Ordinal);
 
         foreach (var edge in Edges)
+        {
+            if (!validIds.Contains(edge.FromId) || !validIds.Contains(edge.ToId)) continue;
             sb.Append("    ").Append(EmitEdge(edge)).AppendLine();
+        }
 
         return sb.ToString().TrimEnd();
     }
 
-    private static string EmitNode(FlowNode node)
+    private static string? ResolveId(FlowNode node, HashSet<string> alreadyEmitted)
+    {
+        var raw = node.Id ?? "";
+        var id = ValidIdRegex.IsMatch(raw) ? raw : GenerateTempId(node);
+
+        if (alreadyEmitted.Contains(id))
+        {
+            // duplicado — pulamos o nó (primeiro vence)
+            return null;
+        }
+        return id;
+    }
+
+    private static string GenerateTempId(FlowNode node)
+    {
+        var hash = (node.GetHashCode() & 0x7fffffff).ToString("x8");
+        return "n_" + hash;
+    }
+
+    private static string EmitNode(string id, FlowNode node)
     {
         var (open, close) = ShapeBrackets(node.Shape);
         var label = EscapeLabel(node.Label);
         if (NeedsQuoting(node.Label))
-            return $"{node.Id}{open}\"{label}\"{close}";
-        return $"{node.Id}{open}{label}{close}";
+            return $"{id}{open}\"{label}\"{close}";
+        return $"{id}{open}{label}{close}";
     }
 
     private static string EmitEdge(FlowEdge edge)
@@ -57,7 +94,6 @@ public partial class FlowchartModel : ObservableObject
 
     private static bool NeedsQuoting(string label)
     {
-        // Brackets dentro de label de Flowchart precisam ser envolvidos por aspas duplas.
         return label.IndexOfAny(new[] { '[', ']', '(', ')', '{', '}' }) >= 0;
     }
 

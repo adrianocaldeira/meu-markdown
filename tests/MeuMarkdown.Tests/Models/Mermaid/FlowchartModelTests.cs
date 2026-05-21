@@ -95,4 +95,54 @@ public class FlowchartModelTests
         model.Nodes.Add(new FlowNode { Id = "n1", Label = "Texto (a) [b]", Shape = FlowNodeShape.Rectangle });
         Assert.Contains("n1[\"Texto (a) [b]\"]", model.ToMermaid());
     }
+
+    [Fact]
+    public void ToMermaid_EdgeWithOrphanFromId_IsOmitted()
+    {
+        var model = new FlowchartModel();
+        model.Nodes.Add(new FlowNode { Id = "n1", Label = "A" });
+        model.Edges.Add(new FlowEdge { FromId = "ghost", ToId = "n1", Arrow = FlowArrowType.Solid });
+        var output = model.ToMermaid();
+        Assert.DoesNotContain("ghost", output);
+    }
+
+    [Fact]
+    public void ToMermaid_EdgeWithOrphanToId_IsOmitted()
+    {
+        var model = new FlowchartModel();
+        model.Nodes.Add(new FlowNode { Id = "n1", Label = "A" });
+        model.Edges.Add(new FlowEdge { FromId = "n1", ToId = "ghost", Arrow = FlowArrowType.Solid });
+        Assert.DoesNotContain("ghost", model.ToMermaid());
+    }
+
+    [Fact]
+    public void ToMermaid_DuplicateNodeId_EmitsOnlyFirst()
+    {
+        var model = new FlowchartModel();
+        model.Nodes.Add(new FlowNode { Id = "n1", Label = "Primeiro" });
+        model.Nodes.Add(new FlowNode { Id = "n1", Label = "Segundo" });
+        var output = model.ToMermaid();
+        Assert.Contains("Primeiro", output);
+        Assert.DoesNotContain("Segundo", output);
+    }
+
+    [Fact]
+    public void ToMermaid_EmptyOrInvalidId_UsesTempId()
+    {
+        var model = new FlowchartModel();
+        model.Nodes.Add(new FlowNode { Id = "", Label = "Sem ID" });
+        var output = model.ToMermaid();
+        Assert.Contains("Sem ID", output);
+        Assert.Matches(@"n_[a-z0-9]+\[Sem ID\]", output);
+    }
+
+    [Fact]
+    public void ToMermaid_InvalidIdWithSpaces_UsesTempId()
+    {
+        var model = new FlowchartModel();
+        model.Nodes.Add(new FlowNode { Id = "id com espaço", Label = "X" });
+        var output = model.ToMermaid();
+        Assert.DoesNotContain("id com espaço", output);
+        Assert.Contains("[X]", output);
+    }
 }
