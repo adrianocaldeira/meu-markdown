@@ -6,6 +6,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.9.0] — 2026
+
 ### Adicionado
 - **Operações de arquivo no Explorer**:
   - Novo arquivo `.md` (`Ctrl+N`) e nova pasta (`Ctrl+Shift+N`) — abre dialog
@@ -274,7 +276,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.8.0...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.9.0...HEAD
+[1.9.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.9.0
 [1.8.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.8.0
 [1.7.7]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.7
 [1.7.6]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.6
