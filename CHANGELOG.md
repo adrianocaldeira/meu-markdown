@@ -11,14 +11,35 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
   - Novo arquivo `.md` (`Ctrl+N`) e nova pasta (`Ctrl+Shift+N`) — abre dialog
     com nome sugerido pré-preenchido; Enter cria + abre em aba (arquivo).
   - Copiar/Recortar/Colar (`Ctrl+C/X/V`) usando Windows clipboard — compatível
-    com Windows Explorer (copia em um, cola em outro).
+    com Windows Explorer (copia em um, cola no outro).
   - Drag-and-drop entre diretórios — `Ctrl+drag` para copiar (move por padrão).
-  - `Del` exclui o item selecionado (reusa confirmação existente).
+  - `Del` exclui o item selecionado (envia pra Lixeira do Windows).
+- **Single click no Explorer abre em modo Visualização**; double-click abre em
+  modo Edição+Visualização (split). Padrão tipo Obsidian/VS Code.
+- **Diálogos modais redesenhados** (Novo arquivo, Nova pasta, Renomear, Excluir,
+  alertas, confirmações de sobrescrita): chrome flat custom respeitando tema
+  light/dark, ícones Lucide coloridos por categoria, drop shadow, cantos
+  arredondados, botões primário (accent) + secundário (outline). Substituem o
+  `MessageBox` nativo do Windows.
+
+### Mudado
+- Excluir arquivo/pasta agora **envia para a Lixeira do Windows** em vez de
+  apagar permanentemente (via `Microsoft.VisualBasic.FileIO.SendToRecycleBin`).
+- "Abrir em Nova Aba" no menu de contexto do Explorer renomeado para "Abrir"
+  — reflete o comportamento real (foca aba existente se já aberta).
 
 ### Corrigido
 - Abas órfãs ao trocar workspace: arquivos do workspace anterior agora fecham
   automaticamente quando o novo workspace não os contém. Abas com mudanças não
   salvas pedem confirmação antes de fechar.
+- `WorkspaceService.Refresh()` preserva estado de expansão e seleção do
+  TreeView. Antes, criar/renomear/excluir arquivo em subpasta colapsava todas
+  as pastas abertas porque o Refresh fazia `Close()+BuildNode()` do zero.
+- Pastas vazias agora aparecem no Explorer (antes eram filtradas se não tinham
+  nenhum `.md` recursivamente). Necessário pra "Nova pasta" funcionar.
+- Menu de contexto do Explorer respeita o item sob o cursor no right-click
+  (antes só "Renomear" funcionava — os outros caíam silenciosamente porque o
+  WPF TreeView não muda `SelectedItem` em right-click).
 
 ## [1.8.0] — 2026
 
