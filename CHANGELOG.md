@@ -6,6 +6,19 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Adicionado
+- Menu **Inserir > Mermaid > Templates**: 8 esqueletos prontos comentados em
+  português (Fluxograma, Sequência, Classe, ER, Estado, Gantt, Mindmap, Pie).
+  Cada item insere um bloco ```` ```mermaid ```` no documento ativo, com
+  posicionamento de cursor consistente e respeitando seleção/contexto da
+  linha atual.
+- **Construtor visual de Mermaid** (`Inserir > Mermaid > Construtor visual…`):
+  janela com formulário e preview ao vivo (WebView2) para montar Fluxograma
+  e Sequência sem escrever sintaxe. Suporta adicionar/remover/reordenar nós e
+  atores, escolher formato de nó e tipo de seta, troca de tipo com
+  confirmação, e exibir/copiar o código Mermaid gerado. Tema escuro do
+  preview acompanha o tema do app.
+
 ## [1.9.0] — 2026
 
 ### Adicionado
