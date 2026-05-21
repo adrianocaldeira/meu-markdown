@@ -84,19 +84,22 @@
 
             <StackPanel x:Name="MessageEditor" Margin="0,12,0,0">
                 <TextBlock Text="De" Style="{StaticResource MermaidBuilderLabel}" />
-                <ComboBox ItemsSource="{Binding Sequence.Actors}"
+                <ComboBox Style="{StaticResource MermaidBuilderComboBox}"
+                          ItemsSource="{Binding Sequence.Actors}"
                           DisplayMemberPath="Name" SelectedValuePath="Name"
                           SelectedValue="{Binding ElementName=MessagesList, Path=SelectedItem.FromActor, UpdateSourceTrigger=PropertyChanged}"
                           IsEnabled="{Binding ElementName=MessagesList, Path=SelectedItem, Converter={StaticResource NullToFalseConverter}}"
                           Margin="0,0,0,8" />
                 <TextBlock Text="Para" Style="{StaticResource MermaidBuilderLabel}" />
-                <ComboBox ItemsSource="{Binding Sequence.Actors}"
+                <ComboBox Style="{StaticResource MermaidBuilderComboBox}"
+                          ItemsSource="{Binding Sequence.Actors}"
                           DisplayMemberPath="Name" SelectedValuePath="Name"
                           SelectedValue="{Binding ElementName=MessagesList, Path=SelectedItem.ToActor, UpdateSourceTrigger=PropertyChanged}"
                           IsEnabled="{Binding ElementName=MessagesList, Path=SelectedItem, Converter={StaticResource NullToFalseConverter}}"
                           Margin="0,0,0,8" />
                 <TextBlock Text="Tipo" Style="{StaticResource MermaidBuilderLabel}" />
-                <ComboBox ItemsSource="{Binding Source={StaticResource SeqArrowsEnum}}"
+                <ComboBox Style="{StaticResource MermaidBuilderComboBox}"
+                          ItemsSource="{Binding Source={StaticResource SeqArrowsEnum}}"
                           SelectedItem="{Binding ElementName=MessagesList, Path=SelectedItem.Arrow, UpdateSourceTrigger=PropertyChanged}"
                           IsEnabled="{Binding ElementName=MessagesList, Path=SelectedItem, Converter={StaticResource NullToFalseConverter}}"
                           Margin="0,0,0,8" />

@@ -8,77 +8,163 @@
         Width="1000" Height="650"
         MinWidth="780" MinHeight="500"
         WindowStartupLocation="CenterOwner"
-        Background="{DynamicResource Brush.Bg.Window}"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        ResizeMode="CanResizeWithGrip"
+        Background="Transparent"
         Foreground="{DynamicResource Brush.Fg.Primary}"
         FontFamily="Inter, Segoe UI Variable Text, Segoe UI"
         FontSize="13"
         Closing="OnClosing">
-    <!-- Conversores EnumToBool e NullToFalseConverter vêm de App.xaml -->
+    <Window.Resources>
+        <Style x:Key="DialogCloseButton" TargetType="Button">
+            <Setter Property="Width" Value="32" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="6">
+                            <Path x:Name="x"
+                                  Data="M14 6 6 14 M6 6l8 8"
+                                  Stroke="{DynamicResource Brush.Fg.Tertiary}"
+                                  StrokeThickness="1.6"
+                                  StrokeStartLineCap="Round"
+                                  StrokeEndLineCap="Round"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource Brush.Bg.Hover}" />
+                                <Setter TargetName="x" Property="Stroke" Value="{DynamicResource Brush.Fg.Primary}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
 
-    <Grid Margin="14">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+    <!-- Card flutuante com sombra suave (padrão MessageDialog/InputDialog) -->
+    <Border Background="{DynamicResource Brush.Bg.Surface}"
+            BorderBrush="{DynamicResource Brush.Border.Stronger}"
+            BorderThickness="1"
+            CornerRadius="10"
+            Margin="14">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="20" ShadowDepth="2" Color="Black" Opacity="0.35" />
+        </Border.Effect>
 
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-            <TextBlock Text="Tipo:" VerticalAlignment="Center" Margin="0,0,8,0" />
-            <ComboBox x:Name="TypeBox" Width="200" SelectionChanged="OnTypeChanged">
-                <ComboBoxItem Content="Fluxograma" Tag="Flowchart" />
-                <ComboBoxItem Content="Sequência" Tag="Sequence" />
-            </ComboBox>
-        </StackPanel>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="6" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
+            <!-- Header: título + drag + botão X -->
+            <DockPanel Grid.Row="0"
+                       Margin="20,12,12,0"
+                       MouseLeftButtonDown="OnHeaderDrag"
+                       Background="Transparent">
+                <Button DockPanel.Dock="Right"
+                        Style="{StaticResource DialogCloseButton}"
+                        Click="OnCloseClick" />
+                <TextBlock Text="Construtor visual de Mermaid"
+                           VerticalAlignment="Center"
+                           FontSize="13" FontWeight="SemiBold"
+                           Foreground="{DynamicResource Brush.Fg.Secondary}" />
+            </DockPanel>
 
-            <Border Grid.Column="0" BorderThickness="1" BorderBrush="{DynamicResource Brush.Border.Stronger}" CornerRadius="6">
-                <ContentControl x:Name="PanelHost" />
-            </Border>
-
-            <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="Transparent" />
-
-            <Border Grid.Column="2" BorderThickness="1" BorderBrush="{DynamicResource Brush.Border.Stronger}" CornerRadius="6">
-                <controls:MermaidPreviewLite x:Name="Preview" />
-            </Border>
-        </Grid>
-
-        <Expander Grid.Row="2" Header="Ver código Mermaid" Margin="0,10,0,0"
-                  Foreground="{DynamicResource Brush.Fg.Secondary}">
-            <StackPanel Margin="0,6,0,0">
-                <TextBox Text="{Binding GeneratedCode, Mode=OneWay}"
-                         IsReadOnly="True"
-                         FontFamily="Cascadia Mono, Consolas"
-                         AcceptsReturn="True"
-                         VerticalScrollBarVisibility="Auto"
-                         MinHeight="80" MaxHeight="160"
-                         Style="{StaticResource MermaidBuilderTextBox}"
-                         Margin="0,0,0,6" />
-                <Button Content="Copiar" Click="OnCopyCode"
-                        Style="{StaticResource MermaidBuilderButton}"
-                        HorizontalAlignment="Left" />
+            <!-- Topo: seletor de tipo -->
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="20,16,20,10">
+                <TextBlock Text="Tipo:" VerticalAlignment="Center" Margin="0,0,8,0"
+                           Foreground="{DynamicResource Brush.Fg.Primary}" />
+                <ComboBox x:Name="TypeBox" Width="220"
+                          Style="{StaticResource MermaidBuilderComboBox}"
+                          SelectionChanged="OnTypeChanged">
+                    <ComboBoxItem Content="Fluxograma" Tag="Flowchart" />
+                    <ComboBoxItem Content="Sequência" Tag="Sequence" />
+                </ComboBox>
             </StackPanel>
-        </Expander>
 
-        <TextBlock Grid.Row="3"
-                   Text="{Binding ErrorMessage}"
-                   Foreground="#e5484f"
-                   Margin="0,8,0,0"
-                   TextWrapping="Wrap" />
+            <!-- Split: formulário | preview -->
+            <Grid Grid.Row="2" Margin="20,0,20,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" MinWidth="280" />
+                    <ColumnDefinition Width="6" />
+                    <ColumnDefinition Width="*" MinWidth="280" />
+                </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-            <Button x:Name="CancelButton" Content="Cancelar" Click="OnCancel"
-                    Style="{StaticResource MermaidBuilderSecondaryButton}"
-                    Margin="0,0,10,0" />
-            <Button x:Name="OkButton" Content="Inserir" Click="OnOk"
-                    Style="{StaticResource MermaidBuilderPrimaryButton}" />
-        </StackPanel>
-    </Grid>
+                <Border Grid.Column="0"
+                        BorderThickness="1"
+                        BorderBrush="{DynamicResource Brush.Border.Subtle}"
+                        CornerRadius="6"
+                        ClipToBounds="True">
+                    <ContentControl x:Name="PanelHost" />
+                </Border>
+
+                <GridSplitter Grid.Column="1"
+                              Width="6"
+                              HorizontalAlignment="Stretch"
+                              Background="Transparent" />
+
+                <Border Grid.Column="2"
+                        BorderThickness="1"
+                        BorderBrush="{DynamicResource Brush.Border.Subtle}"
+                        CornerRadius="6"
+                        ClipToBounds="True">
+                    <controls:MermaidPreviewLite x:Name="Preview" />
+                </Border>
+            </Grid>
+
+            <!-- Expander de código -->
+            <Expander Grid.Row="3" Header="Ver código Mermaid"
+                      Margin="20,12,20,0"
+                      Foreground="{DynamicResource Brush.Fg.Secondary}">
+                <StackPanel Margin="0,8,0,0">
+                    <TextBox Text="{Binding GeneratedCode, Mode=OneWay}"
+                             IsReadOnly="True"
+                             FontFamily="Cascadia Mono, Consolas"
+                             AcceptsReturn="True"
+                             VerticalScrollBarVisibility="Auto"
+                             MinHeight="60" MaxHeight="140"
+                             Style="{StaticResource MermaidBuilderTextBox}"
+                             Margin="0,0,0,6" />
+                    <Button Content="Copiar"
+                            Click="OnCopyCode"
+                            Style="{StaticResource MermaidBuilderButton}"
+                            HorizontalAlignment="Left" />
+                </StackPanel>
+            </Expander>
+
+            <!-- Erro / aviso -->
+            <TextBlock Grid.Row="4"
+                       Text="{Binding ErrorMessage}"
+                       Foreground="#e5484f"
+                       Margin="20,8,20,0"
+                       TextWrapping="Wrap" />
+
+            <!-- Botões -->
+            <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right"
+                        Margin="20,14,20,20">
+                <Button x:Name="CancelButton" Content="Cancelar" Click="OnCancel"
+                        Style="{StaticResource MermaidBuilderSecondaryButton}"
+                        IsCancel="True"
+                        Margin="0,0,10,0" />
+                <Button x:Name="OkButton" Content="Inserir" Click="OnOk"
+                        Style="{StaticResource MermaidBuilderPrimaryButton}"
+                        IsDefault="True" />
+            </StackPanel>
+        </Grid>
+    </Border>
 </Window>

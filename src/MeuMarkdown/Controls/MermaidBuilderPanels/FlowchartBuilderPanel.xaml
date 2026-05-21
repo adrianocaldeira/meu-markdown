@@ -65,7 +65,8 @@
                          IsEnabled="{Binding ElementName=NodesList, Path=SelectedItem, Converter={StaticResource NullToFalseConverter}}"
                          Margin="0,0,0,8" />
                 <TextBlock Text="Formato" Style="{StaticResource MermaidBuilderLabel}" />
-                <ComboBox ItemsSource="{Binding Source={StaticResource ShapesEnum}}"
+                <ComboBox Style="{StaticResource MermaidBuilderComboBox}"
+                          ItemsSource="{Binding Source={StaticResource ShapesEnum}}"
                           SelectedItem="{Binding ElementName=NodesList, Path=SelectedItem.Shape, UpdateSourceTrigger=PropertyChanged}"
                           IsEnabled="{Binding ElementName=NodesList, Path=SelectedItem, Converter={StaticResource NullToFalseConverter}}" />
             </StackPanel>
@@ -97,21 +98,24 @@
 
             <StackPanel x:Name="EdgeEditor" Margin="0,12,0,0">
                 <TextBlock Text="De" Style="{StaticResource MermaidBuilderLabel}" />
-                <ComboBox ItemsSource="{Binding Flowchart.Nodes}"
+                <ComboBox Style="{StaticResource MermaidBuilderComboBox}"
+                          ItemsSource="{Binding Flowchart.Nodes}"
                           DisplayMemberPath="Id"
                           SelectedValuePath="Id"
                           SelectedValue="{Binding ElementName=EdgesList, Path=SelectedItem.FromId, UpdateSourceTrigger=PropertyChanged}"
                           IsEnabled="{Binding ElementName=EdgesList, Path=SelectedItem, Converter={StaticResource NullToFalseConverter}}"
                           Margin="0,0,0,8" />
                 <TextBlock Text="Para" Style="{StaticResource MermaidBuilderLabel}" />
-                <ComboBox ItemsSource="{Binding Flowchart.Nodes}"
+                <ComboBox Style="{StaticResource MermaidBuilderComboBox}"
+                          ItemsSource="{Binding Flowchart.Nodes}"
                           DisplayMemberPath="Id"
                           SelectedValuePath="Id"
                           SelectedValue="{Binding ElementName=EdgesList, Path=SelectedItem.ToId, UpdateSourceTrigger=PropertyChanged}"
                           IsEnabled="{Binding ElementName=EdgesList, Path=SelectedItem, Converter={StaticResource NullToFalseConverter}}"
                           Margin="0,0,0,8" />
                 <TextBlock Text="Tipo" Style="{StaticResource MermaidBuilderLabel}" />
-                <ComboBox ItemsSource="{Binding Source={StaticResource ArrowsEnum}}"
+                <ComboBox Style="{StaticResource MermaidBuilderComboBox}"
+                          ItemsSource="{Binding Source={StaticResource ArrowsEnum}}"
                           SelectedItem="{Binding ElementName=EdgesList, Path=SelectedItem.Arrow, UpdateSourceTrigger=PropertyChanged}"
                           IsEnabled="{Binding ElementName=EdgesList, Path=SelectedItem, Converter={StaticResource NullToFalseConverter}}"
                           Margin="0,0,0,8" />

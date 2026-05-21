@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using MeuMarkdown.Controls;
 using MeuMarkdown.Controls.MermaidBuilderPanels;
 using MeuMarkdown.ViewModels;
@@ -105,5 +106,16 @@ public partial class MermaidBuilderWindow : Window
     {
         try { Clipboard.SetText(_vm.GeneratedCode); }
         catch { }
+    }
+
+    private void OnHeaderDrag(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton == MouseButton.Left) DragMove();
+    }
+
+    private void OnCloseClick(object sender, RoutedEventArgs e)
+    {
+        // Trata o X como Cancelar — passa pelo confirm de descarte se houver edição.
+        OnCancel(sender, e);
     }
 }
