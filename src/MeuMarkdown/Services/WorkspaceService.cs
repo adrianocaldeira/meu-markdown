@@ -196,8 +196,11 @@ public class WorkspaceService : IDisposable
                 var dirName = Path.GetFileName(d);
                 if (_hiddenDirs.Contains(dirName) || dirName.StartsWith('.')) continue;
                 var childNode = BuildNode(d);
-                if (childNode.Children.Count > 0 || _showAllFiles)
-                    node.Children.Add(childNode);
+                // Mostramos todas as pastas (mesmo vazias) pra que "Nova pasta" no
+                // Explorer fique visível imediatamente após a criação. Pastas vazias
+                // não-relevantes (`bin/`, `obj/`, `node_modules/`) já são filtradas
+                // antes via `_hiddenDirs`.
+                node.Children.Add(childNode);
             }
             foreach (var f in files)
             {
