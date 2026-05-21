@@ -10,9 +10,19 @@ public partial class FlowchartBuilderPanel : UserControl
     public FlowchartBuilderPanel()
     {
         InitializeComponent();
+        Loaded += OnLoadedSelectFirst;
     }
 
     private MermaidBuilderViewModel? Vm => DataContext as MermaidBuilderViewModel;
+
+    private void OnLoadedSelectFirst(object sender, RoutedEventArgs e)
+    {
+        if (Vm == null) return;
+        if (NodesList.SelectedItem == null && Vm.Flowchart.Nodes.Count > 0)
+            NodesList.SelectedItem = Vm.Flowchart.Nodes[0];
+        if (EdgesList.SelectedItem == null && Vm.Flowchart.Edges.Count > 0)
+            EdgesList.SelectedItem = Vm.Flowchart.Edges[0];
+    }
 
     private void OnAddNode(object sender, RoutedEventArgs e)
     {
@@ -66,7 +76,4 @@ public partial class FlowchartBuilderPanel : UserControl
         coll.Move(idx, newIdx);
         list.SelectedItem = item;
     }
-
-    private void NodesList_SelectionChanged(object sender, SelectionChangedEventArgs e) { }
-    private void EdgesList_SelectionChanged(object sender, SelectionChangedEventArgs e) { }
 }

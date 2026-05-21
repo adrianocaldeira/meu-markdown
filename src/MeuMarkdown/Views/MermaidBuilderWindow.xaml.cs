@@ -24,6 +24,14 @@ public partial class MermaidBuilderWindow : Window
 
         TypeBox.SelectedIndex = 0;
         SwapPanel(BuilderDiagramKind.Flowchart);
+
+        // O ViewModel já chamou RegenerateImmediately() em seu construtor —
+        // mas o handler RenderRequested ainda não estava conectado naquele momento.
+        // Re-dispara agora pra o preview pegar o estado inicial.
+        _vm.RegenerateImmediately();
+
+        // A inicialização não conta como edição do usuário.
+        _vm.IsModified = false;
     }
 
     private void OnTypeChanged(object sender, SelectionChangedEventArgs e)

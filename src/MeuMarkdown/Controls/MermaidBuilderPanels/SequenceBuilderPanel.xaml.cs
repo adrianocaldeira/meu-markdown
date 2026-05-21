@@ -10,9 +10,19 @@ public partial class SequenceBuilderPanel : UserControl
     public SequenceBuilderPanel()
     {
         InitializeComponent();
+        Loaded += OnLoadedSelectFirst;
     }
 
     private MermaidBuilderViewModel? Vm => DataContext as MermaidBuilderViewModel;
+
+    private void OnLoadedSelectFirst(object sender, RoutedEventArgs e)
+    {
+        if (Vm == null) return;
+        if (ActorsList.SelectedItem == null && Vm.Sequence.Actors.Count > 0)
+            ActorsList.SelectedItem = Vm.Sequence.Actors[0];
+        if (MessagesList.SelectedItem == null && Vm.Sequence.Messages.Count > 0)
+            MessagesList.SelectedItem = Vm.Sequence.Messages[0];
+    }
 
     private void OnAddActor(object sender, RoutedEventArgs e)
     {

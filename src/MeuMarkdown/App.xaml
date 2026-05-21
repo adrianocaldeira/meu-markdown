@@ -12,6 +12,123 @@
             </ResourceDictionary.MergedDictionaries>
             <conv:EnumToBoolConverter x:Key="EnumToBool" />
             <conv:NullToFalseConverter x:Key="NullToFalseConverter" />
+
+            <!-- ====================================================== -->
+            <!-- Estilos compartilhados do Construtor visual de Mermaid -->
+            <!-- ====================================================== -->
+
+            <Style x:Key="MermaidBuilderButton" TargetType="Button">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Foreground" Value="{DynamicResource Brush.Fg.Primary}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Stronger}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="Padding" Value="10,5" />
+                <Setter Property="MinWidth" Value="0" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="bd"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="5"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="bd" Property="Background" Value="{DynamicResource Brush.Bg.Hover}" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="bd" Property="Background" Value="{DynamicResource Brush.Bg.Active}" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="bd" Property="Opacity" Value="0.45" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="MermaidBuilderPrimaryButton" TargetType="Button">
+                <Setter Property="Background" Value="{DynamicResource Brush.Accent.Heading}" />
+                <Setter Property="Foreground" Value="#1a1a1a" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Padding" Value="20,9" />
+                <Setter Property="MinWidth" Value="92" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="bd"
+                                    Background="{TemplateBinding Background}"
+                                    CornerRadius="6"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="bd" Property="Opacity" Value="0.88" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="bd" Property="Opacity" Value="0.78" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="MermaidBuilderSecondaryButton" TargetType="Button" BasedOn="{StaticResource MermaidBuilderButton}">
+                <Setter Property="Padding" Value="20,9" />
+                <Setter Property="MinWidth" Value="92" />
+            </Style>
+
+            <Style x:Key="MermaidBuilderTextBox" TargetType="TextBox">
+                <Setter Property="Background" Value="{DynamicResource Brush.Bg.Elevated}" />
+                <Setter Property="Foreground" Value="{DynamicResource Brush.Fg.Primary}" />
+                <Setter Property="CaretBrush" Value="{DynamicResource Brush.Accent.Heading}" />
+                <Setter Property="SelectionBrush" Value="{DynamicResource Brush.Editor.Selection}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Stronger}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="Padding" Value="8,6" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TextBox">
+                            <Border x:Name="bd"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="5">
+                                <ScrollViewer x:Name="PART_ContentHost"
+                                              Padding="{TemplateBinding Padding}"
+                                              VerticalContentAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsFocused" Value="True">
+                                    <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource Brush.Accent.Heading}" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="bd" Property="Opacity" Value="0.5" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="MermaidBuilderLabel" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{DynamicResource Brush.Fg.Secondary}" />
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="Margin" Value="0,0,0,3" />
+            </Style>
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>

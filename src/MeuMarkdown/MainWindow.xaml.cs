@@ -1136,6 +1136,15 @@ public partial class MainWindow : Window
         textEditor.Focus();
     }
 
+    private void OnMermaidToolbarClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button btn) return;
+        if (btn.ContextMenu == null) return;
+        btn.ContextMenu.PlacementTarget = btn;
+        btn.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+        btn.ContextMenu.IsOpen = true;
+    }
+
     private void OnInsertMermaidTemplate(object sender, RoutedEventArgs e)
     {
         if (sender is not MenuItem mi) return;
