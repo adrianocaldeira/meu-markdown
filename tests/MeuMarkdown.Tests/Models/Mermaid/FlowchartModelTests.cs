@@ -35,4 +35,64 @@ public class FlowchartModelTests
         model.Nodes.Add(new FlowNode { Id = "n1", Label = "Olá", Shape = shape });
         Assert.Contains(expectedFragment, model.ToMermaid());
     }
+
+    [Theory]
+    [InlineData(FlowArrowType.Solid, "n1 --> n2")]
+    [InlineData(FlowArrowType.Dotted, "n1 -.-> n2")]
+    [InlineData(FlowArrowType.Thick, "n1 ==> n2")]
+    public void ToMermaid_Arrow_EmitsCorrectSyntax(FlowArrowType arrow, string expected)
+    {
+        var model = new FlowchartModel();
+        model.Nodes.Add(new FlowNode { Id = "n1", Label = "A" });
+        model.Nodes.Add(new FlowNode { Id = "n2", Label = "B" });
+        model.Edges.Add(new FlowEdge { FromId = "n1", ToId = "n2", Arrow = arrow });
+        Assert.Contains(expected, model.ToMermaid());
+    }
+
+    [Fact]
+    public void ToMermaid_SolidLabeledArrow_EmitsLabelBetweenPipes()
+    {
+        var model = new FlowchartModel();
+        model.Nodes.Add(new FlowNode { Id = "n1", Label = "A" });
+        model.Nodes.Add(new FlowNode { Id = "n2", Label = "B" });
+        model.Edges.Add(new FlowEdge { FromId = "n1", ToId = "n2", Arrow = FlowArrowType.SolidLabeled, Label = "sim" });
+        Assert.Contains("n1 -->|sim| n2", model.ToMermaid());
+    }
+
+    [Fact]
+    public void ToMermaid_SolidArrow_IgnoresLabelEvenIfPresent()
+    {
+        var model = new FlowchartModel();
+        model.Nodes.Add(new FlowNode { Id = "n1", Label = "A" });
+        model.Nodes.Add(new FlowNode { Id = "n2", Label = "B" });
+        model.Edges.Add(new FlowEdge { FromId = "n1", ToId = "n2", Arrow = FlowArrowType.Solid, Label = "ignorado" });
+        Assert.Contains("n1 --> n2", model.ToMermaid());
+        Assert.DoesNotContain("|ignorado|", model.ToMermaid());
+    }
+
+    [Fact]
+    public void ToMermaid_LabelWithQuotes_EscapesToSingleQuotes()
+    {
+        var model = new FlowchartModel();
+        model.Nodes.Add(new FlowNode { Id = "n1", Label = "Tem \"aspas\"" });
+        var output = model.ToMermaid();
+        Assert.Contains("Tem 'aspas'", output);
+        Assert.DoesNotContain("\"aspas\"", output);
+    }
+
+    [Fact]
+    public void ToMermaid_LabelWithNewline_EmitsBrTag()
+    {
+        var model = new FlowchartModel();
+        model.Nodes.Add(new FlowNode { Id = "n1", Label = "Linha 1\nLinha 2" });
+        Assert.Contains("Linha 1<br/>Linha 2", model.ToMermaid());
+    }
+
+    [Fact]
+    public void ToMermaid_LabelWithBrackets_WrapsInDoubleQuotes()
+    {
+        var model = new FlowchartModel();
+        model.Nodes.Add(new FlowNode { Id = "n1", Label = "Texto (a) [b]", Shape = FlowNodeShape.Rectangle });
+        Assert.Contains("n1[\"Texto (a) [b]\"]", model.ToMermaid());
+    }
 }
