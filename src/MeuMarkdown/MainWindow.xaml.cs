@@ -1044,11 +1044,25 @@ public partial class MainWindow : Window
     {
         try
         {
-            new FileAssociationService().Register();
-            MessageBox.Show(
-                "MeuMarkdown definido como padrão para arquivos .md.\n\nAo dar duplo clique em qualquer arquivo .md no Explorer, ele abrirá aqui.",
-                "Associação registrada",
-                MessageBoxButton.OK, MessageBoxImage.Information);
+            var result = new FileAssociationService().Register();
+            if (result == FileAssociationResult.Success)
+            {
+                MessageBox.Show(
+                    "MeuMarkdown definido como padrão para arquivos .md.\n\nAo dar duplo clique em qualquer arquivo .md no Explorer, ele abrirá aqui.",
+                    "Associação registrada",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                MessageBox.Show(
+                    "A associação foi registrada, mas o Windows mantém outro aplicativo como padrão para .md " +
+                    "(uma escolha protegida do sistema).\n\n" +
+                    "Para concluir, clique com o botão direito em um arquivo .md no Explorer → " +
+                    "\"Abrir com\" → \"Escolher outro aplicativo\" → selecione MeuMarkdown e marque " +
+                    "\"Sempre usar este aplicativo\".",
+                    "Ação necessária no Windows",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
         catch (Exception ex)
         {
