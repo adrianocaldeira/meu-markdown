@@ -9,4 +9,5 @@ public class MarkdownDocument
     public string Directory => string.IsNullOrEmpty(FilePath) ? string.Empty : Path.GetDirectoryName(FilePath) ?? string.Empty;
     public string Content { get; set; } = string.Empty;
     public bool IsDirty { get; set; }
+    public DateTime LastWriteTimeUtc { get; set; }
 }
