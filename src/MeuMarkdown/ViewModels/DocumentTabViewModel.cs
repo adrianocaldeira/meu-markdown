@@ -7,6 +7,7 @@ namespace MeuMarkdown.ViewModels;
 public partial class DocumentTabViewModel : ObservableObject
 {
     private readonly MarkdownDocument _document;
+    private bool _suppressDirty;
 
     [ObservableProperty]
     private string _content = string.Empty;
@@ -63,7 +64,7 @@ public partial class DocumentTabViewModel : ObservableObject
     partial void OnContentChanged(string value)
     {
         _document.Content = value;
-        IsDirty = true;
+        if (!_suppressDirty) IsDirty = true;
     }
 
     partial void OnIsDirtyChanged(bool value)
@@ -74,6 +75,19 @@ public partial class DocumentTabViewModel : ObservableObject
     public void MarkSaved()
     {
         _document.IsDirty = false;
+        IsDirty = false;
+    }
+
+    /// <summary>
+    /// Substitui o conteúdo do documento com a versão lida do disco, sem marcar como sujo,
+    /// e atualiza o timestamp de referência. Usado no recarregamento por mudança externa.
+    /// </summary>
+    public void ReloadFromDisk(string content, DateTime lastWriteTimeUtc)
+    {
+        _suppressDirty = true;
+        Content = content;
+        _suppressDirty = false;
+        _document.LastWriteTimeUtc = lastWriteTimeUtc;
         IsDirty = false;
     }
 
