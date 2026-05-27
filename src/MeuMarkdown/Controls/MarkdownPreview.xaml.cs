@@ -12,6 +12,9 @@ public partial class MarkdownPreview : UserControl
     private string? _pendingHtml;
     private bool _isDarkTheme;
     private string? _pendingEnhancementDir;
+    private string? _findTerm;
+    private bool _findCaseSensitive;
+    private bool _findWholeWord;
 
     public event Action<string, string?>? LinkClicked;
     public event Action<string>? ExternalLinkClicked;
@@ -19,10 +22,18 @@ public partial class MarkdownPreview : UserControl
     public event Action? ExportHtmlRequested;
     public event Action? ExportPdfRequested;
 
+    /// <summary>Dispara quando o contador de matches da busca no preview muda: (índice ativo, total).</summary>
+    public event EventHandler<(int activeIndex, int total)>? FindMatchesChanged;
+
+    /// <summary>True quando o conteúdo web do preview está com foco de teclado.</summary>
+    public bool IsPreviewFocused { get; private set; }
+
     public MarkdownPreview()
     {
         InitializeComponent();
         Loaded += OnLoaded;
+        webView.GotFocus += (_, _) => IsPreviewFocused = true;
+        webView.LostFocus += (_, _) => IsPreviewFocused = false;
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -55,6 +66,11 @@ public partial class MarkdownPreview : UserControl
             webView.CoreWebView2.Settings.AreDevToolsEnabled = false;
             webView.CoreWebView2.ContextMenuRequested += OnContextMenuRequested;
             _isInitialized = true;
+            webView.CoreWebView2.Find.MatchCountChanged += OnFindStatusChanged;
+            webView.CoreWebView2.Find.ActiveMatchIndexChanged += OnFindStatusChanged;
+            // Re-aplica a busca ativa após cada navegação (re-render via NavigateToString),
+            // para o highlight sobreviver à digitação/reload enquanto a barra está aberta.
+            webView.CoreWebView2.NavigationCompleted += OnNavCompletedReapplyFind;
             webView.CoreWebView2.WebMessageReceived += OnWebMessageReceived;
             loadingText.Visibility = Visibility.Collapsed;
 
@@ -163,6 +179,69 @@ public partial class MarkdownPreview : UserControl
     {
         if (!_isInitialized) return;
         await webView.CoreWebView2.ExecuteScriptAsync($"syncScrollToLine({line})");
+    }
+
+    /// <summary>
+    /// Inicia (ou atualiza) a busca no preview via API nativa do WebView2. Term vazio para a busca.
+    /// </summary>
+    public async void StartFind(string term, bool caseSensitive, bool wholeWord)
+    {
+        if (!_isInitialized) return;
+        if (string.IsNullOrEmpty(term))
+        {
+            StopFind();
+            return;
+        }
+        _findTerm = term;
+        _findCaseSensitive = caseSensitive;
+        _findWholeWord = wholeWord;
+
+        var options = webView.CoreWebView2.Environment.CreateFindOptions();
+        options.FindTerm = term;
+        options.IsCaseSensitive = caseSensitive;
+        options.ShouldMatchWord = wholeWord;
+        options.ShouldHighlightAllMatches = true;
+        options.SuppressDefaultFindDialog = true;
+        try
+        {
+            await webView.CoreWebView2.Find.StartAsync(options);
+        }
+        catch
+        {
+            // Find indisponível (runtime Edge antigo): ignora silenciosamente.
+        }
+    }
+
+    /// <summary>Vai para o próximo match.</summary>
+    public void FindNext()
+    {
+        if (_isInitialized && _findTerm != null) webView.CoreWebView2.Find.FindNext();
+    }
+
+    /// <summary>Vai para o match anterior.</summary>
+    public void FindPrevious()
+    {
+        if (_isInitialized && _findTerm != null) webView.CoreWebView2.Find.FindPrevious();
+    }
+
+    /// <summary>Encerra a busca e limpa os highlights.</summary>
+    public void StopFind()
+    {
+        _findTerm = null;
+        if (_isInitialized) webView.CoreWebView2.Find.Stop();
+    }
+
+    private void OnFindStatusChanged(object? sender, object e)
+    {
+        if (!_isInitialized) return;
+        var f = webView.CoreWebView2.Find;
+        FindMatchesChanged?.Invoke(this, (f.ActiveMatchIndex, f.MatchCount));
+    }
+
+    private void OnNavCompletedReapplyFind(object? sender, CoreWebView2NavigationCompletedEventArgs e)
+    {
+        if (_findTerm != null)
+            StartFind(_findTerm, _findCaseSensitive, _findWholeWord);
     }
 
     public async Task<bool> PrintToPdfAsync(string sourceHtmlPath, string destPdfPath, string pageSize = "A4", string orientation = "Portrait")
