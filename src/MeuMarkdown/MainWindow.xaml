@@ -578,7 +578,14 @@
                 <!-- Preview panel with subtle border -->
                 <Border Grid.Column="2" Margin="0,4,4,4"
                         Background="{DynamicResource Brush.Bg.Surface}" BorderBrush="{DynamicResource Brush.Border.Subtle}" BorderThickness="1" CornerRadius="6">
-                    <controls:MarkdownPreview x:Name="preview" />
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <controls:FindReplaceBar Grid.Row="0" x:Name="previewFindBar" Visibility="Collapsed" />
+                        <controls:MarkdownPreview Grid.Row="1" x:Name="preview" />
+                    </Grid>
                 </Border>
             </Grid>
 

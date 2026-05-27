@@ -55,6 +55,7 @@ public partial class MainWindow : Window
     private readonly FindResultsRenderer _findRenderer = new();
     private int _activeFindIndex = -1;
     private FindRequest? _lastFindRequest;
+    private FindTarget _findTarget = FindTarget.Editor;
     private enum ZenSoloState { None, EditorOnly, PreviewOnly }
     private bool _isZenMode;
     private ZenSoloState _zenSolo = ZenSoloState.None;
@@ -254,10 +255,17 @@ public partial class MainWindow : Window
         findBar.ReplaceOneRequested += OnReplaceOne;
         findBar.ReplaceAllRequested += OnReplaceAll;
 
+        previewFindBar.FindRequested += (_, req) => preview.StartFind(req.Query, req.CaseSensitive, req.WholeWord);
+        previewFindBar.NextRequested += (_, _) => preview.FindNext();
+        previewFindBar.PrevRequested += (_, _) => preview.FindPrevious();
+        previewFindBar.CloseRequested += (_, _) => ClosePreviewFindBar();
+        preview.FindMatchesChanged += (_, m) =>
+            Dispatcher.Invoke(() => previewFindBar.SetMatchCount(m.activeIndex, m.total));
+
         CommandBindings.Add(new CommandBinding(FindCommand, (_, _) => OpenFindBar(showReplace: false)));
         CommandBindings.Add(new CommandBinding(ReplaceCommand, (_, _) => OpenFindBar(showReplace: true)));
-        CommandBindings.Add(new CommandBinding(FindNextCommand, (_, _) => MoveToFindMatch(+1)));
-        CommandBindings.Add(new CommandBinding(FindPrevCommand, (_, _) => MoveToFindMatch(-1)));
+        CommandBindings.Add(new CommandBinding(FindNextCommand, (_, _) => FindNextRouted()));
+        CommandBindings.Add(new CommandBinding(FindPrevCommand, (_, _) => FindPrevRouted()));
         CommandBindings.Add(new CommandBinding(QuickSwitcherCommand, (_, _) => OpenQuickSwitcher()));
         quickSwitcher.FileSelected += (_, path) => _viewModel.OpenFileByPath(path);
         CommandBindings.Add(new CommandBinding(ZenModeCommand, (_, _) => ToggleZenMode()));
@@ -607,6 +615,8 @@ public partial class MainWindow : Window
 
     private void OnTabSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (previewFindBar.Visibility == Visibility.Visible)
+            ClosePreviewFindBar();
         sidebarHost.OutlinePanel.BindToTab(_viewModel.SelectedTab);
         if (_viewModel.SelectedTab == null)
         {
@@ -1615,6 +1625,19 @@ public partial class MainWindow : Window
 
     private void OpenFindBar(bool showReplace)
     {
+        // Replace (Ctrl+H) só faz sentido no editor; busca segue o painel ativo.
+        var target = showReplace
+            ? FindTarget.Editor
+            : FindRouting.Resolve(_isViewMode, preview.IsPreviewFocused);
+
+        if (target == FindTarget.Preview)
+        {
+            _findTarget = FindTarget.Preview;
+            previewFindBar.Open(_lastFindRequest?.Query, showReplace: false, allowRegex: false);
+            return;
+        }
+
+        _findTarget = FindTarget.Editor;
         var selected = textEditor.SelectedText;
         findBar.Open(string.IsNullOrEmpty(selected) ? _lastFindRequest?.Query : selected, showReplace);
     }
@@ -1626,6 +1649,26 @@ public partial class MainWindow : Window
         _findRenderer.ActiveMatchIndex = -1;
         textEditor.TextArea.TextView.InvalidateLayer(_findRenderer.Layer);
         textEditor.Focus();
+    }
+
+    private void ClosePreviewFindBar()
+    {
+        previewFindBar.Visibility = Visibility.Collapsed;
+        preview.StopFind();
+        preview.Focus();
+        _findTarget = FindTarget.Editor;
+    }
+
+    private void FindNextRouted()
+    {
+        if (_findTarget == FindTarget.Preview) preview.FindNext();
+        else MoveToFindMatch(+1);
+    }
+
+    private void FindPrevRouted()
+    {
+        if (_findTarget == FindTarget.Preview) preview.FindPrevious();
+        else MoveToFindMatch(-1);
     }
 
     private void OnFindRequested(object? sender, FindRequest req)
