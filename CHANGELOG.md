@@ -6,6 +6,14 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Adicionado
+- **Busca no preview (`Ctrl+F`)**: além do editor, agora o `Ctrl+F` pesquisa no
+  painel de preview quando ele está em foco ou no modo Visualização. Usa a busca
+  nativa do WebView2 — destaca todas as ocorrências, contador `X/Y`, navegação
+  com Enter/setas e `Esc` para fechar. A barra segue a aparência da busca do
+  editor (sem Substituir e sem regex no preview; o editor mantém regex sobre o
+  markdown).
+
 ## [1.11.0] — 2026
 
 ### Adicionado
