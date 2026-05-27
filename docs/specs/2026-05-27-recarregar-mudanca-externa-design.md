@@ -47,10 +47,14 @@ o tamanho do arquivo como reforço.
 ## Reações
 
 - **`ChangedClean`** → recarrega o texto do disco. Antes de substituir o texto,
-  captura `editor.TextArea.TextView.ScrollOffset`; reaplica após o reload. O
-  preview se atualiza pelo fluxo normal (`updateContent` via script, que faz
-  update de DOM e **não** recarrega a página), preservando zoom e scroll do
-  preview naturalmente. Atualiza `LastWriteTimeUtc` guardado.
+  captura `editor.TextArea.TextView.ScrollOffset`; reaplica após o reload via
+  `ScrollToHorizontalOffset` / `ScrollToVerticalOffset`. O preview é
+  re-renderizado pelo fluxo normal (`SetFullHtml` → `NavigateToString`, igual ao
+  que já ocorre a cada edição). O **zoom** do preview é preservado naturalmente
+  por ser `WebView2.ZoomFactor` (propriedade do controle, sobrevive à navegação).
+  O **scroll do preview** segue o comportamento atual do app (volta ao topo no
+  reload) — sem código dedicado de preservação, mantendo consistência com a
+  edição normal. Atualiza `LastWriteTimeUtc` guardado.
 - **`ChangedDirty`** → exibe barra/aviso discreto não-bloqueante no topo do
   editor: *"Este arquivo mudou no disco."* com ações **[Recarregar]** (descarta
   edições locais e recarrega) e **[Manter o meu]** (dispensa o aviso). Não
@@ -93,4 +97,6 @@ Segue o padrão de `FileServiceTests` / `WorkspaceServiceTests`.
 
 - Watcher ao vivo / atualização de abas em segundo plano.
 - Preservar cursor/seleção do editor no reload (apenas scroll do editor).
+- Preservar scroll do preview no reload (zoom sim, scroll segue o comportamento
+  atual de voltar ao topo).
 - Merge de conteúdo em conflito (decisão é recarregar-ou-manter, não merge).
