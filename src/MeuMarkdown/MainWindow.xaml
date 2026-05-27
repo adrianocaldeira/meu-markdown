@@ -527,10 +527,35 @@
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <controls:FindReplaceBar Grid.Row="0" x:Name="findBar" Visibility="Collapsed" />
-                        <ae:TextEditor Grid.Row="1" x:Name="textEditor"
+
+                        <!-- Aviso de mudança externa (oculto por padrão) -->
+                        <Border Grid.Row="0" x:Name="externalChangeBar" Visibility="Collapsed"
+                                Background="{DynamicResource Brush.Bg.SurfaceAlt}"
+                                BorderBrush="{DynamicResource Brush.Border.Subtle}"
+                                BorderThickness="0,0,0,1" Padding="10,6">
+                            <DockPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                    <Button x:Name="externalChangePrimaryButton"
+                                            Content="Recarregar"
+                                            Click="OnExternalChangePrimary"
+                                            Padding="10,3" Margin="0,0,6,0" />
+                                    <Button x:Name="externalChangeDismissButton"
+                                            Content="Manter o meu"
+                                            Click="OnExternalChangeDismiss"
+                                            Padding="10,3" />
+                                </StackPanel>
+                                <TextBlock x:Name="externalChangeText"
+                                           VerticalAlignment="Center"
+                                           Foreground="{DynamicResource Brush.Fg.Primary}"
+                                           Text="Este arquivo mudou no disco." />
+                            </DockPanel>
+                        </Border>
+
+                        <controls:FindReplaceBar Grid.Row="1" x:Name="findBar" Visibility="Collapsed" />
+                        <ae:TextEditor Grid.Row="2" x:Name="textEditor"
                                        FontFamily="Cascadia Code, Consolas, Courier New"
                                        FontSize="14"
                                        ShowLineNumbers="True"

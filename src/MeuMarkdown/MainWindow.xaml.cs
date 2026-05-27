@@ -63,6 +63,8 @@ public partial class MainWindow : Window
     private TypewriterScrollManager? _typewriterManager;
     private readonly Services.MermaidTemplateService _mermaidTemplateService = new();
     private string _assetsDir = "";
+    private readonly ExternalChangeService _externalChangeService = new();
+    private ExternalChangeStatus _pendingExternalChange = ExternalChangeStatus.Unchanged;
 
     public MainWindow()
     {
@@ -126,6 +128,7 @@ public partial class MainWindow : Window
 
         textEditor.TextChanged += OnEditorTextChanged;
         textEditor.TextArea.Caret.PositionChanged += OnCaretPositionChanged;
+        Activated += OnWindowActivated;
 
         preview.LinkClicked += OnPreviewLinkClicked;
         preview.ExternalLinkClicked += OnExternalLinkClicked;
@@ -478,6 +481,115 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OnWindowActivated(object? sender, EventArgs e)
+    {
+        CheckActiveTabForExternalChange();
+    }
+
+    /// <summary>
+    /// Verifica se o arquivo da aba ativa mudou no disco e reage: recarrega se limpo,
+    /// avisa se sujo ou removido. Chamado ao trocar de aba e ao app recuperar o foco.
+    /// </summary>
+    private void CheckActiveTabForExternalChange()
+    {
+        var tab = _viewModel.SelectedTab;
+        if (tab == null)
+        {
+            HideExternalChangeBar();
+            return;
+        }
+
+        var result = _externalChangeService.Check(tab.GetDocument(), tab.IsDirty);
+        switch (result.Status)
+        {
+            case ExternalChangeStatus.Unchanged:
+                HideExternalChangeBar();
+                break;
+            case ExternalChangeStatus.ChangedClean:
+                ReloadActiveTabFromDisk(tab, result.Content, result.LastWriteTimeUtc);
+                HideExternalChangeBar();
+                break;
+            case ExternalChangeStatus.ChangedDirty:
+                ShowExternalChangeBar(
+                    "Este arquivo mudou no disco.", "Recarregar", ExternalChangeStatus.ChangedDirty);
+                break;
+            case ExternalChangeStatus.Deleted:
+                ShowExternalChangeBar(
+                    "Este arquivo foi removido do disco.", "Salvar novamente", ExternalChangeStatus.Deleted);
+                break;
+        }
+    }
+
+    private void ReloadActiveTabFromDisk(DocumentTabViewModel tab, string content, DateTime lastWriteTimeUtc)
+    {
+        var offset = textEditor.TextArea.TextView.ScrollOffset;
+
+        tab.ReloadFromDisk(content, lastWriteTimeUtc);
+
+        _suppressEditorUpdate = true;
+        textEditor.Text = content;
+        _suppressEditorUpdate = false;
+
+        UpdatePreview();
+
+        textEditor.ScrollToHorizontalOffset(offset.X);
+        textEditor.ScrollToVerticalOffset(offset.Y);
+    }
+
+    private void ShowExternalChangeBar(string message, string primaryLabel, ExternalChangeStatus status)
+    {
+        externalChangeText.Text = message;
+        externalChangePrimaryButton.Content = primaryLabel;
+        externalChangeDismissButton.Visibility =
+            status == ExternalChangeStatus.Deleted ? Visibility.Collapsed : Visibility.Visible;
+        _pendingExternalChange = status;
+        externalChangeBar.Visibility = Visibility.Visible;
+    }
+
+    private void HideExternalChangeBar()
+    {
+        externalChangeBar.Visibility = Visibility.Collapsed;
+        _pendingExternalChange = ExternalChangeStatus.Unchanged;
+    }
+
+    private void OnExternalChangePrimary(object sender, RoutedEventArgs e)
+    {
+        var tab = _viewModel.SelectedTab;
+        if (tab == null) { HideExternalChangeBar(); return; }
+
+        if (_pendingExternalChange == ExternalChangeStatus.ChangedDirty)
+        {
+            var fresh = _externalChangeService.Check(tab.GetDocument(), isDirty: false);
+            if (fresh.Status == ExternalChangeStatus.ChangedClean)
+                ReloadActiveTabFromDisk(tab, fresh.Content, fresh.LastWriteTimeUtc);
+        }
+        else if (_pendingExternalChange == ExternalChangeStatus.Deleted)
+        {
+            _viewModel.SaveCommand.Execute(null);
+        }
+
+        HideExternalChangeBar();
+    }
+
+    private void OnExternalChangeDismiss(object sender, RoutedEventArgs e)
+    {
+        // "Manter o meu": reconhece a versão atual do disco (atualiza só o timestamp de
+        // referência, sem tocar no conteúdo em memória) para não reavisar da MESMA mudança
+        // a cada foco. Uma nova escrita externa volta a disparar o aviso.
+        var tab = _viewModel.SelectedTab;
+        if (tab != null)
+        {
+            var doc = tab.GetDocument();
+            try
+            {
+                if (System.IO.File.Exists(doc.FilePath))
+                    doc.LastWriteTimeUtc = System.IO.File.GetLastWriteTimeUtc(doc.FilePath);
+            }
+            catch (System.IO.IOException) { /* tenta de novo no próximo foco */ }
+        }
+        HideExternalChangeBar();
+    }
+
     private void OnTabSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         sidebarHost.OutlinePanel.BindToTab(_viewModel.SelectedTab);
@@ -487,6 +599,7 @@ public partial class MainWindow : Window
             textEditor.IsEnabled = false;
             // Sem aba ativa: limpa o preview também (antes ficava mostrando o HTML da última aba).
             preview.SetFullHtml("");
+            HideExternalChangeBar();
             return;
         }
 
@@ -503,6 +616,7 @@ public partial class MainWindow : Window
         // consomemos aqui. Caso contrário (aba nova), o OnDebounceTimerTick vai consumir
         // após extrair os headings do conteúdo carregado.
         TryConsumePendingScrollFragment();
+        CheckActiveTabForExternalChange();
     }
 
     private void OnPreviewLinkClicked(string relativePath, string? fragment)
