@@ -1632,11 +1632,15 @@ public partial class MainWindow : Window
 
         if (target == FindTarget.Preview)
         {
+            // Garante barra única: fecha a do editor antes de abrir a do preview.
+            if (findBar.Visibility == Visibility.Visible) CloseFindBar();
             _findTarget = FindTarget.Preview;
             previewFindBar.Open(_lastFindRequest?.Query, showReplace: false, allowRegex: false);
             return;
         }
 
+        // Garante barra única: fecha a do preview antes de abrir a do editor.
+        if (previewFindBar.Visibility == Visibility.Visible) ClosePreviewFindBar();
         _findTarget = FindTarget.Editor;
         var selected = textEditor.SelectedText;
         findBar.Open(string.IsNullOrEmpty(selected) ? _lastFindRequest?.Query : selected, showReplace);

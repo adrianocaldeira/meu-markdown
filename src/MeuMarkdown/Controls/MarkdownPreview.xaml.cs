@@ -192,10 +192,6 @@ public partial class MarkdownPreview : UserControl
             StopFind();
             return;
         }
-        _findTerm = term;
-        _findCaseSensitive = caseSensitive;
-        _findWholeWord = wholeWord;
-
         var options = webView.CoreWebView2.Environment.CreateFindOptions();
         options.FindTerm = term;
         options.IsCaseSensitive = caseSensitive;
@@ -205,6 +201,9 @@ public partial class MarkdownPreview : UserControl
         try
         {
             await webView.CoreWebView2.Find.StartAsync(options);
+            _findTerm = term;
+            _findCaseSensitive = caseSensitive;
+            _findWholeWord = wholeWord;
         }
         catch
         {
@@ -228,14 +227,18 @@ public partial class MarkdownPreview : UserControl
     public void StopFind()
     {
         _findTerm = null;
-        if (_isInitialized) webView.CoreWebView2.Find.Stop();
+        if (!_isInitialized) return;
+        try { webView.CoreWebView2.Find.Stop(); }
+        catch { /* Find indisponível: no-op */ }
     }
 
     private void OnFindStatusChanged(object? sender, object e)
     {
         if (!_isInitialized) return;
         var f = webView.CoreWebView2.Find;
-        FindMatchesChanged?.Invoke(this, (f.ActiveMatchIndex, f.MatchCount));
+        // ActiveMatchIndex do WebView2 é 1-based (-1 = nenhum); SetMatchCount espera 0-based.
+        var zeroBased = f.ActiveMatchIndex > 0 ? f.ActiveMatchIndex - 1 : 0;
+        FindMatchesChanged?.Invoke(this, (zeroBased, f.MatchCount));
     }
 
     private void OnNavCompletedReapplyFind(object? sender, CoreWebView2NavigationCompletedEventArgs e)
