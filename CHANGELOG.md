@@ -6,6 +6,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.12.0] — 2026
+
 ### Adicionado
 - **Busca no preview (`Ctrl+F`)**: além do editor, agora o `Ctrl+F` pesquisa no
   painel de preview quando ele está em foco ou no modo Visualização. Usa a busca
@@ -317,7 +319,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.11.0...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.12.0...HEAD
+[1.12.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.12.0
 [1.11.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.11.0
 [1.10.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.10.0
 [1.9.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.9.0

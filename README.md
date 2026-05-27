@@ -114,7 +114,7 @@ dotnet run --project src/MeuMarkdown/MeuMarkdown.csproj
 
 | Atalho | Ação |
 |---|---|
-| `Ctrl+F` | Buscar na aba ativa |
+| `Ctrl+F` | Buscar no painel ativo (editor ou preview) |
 | `Ctrl+H` | Substituir |
 | `F3` / `Shift+F3` | Próximo / anterior |
 
@@ -148,7 +148,7 @@ Arquitetura **MVVM** simples e enxuta — detalhes na [Wiki/Arquitetura](https:/
 
 ## 🗺️ Roadmap
 
-### ✅ Já entregue (v1.11.0)
+### ✅ Já entregue (v1.12.0)
 - Editor + preview live com syntax highlighting
 - Múltiplas abas com menu de contexto (fechar variantes, fixar aba) e drag-and-drop pra reordenar
 - Navegação entre `.md` linkados com histórico **e suporte a heading anchor (`#secao`)**
@@ -166,6 +166,7 @@ Arquitetura **MVVM** simples e enxuta — detalhes na [Wiki/Arquitetura](https:/
 - **Operações de arquivo no Explorer** (novo, copy/cut/paste, drag-and-drop) com atalhos
 - **Construtor visual de Mermaid** na toolbar (Fluxograma/Sequência) + 8 templates prontos
 - **Recarregamento automático ao detectar mudança externa** (ao ativar a aba ou focar o app), preservando o scroll do editor — com aviso quando há edições não salvas
+- **Busca no preview** (`Ctrl+F`) além do editor, conforme o painel ativo — highlight, contador e navegação nativos do WebView2
 
 ### 🚧 Em estudo
 - Snippets / templates de documento
