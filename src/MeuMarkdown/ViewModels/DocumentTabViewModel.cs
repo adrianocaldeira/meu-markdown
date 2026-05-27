@@ -87,7 +87,6 @@ public partial class DocumentTabViewModel : ObservableObject
         _suppressDirty = true;
         Content = content;
         _suppressDirty = false;
-        _document.Content = content;
         _document.LastWriteTimeUtc = lastWriteTimeUtc;
         IsDirty = false;
     }

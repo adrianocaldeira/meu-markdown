@@ -55,12 +55,10 @@ public class ExternalChangeService
             var content = File.ReadAllText(document.FilePath);
             return new ExternalChangeResult(ExternalChangeStatus.ChangedClean, content, diskTime);
         }
-        catch (IOException)
+        catch (Exception)
         {
-            return new ExternalChangeResult(ExternalChangeStatus.Unchanged, string.Empty, default);
-        }
-        catch (UnauthorizedAccessException)
-        {
+            // Qualquer falha de acesso a disco (bloqueio, caminho inválido, permissão):
+            // trata como sem mudança; a próxima ativação tenta de novo.
             return new ExternalChangeResult(ExternalChangeStatus.Unchanged, string.Empty, default);
         }
     }

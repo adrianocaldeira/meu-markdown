@@ -65,6 +65,7 @@ public partial class MainWindow : Window
     private string _assetsDir = "";
     private readonly ExternalChangeService _externalChangeService = new();
     private ExternalChangeStatus _pendingExternalChange = ExternalChangeStatus.Unchanged;
+    private bool _checkingExternalChange;
 
     public MainWindow()
     {
@@ -492,31 +493,40 @@ public partial class MainWindow : Window
     /// </summary>
     private void CheckActiveTabForExternalChange()
     {
-        var tab = _viewModel.SelectedTab;
-        if (tab == null)
+        if (_checkingExternalChange) return;
+        _checkingExternalChange = true;
+        try
         {
-            HideExternalChangeBar();
-            return;
-        }
+            var tab = _viewModel.SelectedTab;
+            if (tab == null)
+            {
+                HideExternalChangeBar();
+                return;
+            }
 
-        var result = _externalChangeService.Check(tab.GetDocument(), tab.IsDirty);
-        switch (result.Status)
+            var result = _externalChangeService.Check(tab.GetDocument(), tab.IsDirty);
+            switch (result.Status)
+            {
+                case ExternalChangeStatus.Unchanged:
+                    HideExternalChangeBar();
+                    break;
+                case ExternalChangeStatus.ChangedClean:
+                    ReloadActiveTabFromDisk(tab, result.Content, result.LastWriteTimeUtc);
+                    HideExternalChangeBar();
+                    break;
+                case ExternalChangeStatus.ChangedDirty:
+                    ShowExternalChangeBar(
+                        "Este arquivo mudou no disco.", "Recarregar", ExternalChangeStatus.ChangedDirty);
+                    break;
+                case ExternalChangeStatus.Deleted:
+                    ShowExternalChangeBar(
+                        "Este arquivo foi removido do disco.", "Salvar novamente", ExternalChangeStatus.Deleted);
+                    break;
+            }
+        }
+        finally
         {
-            case ExternalChangeStatus.Unchanged:
-                HideExternalChangeBar();
-                break;
-            case ExternalChangeStatus.ChangedClean:
-                ReloadActiveTabFromDisk(tab, result.Content, result.LastWriteTimeUtc);
-                HideExternalChangeBar();
-                break;
-            case ExternalChangeStatus.ChangedDirty:
-                ShowExternalChangeBar(
-                    "Este arquivo mudou no disco.", "Recarregar", ExternalChangeStatus.ChangedDirty);
-                break;
-            case ExternalChangeStatus.Deleted:
-                ShowExternalChangeBar(
-                    "Este arquivo foi removido do disco.", "Salvar novamente", ExternalChangeStatus.Deleted);
-                break;
+            _checkingExternalChange = false;
         }
     }
 
@@ -566,6 +576,11 @@ public partial class MainWindow : Window
         else if (_pendingExternalChange == ExternalChangeStatus.Deleted)
         {
             _viewModel.SaveCommand.Execute(null);
+            // Se o save falhou (ex.: pasta-pai removida), mantém o aviso visível.
+            var doc = tab.GetDocument();
+            if (!string.IsNullOrEmpty(doc.FilePath) && System.IO.File.Exists(doc.FilePath))
+                HideExternalChangeBar();
+            return;
         }
 
         HideExternalChangeBar();
