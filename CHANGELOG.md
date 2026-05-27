@@ -6,6 +6,21 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+### Adicionado
+- **Recarregamento automático ao detectar mudança externa**: ao ativar uma aba
+  ou quando o app recupera o foco, o documento é comparado com o arquivo em
+  disco. Se o arquivo foi alterado por outra ferramenta e não há edições locais
+  pendentes, o conteúdo recarrega sozinho preservando a posição de scroll do
+  editor (e o zoom do preview). Com edições não salvas, mostra um aviso
+  não-bloqueante no topo do editor (**Recarregar** / **Manter o meu**) sem
+  sobrescrever; se o arquivo foi removido do disco, oferece **Salvar novamente**.
+
+### Corrigido
+- **"Definir .md como padrão"** agora remove a escolha de aplicativo protegida
+  do Windows (`UserChoice`), que tinha prioridade sobre o registro e fazia os
+  arquivos `.md` continuarem abrindo em outro editor. Quando o Windows protege
+  a chave (Win10/11), o app orienta a concluir pela via nativa do Explorer.
+
 ## [1.10.0] — 2026-05-21
 
 ### Adicionado
