@@ -18,11 +18,14 @@ public partial class FindReplaceBar : UserControl
         InitializeComponent();
     }
 
-    public void Open(string? initialQuery, bool showReplace)
+    public void Open(string? initialQuery, bool showReplace, bool allowRegex = true)
     {
         if (!string.IsNullOrEmpty(initialQuery))
             FindBox.Text = initialQuery;
         ReplaceRow.Visibility = showReplace ? Visibility.Visible : Visibility.Collapsed;
+        RegexToggle.Visibility = allowRegex ? Visibility.Visible : Visibility.Collapsed;
+        if (!allowRegex)
+            RegexToggle.IsChecked = false;
         Visibility = Visibility.Visible;
         FindBox.Focus();
         FindBox.SelectAll();
@@ -34,6 +37,7 @@ public partial class FindReplaceBar : UserControl
     }
 
     public string CurrentReplaceText => ReplaceBox.Text;
+    public string CurrentFindText => FindBox.Text;
 
     private void EmitFind()
     {
