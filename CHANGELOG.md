@@ -6,6 +6,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.11.0] — 2026
+
 ### Adicionado
 - **Recarregamento automático ao detectar mudança externa**: ao ativar uma aba
   ou quando o app recupera o foco, o documento é comparado com o arquivo em
@@ -307,7 +309,9 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.9.0...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.11.0...HEAD
+[1.11.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.11.0
+[1.10.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.10.0
 [1.9.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.9.0
 [1.8.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.8.0
 [1.7.7]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.7.7
