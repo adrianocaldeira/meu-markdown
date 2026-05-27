@@ -41,9 +41,14 @@ Encapsula `CoreWebView2.Find`:
   `FindTerm = term`, `IsCaseSensitive = caseSensitive`,
   `ShouldMatchWord = wholeWord`, `SuppressDefaultFindDialog = true`,
   `ShouldHighlightAllMatches = true`, e chama `Find.StartAsync(options)`.
-- `FindNext()` → `Find.FindNextAsync()`.
-- `FindPrevious()` → `Find.FindPreviousAsync()`.
-- `StopFind()` → `Find.StopAsync()` (limpa highlights).
+- `FindNext()` → `Find.FindNext()`.
+- `FindPrevious()` → `Find.FindPrevious()`.
+- `StopFind()` → `Find.Stop()` (limpa highlights).
+
+> API confirmada na doc oficial (Microsoft Learn, via context7): em .NET os métodos
+> de navegação são síncronos (`FindNext()`, `FindPrevious()`, `Stop()`); só
+> `StartAsync(CoreWebView2FindOptions)` é assíncrono. `CoreWebView2.Find` →
+> `CoreWebView2Find`; opções via `Environment.CreateFindOptions()`.
 - Evento `event EventHandler<(int activeIndex, int total)> FindMatchesChanged` —
   assina `Find.MatchCountChanged` e `Find.ActiveMatchIndexChanged` e repassa
   `(Find.ActiveMatchIndex, Find.MatchCount)`.
@@ -106,14 +111,14 @@ oculto, o `FindRequest` emitido tem `UseRegex = false`.
 
 ## Risco e verificação
 
-- Os nomes exatos da API de Find (`CoreWebView2.Find`,
-  `Environment.CreateFindOptions()`, `CoreWebView2FindOptions`,
-  `FindNextAsync`/`FindPreviousAsync`/`StopAsync`, `MatchCount`,
-  `ActiveMatchIndex`, `MatchCountChanged`, `ActiveMatchIndexChanged`) **devem ser
-  confirmados contra o SDK `1.0.3800.47`** na fase de plano (consultar a doc
-  oficial da Microsoft via context7). Se algum membro divergir nesta versão,
-  ajustar para a assinatura real; se a API inteira não existir (improvável nessa
-  faixa), o fallback é a CSS Custom Highlight API via JS (plano B do brainstorm).
+- API **confirmada** na doc oficial (Microsoft Learn, via context7): `CoreWebView2.Find`,
+  `Environment.CreateFindOptions()`, `CoreWebView2FindOptions`
+  (`FindTerm`/`IsCaseSensitive`/`ShouldMatchWord`/`ShouldHighlightAllMatches`/`SuppressDefaultFindDialog`),
+  `CoreWebView2Find.StartAsync(options)`, `FindNext()`, `FindPrevious()`, `Stop()`,
+  `MatchCount`, `ActiveMatchIndex`, `MatchCountChanged`, `ActiveMatchIndexChanged`.
+  Disponível no SDK `1.0.3800.47`. Se em runtime a propriedade `Find` não existir
+  (runtime Edge muito antigo — improvável), o fallback é a CSS Custom Highlight API
+  via JS (plano B do brainstorm).
 
 ## Testes
 
