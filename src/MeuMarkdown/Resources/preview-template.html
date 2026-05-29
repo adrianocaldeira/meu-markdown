@@ -227,6 +227,54 @@
             renderEnhancements().catch(() => {});
         }
 
+        // Normaliza um texto para o mesmo formato de id que o Markdig (UseAutoIdentifiers)
+        // gera para os headings: remove diacríticos (ç→c, ã→a, â→a), minúsculas, e colapsa
+        // qualquer sequência de não-alfanuméricos num único "-". Sem isso, links como
+        // "#introdução" (com acento) não casariam com o id real "introducao".
+        function __slugify(s) {
+            return s.normalize('NFD').replace(new RegExp('[\\u0300-\\u036f]', 'g'), '')
+                    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        }
+
+        // Links âncora intra-documento (href="#secao") não navegam sozinhos: o preview
+        // é carregado via NavigateToString (URI base data:...), e o handler nativo
+        // NavigationStarting cancela navegações data: iniciadas pelo usuário por segurança.
+        // Interceptamos o clique aqui e fazemos o scroll manualmente. Delegação no document
+        // para sobreviver às trocas de conteúdo via updateContent (innerHTML).
+        document.addEventListener('click', (ev) => {
+            const a = ev.target.closest ? ev.target.closest('a[href^="#"]') : null;
+            if (!a) return;
+            ev.preventDefault();
+            const href = a.getAttribute('href');
+            if (!href || href === '#') {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+            let id = href.slice(1);
+            try { id = decodeURIComponent(id); } catch (e) { /* mantém o valor bruto */ }
+
+            // 1) match exato (ids explícitos / custom anchors).
+            let target = document.getElementById(id);
+            // 2) match por slug normalizado — os ids do Markdig já são slugs, então
+            //    slugificar o fragment do link (que pode ter acentos/maiúsculas) faz casar.
+            if (!target) target = document.getElementById(__slugify(id));
+            // 3) último recurso: varre todos os elementos com id comparando o slug.
+            if (!target) {
+                const slug = __slugify(id);
+                target = Array.prototype.find.call(
+                    document.querySelectorAll('[id]'),
+                    el => __slugify(el.id) === slug) || null;
+            }
+            // 4) fallback final: anchors antigos via <a name="...">.
+            if (!target) {
+                try {
+                    const sel = (window.CSS && CSS.escape) ? CSS.escape(id) : id;
+                    target = document.querySelector('[name="' + sel + '"]');
+                } catch (e) { /* seletor inválido: ignora */ }
+            }
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
         window.addEventListener('scroll', () => {
             if (__suppressSync) return;
             if (typeof chrome === 'undefined' || !chrome.webview) return;
