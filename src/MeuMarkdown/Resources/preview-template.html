@@ -104,7 +104,39 @@
 
         .markdown-body input[type="checkbox"] { margin-right: 4px; }
 
+        /* Mermaid: afordância de clique-para-zoom (só diagramas renderizados com SVG). */
+        .markdown-body .mermaid[data-zoomable] { cursor: zoom-in; border-radius: 6px; transition: outline-color 0.12s; outline: 2px solid transparent; outline-offset: 4px; }
+        .markdown-body .mermaid[data-zoomable]:hover { outline-color: var(--accent); }
+
+        /* Lightbox de zoom do Mermaid. */
+        #mm-zoom-overlay {
+            position: fixed; inset: 0; z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0, 0, 0, 0.6); overflow: hidden;
+        }
+        body.dark #mm-zoom-overlay { background: rgba(0, 0, 0, 0.8); }
+        #mm-zoom-stage {
+            position: absolute; top: 0; left: 0;
+            transform-origin: 0 0; will-change: transform;
+            cursor: grab; user-select: none;
+        }
+        #mm-zoom-stage.dragging { cursor: grabbing; }
+        #mm-zoom-stage svg { display: block; max-width: none; height: auto; }
+        #mm-zoom-controls {
+            position: fixed; top: 16px; right: 16px; z-index: 10000;
+            display: flex; gap: 8px;
+        }
+        #mm-zoom-controls button {
+            width: 40px; height: 40px; border: none; border-radius: 8px;
+            background: rgba(255, 255, 255, 0.92); color: #1f2328;
+            font-size: 20px; line-height: 1; cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            display: flex; align-items: center; justify-content: center;
+        }
+        #mm-zoom-controls button:hover { background: #fff; }
+
         @media print {
+            #mm-zoom-overlay { display: none !important; }
             body { max-width: none; padding: 0; color: black; background: white; }
             .markdown-body { max-width: none; }
             .markdown-body a { color: inherit; text-decoration: none; }
@@ -147,6 +179,7 @@
                 try { await mermaid.run({ querySelector: '.mermaid' }); }
                 catch (e) { /* Mermaid renderiza box de erro inline */ }
             }
+            markZoomableMermaid();
 
             // KaTeX: Markdig.UseMathematics emite <span class="math">\(expr\)</span> pra inline
             // e <div class="math">\[expr\]</div> pra bloco. Os delimitadores podem ser \(..\),
@@ -195,7 +228,17 @@
                     el.textContent = original;
                 });
                 try { await mermaid.run({ querySelector: '.mermaid' }); } catch (e) {}
+                markZoomableMermaid();
             }
+        }
+
+        // Marca como zoomável só os diagramas que renderizaram um <svg> de fato
+        // (exclui caixas de erro). Habilita o cursor zoom-in e o clique do lightbox.
+        function markZoomableMermaid() {
+            document.querySelectorAll('.mermaid').forEach(el => {
+                if (el.querySelector('svg')) el.setAttribute('data-zoomable', '');
+                else el.removeAttribute('data-zoomable');
+            });
         }
 
         let __suppressSync = false;
@@ -274,6 +317,118 @@
             }
             if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
+
+        // ===== Lightbox de zoom do Mermaid =====
+        // Clique num diagrama renderizado abre um overlay fullscreen com um clone do SVG.
+        // Scroll = zoom no cursor, arrastar = pan, botões e Esc/clique no fundo controlam.
+        (function () {
+            let overlay = null, stage = null, svgEl = null;
+            let scale = 1, tx = 0, ty = 0, natW = 0, natH = 0;
+            const MIN = 0.1, MAX = 20;
+
+            function apply() {
+                stage.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
+            }
+            function clamp(s) { return Math.min(MAX, Math.max(MIN, s)); }
+
+            function fit() {
+                const vw = window.innerWidth, vh = window.innerHeight;
+                const margin = 0.92;
+                scale = clamp(Math.min(vw * margin / natW, vh * margin / natH));
+                tx = (vw - natW * scale) / 2;
+                ty = (vh - natH * scale) / 2;
+                apply();
+            }
+            // Zoom mantendo fixo o ponto (cx,cy) em coordenadas de viewport.
+            function zoomAt(cx, cy, factor) {
+                const ns = clamp(scale * factor);
+                tx = cx - (cx - tx) * (ns / scale);
+                ty = cy - (cy - ty) * (ns / scale);
+                scale = ns;
+                apply();
+            }
+
+            function close() {
+                if (!overlay) return;
+                document.removeEventListener('keydown', onKey);
+                overlay.remove();
+                overlay = stage = svgEl = null;
+            }
+            function onKey(e) { if (e.key === 'Escape') close(); }
+
+            function open(mermaidEl) {
+                const orig = mermaidEl.querySelector('svg');
+                if (!orig) return;
+                const rect = orig.getBoundingClientRect();
+                natW = rect.width || 600;
+                natH = rect.height || 400;
+
+                overlay = document.createElement('div');
+                overlay.id = 'mm-zoom-overlay';
+
+                stage = document.createElement('div');
+                stage.id = 'mm-zoom-stage';
+                svgEl = orig.cloneNode(true);
+                svgEl.style.maxWidth = 'none';
+                svgEl.style.width = natW + 'px';
+                svgEl.style.height = natH + 'px';
+                stage.appendChild(svgEl);
+                overlay.appendChild(stage);
+
+                const controls = document.createElement('div');
+                controls.id = 'mm-zoom-controls';
+                const mkBtn = (label, title, fn) => {
+                    const b = document.createElement('button');
+                    b.textContent = label; b.title = title;
+                    b.addEventListener('click', (e) => { e.stopPropagation(); fn(); });
+                    controls.appendChild(b);
+                };
+                mkBtn('+', 'Aproximar', () => zoomAt(window.innerWidth / 2, window.innerHeight / 2, 1.25));
+                mkBtn('−', 'Afastar', () => zoomAt(window.innerWidth / 2, window.innerHeight / 2, 1 / 1.25));
+                mkBtn('⤢', 'Ajustar à tela', fit);
+                mkBtn('×', 'Fechar (Esc)', close);
+                overlay.appendChild(controls);
+
+                // Clique no fundo (não no diagrama) fecha.
+                overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) close(); });
+
+                // Scroll = zoom no cursor.
+                overlay.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.1 : 1 / 1.1);
+                }, { passive: false });
+
+                // Arrastar = pan.
+                let dragging = false, lastX = 0, lastY = 0;
+                stage.addEventListener('pointerdown', (e) => {
+                    dragging = true; lastX = e.clientX; lastY = e.clientY;
+                    stage.classList.add('dragging');
+                    stage.setPointerCapture(e.pointerId);
+                });
+                stage.addEventListener('pointermove', (e) => {
+                    if (!dragging) return;
+                    tx += e.clientX - lastX; ty += e.clientY - lastY;
+                    lastX = e.clientX; lastY = e.clientY;
+                    apply();
+                });
+                const endDrag = (e) => {
+                    dragging = false; stage.classList.remove('dragging');
+                    try { stage.releasePointerCapture(e.pointerId); } catch (_) {}
+                };
+                stage.addEventListener('pointerup', endDrag);
+                stage.addEventListener('pointercancel', endDrag);
+
+                document.body.appendChild(overlay);
+                document.addEventListener('keydown', onKey);
+                fit();
+            }
+
+            document.addEventListener('click', (ev) => {
+                const el = ev.target.closest ? ev.target.closest('.mermaid[data-zoomable]') : null;
+                if (!el || overlay) return;
+                open(el);
+            });
+        })();
 
         window.addEventListener('scroll', () => {
             if (__suppressSync) return;
