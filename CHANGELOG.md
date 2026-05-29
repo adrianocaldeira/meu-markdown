@@ -6,6 +6,20 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.13.0] — 2026
+
+### Adicionado
+- **Zoom em diagramas Mermaid**: clicar num diagrama renderizado abre um
+  lightbox em tela cheia. Scroll dá zoom no ponto do cursor, arrastar move
+  (pan), e há botões para aproximar, afastar, ajustar à tela e fechar (também
+  via `Esc` ou clique no fundo). Respeita o tema claro/escuro. Disponível no
+  preview ao vivo.
+
+### Corrigido
+- **Links âncora no preview** (`[texto](#secao)`): cliques não pulavam para a
+  seção correspondente. Agora a navegação funciona, inclusive para âncoras com
+  acentos (`#introdução`), que antes não casavam com o id gerado para o título.
+
 ## [1.12.0] — 2026
 
 ### Adicionado
@@ -319,7 +333,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.12.0...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.13.0...HEAD
+[1.13.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.13.0
 [1.12.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.12.0
 [1.11.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.11.0
 [1.10.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.10.0

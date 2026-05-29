@@ -148,7 +148,7 @@ Arquitetura **MVVM** simples e enxuta — detalhes na [Wiki/Arquitetura](https:/
 
 ## 🗺️ Roadmap
 
-### ✅ Já entregue (v1.12.0)
+### ✅ Já entregue (v1.13.0)
 - Editor + preview live com syntax highlighting
 - Múltiplas abas com menu de contexto (fechar variantes, fixar aba) e drag-and-drop pra reordenar
 - Navegação entre `.md` linkados com histórico **e suporte a heading anchor (`#secao`)**
@@ -167,6 +167,7 @@ Arquitetura **MVVM** simples e enxuta — detalhes na [Wiki/Arquitetura](https:/
 - **Construtor visual de Mermaid** na toolbar (Fluxograma/Sequência) + 8 templates prontos
 - **Recarregamento automático ao detectar mudança externa** (ao ativar a aba ou focar o app), preservando o scroll do editor — com aviso quando há edições não salvas
 - **Busca no preview** (`Ctrl+F`) além do editor, conforme o painel ativo — highlight, contador e navegação nativos do WebView2
+- **Zoom em diagramas Mermaid**: clique pra abrir em tela cheia, com scroll/arraste pra zoom e pan
 
 ### 🚧 Em estudo
 - Snippets / templates de documento
