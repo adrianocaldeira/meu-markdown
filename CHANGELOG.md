@@ -6,6 +6,14 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.13.1] — 2026
+
+### Corrigido
+- **Label do workspace nas Configurações**: ao trocar de pasta (botão "Trocar
+  pasta..."), o caminho exibido continuava mostrando o workspace anterior até
+  alguma outra ação forçar a atualização (ex.: "Limpar lista"). Agora o label
+  reage à troca de pasta e atualiza imediatamente.
+
 ## [1.13.0] — 2026
 
 ### Adicionado
@@ -333,7 +341,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.13.0...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.13.1...HEAD
+[1.13.1]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.13.1
 [1.13.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.13.0
 [1.12.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.12.0
 [1.11.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.11.0

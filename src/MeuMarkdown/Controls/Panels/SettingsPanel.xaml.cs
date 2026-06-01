@@ -29,6 +29,10 @@ public partial class SettingsPanel : UserControl
         UpdateRecentCount();
 
         viewModel.RecentFilesService.Items.CollectionChanged += (_, _) => Dispatcher.Invoke(UpdateRecentCount);
+        // O label do workspace precisa reagir à troca de pasta (por Settings, Explorer ou menu).
+        // TreeChanged dispara em Open()/Close(), quando RootPath muda — espelha o CollectionChanged
+        // dos recentes. Sem isso, o label só atualizava no próximo RefreshWorkspaceAndRecents().
+        viewModel.WorkspaceService.TreeChanged += (_, _) => Dispatcher.Invoke(UpdateWorkspaceText);
     }
 
     public void RefreshWorkspaceAndRecents()
