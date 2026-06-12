@@ -321,13 +321,23 @@
         // ===== Lightbox de zoom do Mermaid =====
         // Clique num diagrama renderizado abre um overlay fullscreen com um clone do SVG.
         // Scroll = zoom no cursor, arrastar = pan, botões e Esc/clique no fundo controlam.
+        //
+        // O zoom redimensiona o SVG de verdade (width/height) em vez de usar
+        // transform: scale() — o Chromium rasteriza a camada no tamanho do layout e
+        // um scale via transform só amplia esse bitmap (texto ilegível em zoom alto).
+        // Redimensionar força re-render vetorial, nítido em qualquer escala.
         (function () {
             let overlay = null, stage = null, svgEl = null;
-            let scale = 1, tx = 0, ty = 0, natW = 0, natH = 0;
+            let scale = 1, tx = 0, ty = 0, natW = 0, natH = 0, lastScale = -1;
             const MIN = 0.1, MAX = 20;
 
             function apply() {
-                stage.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
+                if (scale !== lastScale) {
+                    svgEl.style.width = (natW * scale) + 'px';
+                    svgEl.style.height = (natH * scale) + 'px';
+                    lastScale = scale;
+                }
+                stage.style.transform = 'translate(' + tx + 'px,' + ty + 'px)';
             }
             function clamp(s) { return Math.min(MAX, Math.max(MIN, s)); }
 
@@ -370,8 +380,11 @@
                 stage.id = 'mm-zoom-stage';
                 svgEl = orig.cloneNode(true);
                 svgEl.style.maxWidth = 'none';
-                svgEl.style.width = natW + 'px';
-                svgEl.style.height = natH + 'px';
+                // Sem viewBox, mudar width/height não escala o conteúdo (só corta).
+                // O Mermaid sempre gera viewBox; isto cobre SVGs fora desse padrão.
+                if (!svgEl.getAttribute('viewBox'))
+                    svgEl.setAttribute('viewBox', '0 0 ' + natW + ' ' + natH);
+                lastScale = -1;
                 stage.appendChild(svgEl);
                 overlay.appendChild(stage);
 

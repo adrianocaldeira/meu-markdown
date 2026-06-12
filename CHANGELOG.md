@@ -6,6 +6,15 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ## [Não lançado]
 
+## [1.13.2] — 2026
+
+### Corrigido
+- **Nitidez do zoom em diagramas Mermaid**: ao ampliar um diagrama no lightbox,
+  o conteúdo ficava borrado/ilegível em zoom alto — o navegador ampliava uma
+  versão rasterizada (bitmap) do diagrama. Agora o zoom redimensiona o SVG de
+  verdade, re-renderizando os vetores: textos e traços ficam nítidos em
+  qualquer nível de ampliação.
+
 ## [1.13.1] — 2026
 
 ### Corrigido
@@ -341,7 +350,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Exportação para HTML
 - Recent files
 
-[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.13.1...HEAD
+[Não lançado]: https://github.com/adrianocaldeira/meu-markdown/compare/v1.13.2...HEAD
+[1.13.2]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.13.2
 [1.13.1]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.13.1
 [1.13.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.13.0
 [1.12.0]: https://github.com/adrianocaldeira/meu-markdown/releases/tag/v1.12.0
